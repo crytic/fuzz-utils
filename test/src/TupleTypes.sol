@@ -1,6 +1,8 @@
 pragma solidity ^0.8.0;
 
-// Ran from test directory: echidna . --contract TupleTypes --test-mode assertion --test-limit 100000 --corpus-dir corpus-struct --crytic-args "--foundry-ignore-compile"
+import "./IStruct.sol";
+
+// Ran from test directory: echidna . --contract TupleTypes --test-mode assertion --test-limit 100000 --corpus-dir echidna-corpora/corpus-struct --crytic-args "--foundry-ignore-compile"
 // Ran from test directory: test-generator ./src/TupleTypes.sol --corpus-dir echidna-corpora/corpus-struct --contract "TupleTypes" --test-directory "./test/" --inheritance-path "../src/" --fuzzer echidna
 contract TupleTypes {
     struct ElementaryStruct {
@@ -34,6 +36,7 @@ contract TupleTypes {
     FixedArrayStruct fixedArrayStruct;
     DynamicArrayStruct dynArrayStruct;
     Enumerable testEnum;
+    IStruct.Inherited inheritedStruct;
 
     // ------------------------------------
     //         --  Elementary struct  --
@@ -43,7 +46,7 @@ contract TupleTypes {
         testStruct = input;
     }
 
-    function check_elementaryStruct() public view {
+    function check_elementaryStruct() public {
         ElementaryStruct memory test = testStruct;
         if (
             test.uintType > 0 &&
@@ -62,7 +65,7 @@ contract TupleTypes {
         nestedStruct = input;
     }
 
-    function check_nestedStruct() public view {
+    function check_nestedStruct() public {
         NestedStruct memory test = nestedStruct;
         if (
             test.structType.boolType &&
@@ -82,7 +85,7 @@ contract TupleTypes {
         fixedArrayStruct = input;
     }
 
-    function check_fixedArrStruct() public view {
+    function check_fixedArrStruct() public {
         FixedArrayStruct memory test = fixedArrayStruct;
         uint256 count;
         for (uint256 i; i < test.fixedSized.length; i++) {
@@ -103,7 +106,7 @@ contract TupleTypes {
         dynArrayStruct = input;
     }
 
-    function check_dynamicArrStruct() public view {
+    function check_dynamicArrStruct() public {
         DynamicArrayStruct memory test = dynArrayStruct;
         uint256 count;
         for (uint256 i; i < test.dynSized.length; i++) {
@@ -125,8 +128,25 @@ contract TupleTypes {
         testEnum = input;
     }
 
-    function check_enum() public view {
+    function check_enum() public {
         if (testEnum == Enumerable.TWO) {
+            assert(false);
+        }
+    }
+
+    // ------------------------------------
+    //         --  Inherited struct  --
+    // ------------------------------------
+    function updateInheritedStruct(IStruct.Inherited memory input) public {
+        inheritedStruct = input;
+    }
+
+    function check_inheritedStruct() public {
+        IStruct.Inherited memory test = inheritedStruct;
+        if (
+            test.uintType > 0 &&
+            test.boolType
+        ) {
             assert(false);
         }
     }

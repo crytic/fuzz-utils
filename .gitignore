@@ -63,3 +63,4 @@ test.py
 # Compiler files
 cache/
 out/
+crytic-export/

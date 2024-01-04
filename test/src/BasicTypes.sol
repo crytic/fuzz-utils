@@ -1,6 +1,6 @@
 pragma solidity ^0.8.0;
 
-// Ran from test directory: echidna . --contract BasicTypes --test-mode assertion --test-limit 100000 --corpus-dir corpus-basic --crytic-args "--foundry-ignore-compile"
+// Ran from test directory: echidna . --contract BasicTypes --test-mode assertion --test-limit 100000 --corpus-dir echidna-corpora/corpus-basic --crytic-args "--foundry-ignore-compile"
 // Ran from test directory: test-generator ./src/BasicTypes.sol --corpus-dir echidna-corpora/corpus-basic --contract "BasicTypes" --test-directory "./test/" --inheritance-path "../src/" --fuzzer echidna
 contract BasicTypes {
 
