@@ -1,7 +1,7 @@
 pragma solidity ^0.8.0;
 
 // Ran from test directory: echidna . --contract MultiDimensionalDynamicArrays --test-mode assertion --test-limit 100000 --corpus-dir corpus-multi-dyn-arr --crytic-args "--foundry-ignore-compile"
-// Ran from test directory: test-generator ./src/MultiDimensionalDynamicArrays.sol --corpus-dir test/corpus-multi-dyn-arr --contract "MultiDimensionalDynamicArrays" --test-directory "./test/test/" --inheritance-path "../src/" --fuzzer echidna
+// Ran from test directory: test-generator ./src/MultiDimensionalDynamicArrays.sol --corpus-dir echidna-corpora/corpus-multi-dyn-arr --contract "MultiDimensionalDynamicArrays" --test-directory "./test/" --inheritance-path "../src/" --fuzzer echidna
 contract MultiDimensionalDynamicArrays {
     // ----- 2-dimensional arrays ------
 

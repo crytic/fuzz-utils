@@ -1,7 +1,7 @@
 pragma solidity ^0.8.0;
 
 // Ran from test directory: echidna . --contract TimeAdvancement --test-mode assertion --test-limit 10000 --corpus-dir corpus-time --crytic-args "--foundry-ignore-compile"
-// Ran from test directory: test-generator ./src/TupleTypes.sol --corpus-dir corpus-struct --contract "TupleTypes" --test-directory "./test/" --inheritance-path "../src/" --fuzzer echidna
+// Ran from test directory: test-generator ./src/TupleTypes.sol --corpus-dir echidna-corpora/corpus-struct --contract "TupleTypes" --test-directory "./test/" --inheritance-path "../src/" --fuzzer echidna
 
 contract TimeAdvancement {
     bool timeSet;

@@ -98,7 +98,7 @@ def main() -> None:
         help="Define the directory that contains the Foundry tests.",
     )
     parser.add_argument(
-        "-t",
+        "-i",
         "--inheritance-path",
         dest="inheritance_path",
         help="Define the relative path from the test directory to the directory src/contracts directory.",
