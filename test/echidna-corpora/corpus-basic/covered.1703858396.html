@@ -1,0 +1,281 @@
+<style> code { white-space: pre-wrap; display: block; background-color: #eee; }.executed { background-color: #afa; }.reverted { background-color: #ffa; }.unexecuted { background-color: #faa; }.neutral { background-color: #eee; }</style><b>/Users/elvisskozdopolj/Documents/TOB/echidna-auto-poc/tests/src/BasicTypes.sol</b>
+<code>
+   1 |     | <span class='neutral'>pragma solidity ^0.8.0;</span>
+   2 |     | <span class='neutral'></span>
+   3 |     | <span class='neutral'>// Types to check: all uint, all int, bool, address, bytes, string</span>
+   4 |     | <span class='neutral'></span>
+   5 |     | <span class='neutral'>// Ran from tests directory: echidna . --contract BasicTypes --test-mode assertion --test-limit 100000 --corpus-dir corpus-basic</span>
+   6 |     | <span class='neutral'>// Ran from root directory: python poc-generator.py --corpus-dir tests/corpus-basic --contract &quot;BasicTypes&quot; --test-directory &quot;./tests/test/&quot; --target-path &quot;../src/&quot;</span>
+   7 | *r  | <span class='executed'>contract BasicTypes {</span>
+   8 |     | <span class='neutral'>    event AssertionFailed(bytes data);</span>
+   9 |     | <span class='neutral'>    event AssertionFailed(string data);</span>
+  10 |     | <span class='neutral'>    event Debug(string data);</span>
+  11 |     | <span class='neutral'></span>
+  12 |     | <span class='neutral'>    // ------------------------------</span>
+  13 |     | <span class='neutral'>    //         --  bool  --</span>
+  14 |     | <span class='neutral'>    // ------------------------------</span>
+  15 |     | <span class='neutral'>    bool first;</span>
+  16 |     | <span class='neutral'></span>
+  17 | *   | <span class='executed'>    function setBool(bool set) public {</span>
+  18 | *   | <span class='executed'>        first = set;</span>
+  19 |     | <span class='neutral'>    }</span>
+  20 |     | <span class='neutral'></span>
+  21 | *   | <span class='executed'>    function check_bool() view public {</span>
+  22 | *   | <span class='executed'>        if (first) {</span>
+  23 | *   | <span class='executed'>            assert(false);</span>
+  24 |     | <span class='neutral'>        }</span>
+  25 |     | <span class='neutral'>    }</span>
+  26 |     | <span class='neutral'></span>
+  27 |     | <span class='neutral'>    // ------------------------------</span>
+  28 |     | <span class='neutral'>    //         --  uint  --</span>
+  29 |     | <span class='neutral'>    // ------------------------------</span>
+  30 |     | <span class='unexecuted'>    uint256 _uint256 = 3;</span>
+  31 |     | <span class='neutral'></span>
+  32 | *   | <span class='executed'>    function setUint256(uint256 input) public {</span>
+  33 | *   | <span class='executed'>        _uint256 = input;</span>
+  34 |     | <span class='neutral'>    }</span>
+  35 |     | <span class='neutral'></span>
+  36 | *   | <span class='executed'>    function check_uint256() view public {</span>
+  37 | *   | <span class='executed'>        if (_uint256 % 2 == 0) {</span>
+  38 |     | <span class='neutral'>            assert(false);</span>
+  39 |     | <span class='neutral'>        }</span>
+  40 |     | <span class='neutral'>    }</span>
+  41 |     | <span class='neutral'></span>
+  42 | *   | <span class='executed'>    function check_large_uint256() view public {</span>
+  43 | *   | <span class='executed'>        if (_uint256 == type(uint256).max) {</span>
+  44 | *   | <span class='executed'>            assert(false);</span>
+  45 |     | <span class='neutral'>        }</span>
+  46 |     | <span class='neutral'>    }</span>
+  47 |     | <span class='neutral'></span>
+  48 |     | <span class='neutral'>    // ------------------------------</span>
+  49 |     | <span class='neutral'>    //         --  int  --</span>
+  50 |     | <span class='neutral'>    // ------------------------------</span>
+  51 |     | <span class='unexecuted'>    int256 _int256 = 3;</span>
+  52 |     | <span class='neutral'></span>
+  53 | *   | <span class='executed'>    function setInt256(int256 input) public {</span>
+  54 | *   | <span class='executed'>        _int256 = input;</span>
+  55 |     | <span class='neutral'>    }</span>
+  56 |     | <span class='neutral'></span>
+  57 | *   | <span class='executed'>    function check_int256() view public {</span>
+  58 | *   | <span class='executed'>        if (_int256 % 2 == 0) {</span>
+  59 | *   | <span class='executed'>            assert(false);</span>
+  60 |     | <span class='neutral'>        }</span>
+  61 |     | <span class='neutral'>    }</span>
+  62 |     | <span class='neutral'></span>
+  63 | *   | <span class='executed'>    function check_large_positive_int256() view public {</span>
+  64 | *   | <span class='executed'>        if (_int256 == type(int256).max) {</span>
+  65 | *   | <span class='executed'>            assert(false);</span>
+  66 |     | <span class='neutral'>        }</span>
+  67 |     | <span class='neutral'>    }</span>
+  68 |     | <span class='neutral'></span>
+  69 | *   | <span class='executed'>    function check_large_negative_int256() view public {</span>
+  70 | *   | <span class='executed'>        if (_int256 == type(int256).min) {</span>
+  71 | *   | <span class='executed'>            assert(false);</span>
+  72 |     | <span class='neutral'>        }</span>
+  73 |     | <span class='neutral'>    }</span>
+  74 |     | <span class='neutral'>    // ------------------------------</span>
+  75 |     | <span class='neutral'>    //         --  address  --</span>
+  76 |     | <span class='neutral'>    // ------------------------------</span>
+  77 |     | <span class='neutral'>    address providedAddress;</span>
+  78 |     | <span class='neutral'></span>
+  79 | *   | <span class='executed'>    function setAddress(address input) public {</span>
+  80 | *r  | <span class='executed'>        require(input != address(0));</span>
+  81 | *   | <span class='executed'>        providedAddress = input;</span>
+  82 |     | <span class='neutral'>    }</span>
+  83 |     | <span class='neutral'></span>
+  84 | *   | <span class='executed'>    function check_address() view public {</span>
+  85 | *   | <span class='executed'>        if (providedAddress != address(0)) {</span>
+  86 | *   | <span class='executed'>            assert(false);</span>
+  87 |     | <span class='neutral'>        }</span>
+  88 |     | <span class='neutral'>    }</span>
+  89 |     | <span class='neutral'>    // ------------------------------</span>
+  90 |     | <span class='neutral'>    //         --  string  --</span>
+  91 |     | <span class='neutral'>    // ------------------------------</span>
+  92 |     | <span class='neutral'>    string providedString;</span>
+  93 |     | <span class='unexecuted'>    string specificString = &quot;a&quot;;</span>
+  94 |     | <span class='neutral'></span>
+  95 | *   | <span class='executed'>    function setString(string memory input) public {</span>
+  96 | *r  | <span class='executed'>        require(bytes(input).length &gt; 20);</span>
+  97 | *   | <span class='executed'>        providedString = input;</span>
+  98 |     | <span class='neutral'>    }</span>
+  99 |     | <span class='neutral'></span>
+ 100 | *   | <span class='executed'>    function check_string() view public {</span>
+ 101 | *   | <span class='executed'>        if (bytes(providedString).length &gt; 20) {</span>
+ 102 |     | <span class='neutral'>            assert(false);</span>
+ 103 |     | <span class='neutral'>        }</span>
+ 104 |     | <span class='neutral'>    }</span>
+ 105 |     | <span class='neutral'></span>
+ 106 | *   | <span class='executed'>    function check_specific_string() view public {</span>
+ 107 | *   | <span class='executed'>        if (keccak256(bytes(providedString)) == keccak256(bytes(specificString))) {</span>
+ 108 |     | <span class='unexecuted'>            assert(false);</span>
+ 109 |     | <span class='neutral'>        }</span>
+ 110 |     | <span class='neutral'>    }</span>
+ 111 |     | <span class='neutral'>    // ------------------------------</span>
+ 112 |     | <span class='neutral'>    //         --  bytes  --</span>
+ 113 |     | <span class='neutral'>    // ------------------------------</span>
+ 114 |     | <span class='neutral'>    bytes providedBytes;</span>
+ 115 |     | <span class='neutral'>    bytes32 providedBytes32;</span>
+ 116 |     | <span class='neutral'></span>
+ 117 |     | <span class='neutral'>    // TODO bytes32, etc.</span>
+ 118 | *   | <span class='executed'>    function setBytes(bytes memory input) public {</span>
+ 119 | *r  | <span class='executed'>        require(input.length &gt; 20);</span>
+ 120 | *   | <span class='executed'>        providedBytes = input;</span>
+ 121 |     | <span class='neutral'>    }</span>
+ 122 |     | <span class='neutral'></span>
+ 123 | *   | <span class='executed'>    function check_bytes() view public {</span>
+ 124 | *   | <span class='executed'>        if (providedBytes.length &gt; 20) {</span>
+ 125 | *   | <span class='executed'>            assert(false);</span>
+ 126 |     | <span class='neutral'>        }</span>
+ 127 |     | <span class='neutral'>    }</span>
+ 128 |     | <span class='neutral'></span>
+ 129 | *   | <span class='executed'>    function setBytes32(bytes32 input) public {</span>
+ 130 | *   | <span class='executed'>        require(input != bytes32(0));</span>
+ 131 | *   | <span class='executed'>        providedBytes32 = input;</span>
+ 132 |     | <span class='neutral'>    }</span>
+ 133 |     | <span class='neutral'></span>
+ 134 |     | <span class='neutral'>    // ------------------------------</span>
+ 135 |     | <span class='neutral'>    //         --  combination  --</span>
+ 136 |     | <span class='neutral'>    // ------------------------------</span>
+ 137 |     | <span class='neutral'>}</span>
+
+</code>
+<br />
+
+<b>/Users/elvisskozdopolj/Documents/TOB/echidna-auto-poc/tests/src/DynamicArrays.sol</b>
+<code>
+  1 |     | <span class='neutral'>pragma solidity ^0.8.0;</span>
+  2 |     | <span class='neutral'></span>
+  3 |     | <span class='unexecuted'>contract DynamicArrays {</span>
+  4 |     | <span class='neutral'>    uint256[] dynamicArr;</span>
+  5 |     | <span class='neutral'></span>
+  6 |     | <span class='unexecuted'>    function addToDynamic(uint256[] memory arr) public {</span>
+  7 |     | <span class='unexecuted'>        for (uint256 i; i &lt; arr.length; i++) {</span>
+  8 |     | <span class='unexecuted'>            dynamicArr.push(arr[i]);</span>
+  9 |     | <span class='neutral'>        }</span>
+ 10 |     | <span class='neutral'>    }</span>
+ 11 |     | <span class='neutral'></span>
+ 12 |     | <span class='unexecuted'>    function check_sumDyn() public {</span>
+ 13 |     | <span class='unexecuted'>        uint256 sum;</span>
+ 14 |     | <span class='unexecuted'>        for(uint256 i; i &lt; dynamicArr.length; i++) {</span>
+ 15 |     | <span class='unexecuted'>            sum += dynamicArr[i];</span>
+ 16 |     | <span class='neutral'>        }</span>
+ 17 |     | <span class='neutral'></span>
+ 18 |     | <span class='unexecuted'>        if (sum != 0 &amp;&amp; sum % 3 == 0) {</span>
+ 19 |     | <span class='unexecuted'>            assert(false);</span>
+ 20 |     | <span class='neutral'>        }</span>
+ 21 |     | <span class='neutral'>    }</span>
+ 22 |     | <span class='neutral'>}</span>
+
+</code>
+<br />
+
+<b>/Users/elvisskozdopolj/Documents/TOB/echidna-auto-poc/tests/src/FixedArrays.sol</b>
+<code>
+  1 |     | <span class='neutral'>pragma solidity ^0.8.0;</span>
+  2 |     | <span class='neutral'></span>
+  3 |     | <span class='unexecuted'>contract FixedArrays {</span>
+  4 |     | <span class='neutral'>    uint256[1] fixedArr;</span>
+  5 |     | <span class='neutral'>    string[1] strArr;</span>
+  6 |     | <span class='neutral'>    uint256 fixedIndex;</span>
+  7 |     | <span class='neutral'></span>
+  8 |     | <span class='unexecuted'>    function addToStrArr(string[1] memory arr) public {</span>
+  9 |     | <span class='unexecuted'>        for(uint256 i; i &lt; strArr.length; i++) {</span>
+ 10 |     | <span class='unexecuted'>            strArr[i] = arr[i];</span>
+ 11 |     | <span class='neutral'>        }</span>
+ 12 |     | <span class='neutral'>    }</span>
+ 13 |     | <span class='neutral'></span>
+ 14 |     | <span class='unexecuted'>    function addToFixed(uint256[1] memory arr) public {</span>
+ 15 |     | <span class='unexecuted'>        for(uint256 i; i &lt; fixedArr.length; i++) {</span>
+ 16 |     | <span class='unexecuted'>            fixedArr[i] = arr[i];</span>
+ 17 |     | <span class='neutral'>        }</span>
+ 18 |     | <span class='neutral'>    }</span>
+ 19 |     | <span class='neutral'></span>
+ 20 |     | <span class='neutral'>    function arrSum(uint256[] memory arr) internal pure returns (uint256) {</span>
+ 21 |     | <span class='neutral'>        uint256 sum;</span>
+ 22 |     | <span class='neutral'>        for(uint256 i; i &lt; arr.length; i++) {</span>
+ 23 |     | <span class='neutral'>            sum += arr[i];</span>
+ 24 |     | <span class='neutral'>        }</span>
+ 25 |     | <span class='neutral'>        return sum;</span>
+ 26 |     | <span class='neutral'>    }</span>
+ 27 |     | <span class='neutral'></span>
+ 28 |     | <span class='unexecuted'>    function check_sumFixed() public {</span>
+ 29 |     | <span class='unexecuted'>        uint256 sum;</span>
+ 30 |     | <span class='unexecuted'>        for(uint256 i; i &lt; fixedArr.length; i++) {</span>
+ 31 |     | <span class='unexecuted'>            sum += fixedArr[i];</span>
+ 32 |     | <span class='neutral'>        }</span>
+ 33 |     | <span class='unexecuted'>        if (sum == 5) {</span>
+ 34 |     | <span class='unexecuted'>            assert(false);</span>
+ 35 |     | <span class='neutral'>        }</span>
+ 36 |     | <span class='neutral'>    }</span>
+ 37 |     | <span class='neutral'></span>
+ 38 |     | <span class='unexecuted'>    function check_strArr() public {</span>
+ 39 |     | <span class='unexecuted'>        if (bytes(strArr[0]).length &gt; 0) {</span>
+ 40 |     | <span class='unexecuted'>            assert(false);</span>
+ 41 |     | <span class='neutral'>        }</span>
+ 42 |     | <span class='neutral'>    }</span>
+ 43 |     | <span class='neutral'>}</span>
+
+</code>
+<br />
+
+<b>/Users/elvisskozdopolj/Documents/TOB/echidna-auto-poc/tests/src/TimeAdvancement.sol</b>
+<code>
+  1 |     | <span class='neutral'>pragma solidity ^0.8.0;</span>
+  2 |     | <span class='neutral'></span>
+  3 |     | <span class='neutral'>// echidna . --contract TimeAdvancement --test-mode assertion --test-limit 10000 --corpus-dir corpus-time</span>
+  4 |     | <span class='unexecuted'>contract TimeAdvancement {</span>
+  5 |     | <span class='neutral'>    bool timeSet;</span>
+  6 |     | <span class='neutral'>    bool blockSet;</span>
+  7 |     | <span class='neutral'>    uint256 timestamp;</span>
+  8 |     | <span class='neutral'>    uint256 blockNumber;</span>
+  9 |     | <span class='neutral'></span>
+ 10 |     | <span class='neutral'>    // ------------------------------</span>
+ 11 |     | <span class='neutral'>    //         --  timestamp  --</span>
+ 12 |     | <span class='neutral'>    // ------------------------------</span>
+ 13 |     | <span class='neutral'></span>
+ 14 |     | <span class='unexecuted'>    function setTimestamp() public {</span>
+ 15 |     | <span class='unexecuted'>        timeSet = true;</span>
+ 16 |     | <span class='unexecuted'>        timestamp = block.timestamp;</span>
+ 17 |     | <span class='neutral'>    }</span>
+ 18 |     | <span class='neutral'></span>
+ 19 |     | <span class='unexecuted'>    function check_timestamp() view public {</span>
+ 20 |     | <span class='unexecuted'>        if (timeSet) {</span>
+ 21 |     | <span class='unexecuted'>            assert(block.timestamp &lt;= timestamp);</span>
+ 22 |     | <span class='neutral'>        }</span>
+ 23 |     | <span class='neutral'>    }</span>
+ 24 |     | <span class='neutral'>    // ------------------------------</span>
+ 25 |     | <span class='neutral'>    //         --  block number  --</span>
+ 26 |     | <span class='neutral'>    // ------------------------------</span>
+ 27 |     | <span class='neutral'></span>
+ 28 |     | <span class='unexecuted'>    function setBlock() public {</span>
+ 29 |     | <span class='unexecuted'>        blockSet = true;</span>
+ 30 |     | <span class='unexecuted'>        blockNumber = block.number;</span>
+ 31 |     | <span class='neutral'>    }</span>
+ 32 |     | <span class='neutral'></span>
+ 33 |     | <span class='unexecuted'>    function check_block() view public {</span>
+ 34 |     | <span class='unexecuted'>        if (blockSet) {</span>
+ 35 |     | <span class='unexecuted'>            assert(block.number &lt;= blockNumber);</span>
+ 36 |     | <span class='neutral'>        }</span>
+ 37 |     | <span class='neutral'>    }</span>
+ 38 |     | <span class='neutral'></span>
+ 39 |     | <span class='neutral'>    // ------------------------------</span>
+ 40 |     | <span class='neutral'>    //         --  both  --</span>
+ 41 |     | <span class='neutral'>    // ------------------------------</span>
+ 42 |     | <span class='neutral'></span>
+ 43 |     | <span class='unexecuted'>    function check_time_and_block() view public {</span>
+ 44 |     | <span class='unexecuted'>        if (blockSet &amp;&amp; timeSet) {</span>
+ 45 |     | <span class='unexecuted'>            assert(block.timestamp &lt;= timestamp || block.number &lt;= blockNumber);</span>
+ 46 |     | <span class='neutral'>        }</span>
+ 47 |     | <span class='neutral'>    }</span>
+ 48 |     | <span class='neutral'></span>
+ 49 |     | <span class='neutral'>}</span>
+
+</code>
+<br />
+
+<b>/Users/elvisskozdopolj/Documents/TOB/echidna-auto-poc/tests/src/TupleTypes.sol</b>
+<code>
+
+</code>
+<br />
+

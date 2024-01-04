@@ -1,0 +1,29 @@
+[tool.black]
+target-version = ["py310"]
+line-length = 100
+[tool.pylint.messages_control]
+disable = """
+unnecessary-lambda,
+cyclic-import,
+line-too-long,
+invalid-name,
+fixme,
+too-many-return-statements,
+too-many-ancestors,
+logging-fstring-interpolation,
+logging-not-lazy,
+duplicate-code,
+import-error,
+unsubscriptable-object
+"""
+[tool.mypy]
+warn_incomplete_stub = true
+ignore_missing_imports = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+warn_redundant_casts = true
+warn_no_return = true
+warn_unreachable = true
