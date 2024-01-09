@@ -136,8 +136,9 @@ class Echidna:
             case "AbiAddress":
                 return param["contents"]
             case "AbiBytes" | "AbiBytesDynamic":
+                contents = param["contents"][1] if isinstance(param["contents"], list) else param["contents"]
                 # Haskell encoding needs to be stripped and then converted to a hex literal
-                hex_string = self._parse_byte_string(param["contents"].strip('"'))
+                hex_string = self._parse_byte_string(contents.strip('"'))
                 interpreted_string = 'hex"' + hex_string + '"'
                 if not recursive:
                     return interpreted_string
