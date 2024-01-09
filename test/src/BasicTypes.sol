@@ -97,6 +97,13 @@ contract BasicTypes {
         }
     }
 
+    function check_specific_string(string memory provided, string memory target) public {
+        require(bytes(provided).length > 0);
+        if (keccak256(bytes(provided)) == keccak256(bytes(hex"00"))) {
+            assert(false);
+        }
+    }
+
     // ------------------------------
     //         --  bytes  --
     // ------------------------------

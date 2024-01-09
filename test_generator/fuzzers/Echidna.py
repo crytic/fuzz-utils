@@ -12,7 +12,7 @@ from slither.core.declarations.structure import Structure
 from slither.core.declarations.structure_contract import StructureContract
 from slither.core.declarations.enum import Enum
 from test_generator.templates.foundry_templates import templates
-
+from test_generator.utils.encoding import parse_echidna_byte_string
 
 class Echidna:
     """
@@ -131,23 +131,26 @@ class Echidna:
                 if not recursive:
                     return param["contents"][1]
                 else:
-                    casting = cast + str(param["contents"][0]) + "(" + param["contents"][1] + ")"
+                    casting = f'{cast}{str(param["contents"][0])}({param["contents"][1]})'
                     return casting
             case "AbiAddress":
                 return param["contents"]
             case "AbiBytes" | "AbiBytesDynamic":
-                contents = param["contents"][1] if isinstance(param["contents"], list) else param["contents"]
+                is_fixed_size = isinstance(param["contents"], list)
+                size = param["contents"][0] if is_fixed_size else ""
+                contents = param["contents"][1] if is_fixed_size else param["contents"]
                 # Haskell encoding needs to be stripped and then converted to a hex literal
-                hex_string = self._parse_byte_string(contents.strip('"'))
-                interpreted_string = 'hex"' + hex_string + '"'
+                hex_string = parse_echidna_byte_string(contents.strip('"'))
+                interpreted_string = f'hex"{hex_string}"'
                 if not recursive:
-                    return interpreted_string
+                    result = f"bytes{size}({interpreted_string})" if is_fixed_size else interpreted_string
+                    return result
                 else:
-                    casting = "bytes(" + interpreted_string + ")"
+                    casting = f"bytes{size}({interpreted_string})"
                     return casting
             case "AbiString":
-                hex_string = self._parse_byte_string(param["contents"].strip('"'))
-                interpreted_string = 'string(hex"' + hex_string + '")'
+                hex_string = parse_echidna_byte_string(param["contents"].strip('"'))
+                interpreted_string = f'string(hex"{hex_string}")'
                 return interpreted_string
 
     def _match_array_type(self, param: dict, index: int, input_parameter) -> tuple[str, str, int]:
@@ -167,7 +170,7 @@ class Echidna:
                 definitions += var_def
 
                 for idx, temp_param in enumerate(func_params):
-                    definitions += "\t\t" + name + f"[{idx}] = {temp_param};\n"
+                    definitions += f"\t\t{name}[{idx}] = {temp_param};\n"
                 index += 1
 
                 return name, definitions, index
@@ -264,18 +267,3 @@ class Echidna:
                 return name, f"string[] memory {name} = new string[]({length});\n"
             case _:
                 return None, None
-
-    def _parse_byte_string(self, s):
-        # Replace Haskell-specific escapes with Python bytes
-        s = s.replace("\\NUL", "\x00")
-        s = s.replace("\\SOH", "\x01")
-
-        # Handle octal escapes (like \\135)
-        def octal_to_byte(match):
-            octal_value = match.group(0)[1:]  # Remove the backslash
-            return str([int(octal_value, 8)])
-
-        s = re.sub(r"\\[0-3]?[0-7][0-7]", octal_to_byte, s)
-
-        # Convert to bytes and then to hexadecimal
-        return s.encode().hex()

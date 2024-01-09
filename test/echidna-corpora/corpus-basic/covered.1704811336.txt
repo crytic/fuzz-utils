@@ -1,3 +1,598 @@
+/Users/elvisskozdopolj/Documents/GitHub/test-generator/test/lib/forge-std/lib/ds-test/src/test.sol
+   1 |     | // SPDX-License-Identifier: GPL-3.0-or-later
+   2 |     | 
+   3 |     | // This program is free software: you can redistribute it and/or modify
+   4 |     | // it under the terms of the GNU General Public License as published by
+   5 |     | // the Free Software Foundation, either version 3 of the License, or
+   6 |     | // (at your option) any later version.
+   7 |     | 
+   8 |     | // This program is distributed in the hope that it will be useful,
+   9 |     | // but WITHOUT ANY WARRANTY; without even the implied warranty of
+  10 |     | // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  11 |     | // GNU General Public License for more details.
+  12 |     | 
+  13 |     | // You should have received a copy of the GNU General Public License
+  14 |     | // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  15 |     | 
+  16 |     | pragma solidity >=0.5.0;
+  17 |     | 
+  18 |     | contract DSTest {
+  19 |     |     event log                    (string);
+  20 |     |     event logs                   (bytes);
+  21 |     | 
+  22 |     |     event log_address            (address);
+  23 |     |     event log_bytes32            (bytes32);
+  24 |     |     event log_int                (int);
+  25 |     |     event log_uint               (uint);
+  26 |     |     event log_bytes              (bytes);
+  27 |     |     event log_string             (string);
+  28 |     | 
+  29 |     |     event log_named_address      (string key, address val);
+  30 |     |     event log_named_bytes32      (string key, bytes32 val);
+  31 |     |     event log_named_decimal_int  (string key, int val, uint decimals);
+  32 |     |     event log_named_decimal_uint (string key, uint val, uint decimals);
+  33 |     |     event log_named_int          (string key, int val);
+  34 |     |     event log_named_uint         (string key, uint val);
+  35 |     |     event log_named_bytes        (string key, bytes val);
+  36 |     |     event log_named_string       (string key, string val);
+  37 |     | 
+  38 |     |     bool public IS_TEST = true;
+  39 |     |     bool private _failed;
+  40 |     | 
+  41 |     |     address constant HEVM_ADDRESS =
+  42 |     |         address(bytes20(uint160(uint256(keccak256('hevm cheat code')))));
+  43 |     | 
+  44 |     |     modifier mayRevert() { _; }
+  45 |     |     modifier testopts(string memory) { _; }
+  46 |     | 
+  47 |     |     function failed() public returns (bool) {
+  48 |     |         if (_failed) {
+  49 |     |             return _failed;
+  50 |     |         } else {
+  51 |     |             bool globalFailed = false;
+  52 |     |             if (hasHEVMContext()) {
+  53 |     |                 (, bytes memory retdata) = HEVM_ADDRESS.call(
+  54 |     |                     abi.encodePacked(
+  55 |     |                         bytes4(keccak256("load(address,bytes32)")),
+  56 |     |                         abi.encode(HEVM_ADDRESS, bytes32("failed"))
+  57 |     |                     )
+  58 |     |                 );
+  59 |     |                 globalFailed = abi.decode(retdata, (bool));
+  60 |     |             }
+  61 |     |             return globalFailed;
+  62 |     |         }
+  63 |     |     }
+  64 |     | 
+  65 |     |     function fail() internal virtual {
+  66 |     |         if (hasHEVMContext()) {
+  67 |     |             (bool status, ) = HEVM_ADDRESS.call(
+  68 |     |                 abi.encodePacked(
+  69 |     |                     bytes4(keccak256("store(address,bytes32,bytes32)")),
+  70 |     |                     abi.encode(HEVM_ADDRESS, bytes32("failed"), bytes32(uint256(0x01)))
+  71 |     |                 )
+  72 |     |             );
+  73 |     |             status; // Silence compiler warnings
+  74 |     |         }
+  75 |     |         _failed = true;
+  76 |     |     }
+  77 |     | 
+  78 |     |     function hasHEVMContext() internal view returns (bool) {
+  79 |     |         uint256 hevmCodeSize = 0;
+  80 |     |         assembly {
+  81 |     |             hevmCodeSize := extcodesize(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D)
+  82 |     |         }
+  83 |     |         return hevmCodeSize > 0;
+  84 |     |     }
+  85 |     | 
+  86 |     |     modifier logs_gas() {
+  87 |     |         uint startGas = gasleft();
+  88 |     |         _;
+  89 |     |         uint endGas = gasleft();
+  90 |     |         emit log_named_uint("gas", startGas - endGas);
+  91 |     |     }
+  92 |     | 
+  93 |     |     function assertTrue(bool condition) internal {
+  94 |     |         if (!condition) {
+  95 |     |             emit log("Error: Assertion Failed");
+  96 |     |             fail();
+  97 |     |         }
+  98 |     |     }
+  99 |     | 
+ 100 |     |     function assertTrue(bool condition, string memory err) internal {
+ 101 |     |         if (!condition) {
+ 102 |     |             emit log_named_string("Error", err);
+ 103 |     |             assertTrue(condition);
+ 104 |     |         }
+ 105 |     |     }
+ 106 |     | 
+ 107 |     |     function assertEq(address a, address b) internal {
+ 108 |     |         if (a != b) {
+ 109 |     |             emit log("Error: a == b not satisfied [address]");
+ 110 |     |             emit log_named_address("      Left", a);
+ 111 |     |             emit log_named_address("     Right", b);
+ 112 |     |             fail();
+ 113 |     |         }
+ 114 |     |     }
+ 115 |     |     function assertEq(address a, address b, string memory err) internal {
+ 116 |     |         if (a != b) {
+ 117 |     |             emit log_named_string ("Error", err);
+ 118 |     |             assertEq(a, b);
+ 119 |     |         }
+ 120 |     |     }
+ 121 |     | 
+ 122 |     |     function assertEq(bytes32 a, bytes32 b) internal {
+ 123 |     |         if (a != b) {
+ 124 |     |             emit log("Error: a == b not satisfied [bytes32]");
+ 125 |     |             emit log_named_bytes32("      Left", a);
+ 126 |     |             emit log_named_bytes32("     Right", b);
+ 127 |     |             fail();
+ 128 |     |         }
+ 129 |     |     }
+ 130 |     |     function assertEq(bytes32 a, bytes32 b, string memory err) internal {
+ 131 |     |         if (a != b) {
+ 132 |     |             emit log_named_string ("Error", err);
+ 133 |     |             assertEq(a, b);
+ 134 |     |         }
+ 135 |     |     }
+ 136 |     |     function assertEq32(bytes32 a, bytes32 b) internal {
+ 137 |     |         assertEq(a, b);
+ 138 |     |     }
+ 139 |     |     function assertEq32(bytes32 a, bytes32 b, string memory err) internal {
+ 140 |     |         assertEq(a, b, err);
+ 141 |     |     }
+ 142 |     | 
+ 143 |     |     function assertEq(int a, int b) internal {
+ 144 |     |         if (a != b) {
+ 145 |     |             emit log("Error: a == b not satisfied [int]");
+ 146 |     |             emit log_named_int("      Left", a);
+ 147 |     |             emit log_named_int("     Right", b);
+ 148 |     |             fail();
+ 149 |     |         }
+ 150 |     |     }
+ 151 |     |     function assertEq(int a, int b, string memory err) internal {
+ 152 |     |         if (a != b) {
+ 153 |     |             emit log_named_string("Error", err);
+ 154 |     |             assertEq(a, b);
+ 155 |     |         }
+ 156 |     |     }
+ 157 |     |     function assertEq(uint a, uint b) internal {
+ 158 |     |         if (a != b) {
+ 159 |     |             emit log("Error: a == b not satisfied [uint]");
+ 160 |     |             emit log_named_uint("      Left", a);
+ 161 |     |             emit log_named_uint("     Right", b);
+ 162 |     |             fail();
+ 163 |     |         }
+ 164 |     |     }
+ 165 |     |     function assertEq(uint a, uint b, string memory err) internal {
+ 166 |     |         if (a != b) {
+ 167 |     |             emit log_named_string("Error", err);
+ 168 |     |             assertEq(a, b);
+ 169 |     |         }
+ 170 |     |     }
+ 171 |     |     function assertEqDecimal(int a, int b, uint decimals) internal {
+ 172 |     |         if (a != b) {
+ 173 |     |             emit log("Error: a == b not satisfied [decimal int]");
+ 174 |     |             emit log_named_decimal_int("      Left", a, decimals);
+ 175 |     |             emit log_named_decimal_int("     Right", b, decimals);
+ 176 |     |             fail();
+ 177 |     |         }
+ 178 |     |     }
+ 179 |     |     function assertEqDecimal(int a, int b, uint decimals, string memory err) internal {
+ 180 |     |         if (a != b) {
+ 181 |     |             emit log_named_string("Error", err);
+ 182 |     |             assertEqDecimal(a, b, decimals);
+ 183 |     |         }
+ 184 |     |     }
+ 185 |     |     function assertEqDecimal(uint a, uint b, uint decimals) internal {
+ 186 |     |         if (a != b) {
+ 187 |     |             emit log("Error: a == b not satisfied [decimal uint]");
+ 188 |     |             emit log_named_decimal_uint("      Left", a, decimals);
+ 189 |     |             emit log_named_decimal_uint("     Right", b, decimals);
+ 190 |     |             fail();
+ 191 |     |         }
+ 192 |     |     }
+ 193 |     |     function assertEqDecimal(uint a, uint b, uint decimals, string memory err) internal {
+ 194 |     |         if (a != b) {
+ 195 |     |             emit log_named_string("Error", err);
+ 196 |     |             assertEqDecimal(a, b, decimals);
+ 197 |     |         }
+ 198 |     |     }
+ 199 |     | 
+ 200 |     |     function assertNotEq(address a, address b) internal {
+ 201 |     |         if (a == b) {
+ 202 |     |             emit log("Error: a != b not satisfied [address]");
+ 203 |     |             emit log_named_address("      Left", a);
+ 204 |     |             emit log_named_address("     Right", b);
+ 205 |     |             fail();
+ 206 |     |         }
+ 207 |     |     }
+ 208 |     |     function assertNotEq(address a, address b, string memory err) internal {
+ 209 |     |         if (a == b) {
+ 210 |     |             emit log_named_string ("Error", err);
+ 211 |     |             assertNotEq(a, b);
+ 212 |     |         }
+ 213 |     |     }
+ 214 |     | 
+ 215 |     |     function assertNotEq(bytes32 a, bytes32 b) internal {
+ 216 |     |         if (a == b) {
+ 217 |     |             emit log("Error: a != b not satisfied [bytes32]");
+ 218 |     |             emit log_named_bytes32("      Left", a);
+ 219 |     |             emit log_named_bytes32("     Right", b);
+ 220 |     |             fail();
+ 221 |     |         }
+ 222 |     |     }
+ 223 |     |     function assertNotEq(bytes32 a, bytes32 b, string memory err) internal {
+ 224 |     |         if (a == b) {
+ 225 |     |             emit log_named_string ("Error", err);
+ 226 |     |             assertNotEq(a, b);
+ 227 |     |         }
+ 228 |     |     }
+ 229 |     |     function assertNotEq32(bytes32 a, bytes32 b) internal {
+ 230 |     |         assertNotEq(a, b);
+ 231 |     |     }
+ 232 |     |     function assertNotEq32(bytes32 a, bytes32 b, string memory err) internal {
+ 233 |     |         assertNotEq(a, b, err);
+ 234 |     |     }
+ 235 |     | 
+ 236 |     |     function assertNotEq(int a, int b) internal {
+ 237 |     |         if (a == b) {
+ 238 |     |             emit log("Error: a != b not satisfied [int]");
+ 239 |     |             emit log_named_int("      Left", a);
+ 240 |     |             emit log_named_int("     Right", b);
+ 241 |     |             fail();
+ 242 |     |         }
+ 243 |     |     }
+ 244 |     |     function assertNotEq(int a, int b, string memory err) internal {
+ 245 |     |         if (a == b) {
+ 246 |     |             emit log_named_string("Error", err);
+ 247 |     |             assertNotEq(a, b);
+ 248 |     |         }
+ 249 |     |     }
+ 250 |     |     function assertNotEq(uint a, uint b) internal {
+ 251 |     |         if (a == b) {
+ 252 |     |             emit log("Error: a != b not satisfied [uint]");
+ 253 |     |             emit log_named_uint("      Left", a);
+ 254 |     |             emit log_named_uint("     Right", b);
+ 255 |     |             fail();
+ 256 |     |         }
+ 257 |     |     }
+ 258 |     |     function assertNotEq(uint a, uint b, string memory err) internal {
+ 259 |     |         if (a == b) {
+ 260 |     |             emit log_named_string("Error", err);
+ 261 |     |             assertNotEq(a, b);
+ 262 |     |         }
+ 263 |     |     }
+ 264 |     |     function assertNotEqDecimal(int a, int b, uint decimals) internal {
+ 265 |     |         if (a == b) {
+ 266 |     |             emit log("Error: a != b not satisfied [decimal int]");
+ 267 |     |             emit log_named_decimal_int("      Left", a, decimals);
+ 268 |     |             emit log_named_decimal_int("     Right", b, decimals);
+ 269 |     |             fail();
+ 270 |     |         }
+ 271 |     |     }
+ 272 |     |     function assertNotEqDecimal(int a, int b, uint decimals, string memory err) internal {
+ 273 |     |         if (a == b) {
+ 274 |     |             emit log_named_string("Error", err);
+ 275 |     |             assertNotEqDecimal(a, b, decimals);
+ 276 |     |         }
+ 277 |     |     }
+ 278 |     |     function assertNotEqDecimal(uint a, uint b, uint decimals) internal {
+ 279 |     |         if (a == b) {
+ 280 |     |             emit log("Error: a != b not satisfied [decimal uint]");
+ 281 |     |             emit log_named_decimal_uint("      Left", a, decimals);
+ 282 |     |             emit log_named_decimal_uint("     Right", b, decimals);
+ 283 |     |             fail();
+ 284 |     |         }
+ 285 |     |     }
+ 286 |     |     function assertNotEqDecimal(uint a, uint b, uint decimals, string memory err) internal {
+ 287 |     |         if (a == b) {
+ 288 |     |             emit log_named_string("Error", err);
+ 289 |     |             assertNotEqDecimal(a, b, decimals);
+ 290 |     |         }
+ 291 |     |     }
+ 292 |     | 
+ 293 |     |     function assertGt(uint a, uint b) internal {
+ 294 |     |         if (a <= b) {
+ 295 |     |             emit log("Error: a > b not satisfied [uint]");
+ 296 |     |             emit log_named_uint("  Value a", a);
+ 297 |     |             emit log_named_uint("  Value b", b);
+ 298 |     |             fail();
+ 299 |     |         }
+ 300 |     |     }
+ 301 |     |     function assertGt(uint a, uint b, string memory err) internal {
+ 302 |     |         if (a <= b) {
+ 303 |     |             emit log_named_string("Error", err);
+ 304 |     |             assertGt(a, b);
+ 305 |     |         }
+ 306 |     |     }
+ 307 |     |     function assertGt(int a, int b) internal {
+ 308 |     |         if (a <= b) {
+ 309 |     |             emit log("Error: a > b not satisfied [int]");
+ 310 |     |             emit log_named_int("  Value a", a);
+ 311 |     |             emit log_named_int("  Value b", b);
+ 312 |     |             fail();
+ 313 |     |         }
+ 314 |     |     }
+ 315 |     |     function assertGt(int a, int b, string memory err) internal {
+ 316 |     |         if (a <= b) {
+ 317 |     |             emit log_named_string("Error", err);
+ 318 |     |             assertGt(a, b);
+ 319 |     |         }
+ 320 |     |     }
+ 321 |     |     function assertGtDecimal(int a, int b, uint decimals) internal {
+ 322 |     |         if (a <= b) {
+ 323 |     |             emit log("Error: a > b not satisfied [decimal int]");
+ 324 |     |             emit log_named_decimal_int("  Value a", a, decimals);
+ 325 |     |             emit log_named_decimal_int("  Value b", b, decimals);
+ 326 |     |             fail();
+ 327 |     |         }
+ 328 |     |     }
+ 329 |     |     function assertGtDecimal(int a, int b, uint decimals, string memory err) internal {
+ 330 |     |         if (a <= b) {
+ 331 |     |             emit log_named_string("Error", err);
+ 332 |     |             assertGtDecimal(a, b, decimals);
+ 333 |     |         }
+ 334 |     |     }
+ 335 |     |     function assertGtDecimal(uint a, uint b, uint decimals) internal {
+ 336 |     |         if (a <= b) {
+ 337 |     |             emit log("Error: a > b not satisfied [decimal uint]");
+ 338 |     |             emit log_named_decimal_uint("  Value a", a, decimals);
+ 339 |     |             emit log_named_decimal_uint("  Value b", b, decimals);
+ 340 |     |             fail();
+ 341 |     |         }
+ 342 |     |     }
+ 343 |     |     function assertGtDecimal(uint a, uint b, uint decimals, string memory err) internal {
+ 344 |     |         if (a <= b) {
+ 345 |     |             emit log_named_string("Error", err);
+ 346 |     |             assertGtDecimal(a, b, decimals);
+ 347 |     |         }
+ 348 |     |     }
+ 349 |     | 
+ 350 |     |     function assertGe(uint a, uint b) internal {
+ 351 |     |         if (a < b) {
+ 352 |     |             emit log("Error: a >= b not satisfied [uint]");
+ 353 |     |             emit log_named_uint("  Value a", a);
+ 354 |     |             emit log_named_uint("  Value b", b);
+ 355 |     |             fail();
+ 356 |     |         }
+ 357 |     |     }
+ 358 |     |     function assertGe(uint a, uint b, string memory err) internal {
+ 359 |     |         if (a < b) {
+ 360 |     |             emit log_named_string("Error", err);
+ 361 |     |             assertGe(a, b);
+ 362 |     |         }
+ 363 |     |     }
+ 364 |     |     function assertGe(int a, int b) internal {
+ 365 |     |         if (a < b) {
+ 366 |     |             emit log("Error: a >= b not satisfied [int]");
+ 367 |     |             emit log_named_int("  Value a", a);
+ 368 |     |             emit log_named_int("  Value b", b);
+ 369 |     |             fail();
+ 370 |     |         }
+ 371 |     |     }
+ 372 |     |     function assertGe(int a, int b, string memory err) internal {
+ 373 |     |         if (a < b) {
+ 374 |     |             emit log_named_string("Error", err);
+ 375 |     |             assertGe(a, b);
+ 376 |     |         }
+ 377 |     |     }
+ 378 |     |     function assertGeDecimal(int a, int b, uint decimals) internal {
+ 379 |     |         if (a < b) {
+ 380 |     |             emit log("Error: a >= b not satisfied [decimal int]");
+ 381 |     |             emit log_named_decimal_int("  Value a", a, decimals);
+ 382 |     |             emit log_named_decimal_int("  Value b", b, decimals);
+ 383 |     |             fail();
+ 384 |     |         }
+ 385 |     |     }
+ 386 |     |     function assertGeDecimal(int a, int b, uint decimals, string memory err) internal {
+ 387 |     |         if (a < b) {
+ 388 |     |             emit log_named_string("Error", err);
+ 389 |     |             assertGeDecimal(a, b, decimals);
+ 390 |     |         }
+ 391 |     |     }
+ 392 |     |     function assertGeDecimal(uint a, uint b, uint decimals) internal {
+ 393 |     |         if (a < b) {
+ 394 |     |             emit log("Error: a >= b not satisfied [decimal uint]");
+ 395 |     |             emit log_named_decimal_uint("  Value a", a, decimals);
+ 396 |     |             emit log_named_decimal_uint("  Value b", b, decimals);
+ 397 |     |             fail();
+ 398 |     |         }
+ 399 |     |     }
+ 400 |     |     function assertGeDecimal(uint a, uint b, uint decimals, string memory err) internal {
+ 401 |     |         if (a < b) {
+ 402 |     |             emit log_named_string("Error", err);
+ 403 |     |             assertGeDecimal(a, b, decimals);
+ 404 |     |         }
+ 405 |     |     }
+ 406 |     | 
+ 407 |     |     function assertLt(uint a, uint b) internal {
+ 408 |     |         if (a >= b) {
+ 409 |     |             emit log("Error: a < b not satisfied [uint]");
+ 410 |     |             emit log_named_uint("  Value a", a);
+ 411 |     |             emit log_named_uint("  Value b", b);
+ 412 |     |             fail();
+ 413 |     |         }
+ 414 |     |     }
+ 415 |     |     function assertLt(uint a, uint b, string memory err) internal {
+ 416 |     |         if (a >= b) {
+ 417 |     |             emit log_named_string("Error", err);
+ 418 |     |             assertLt(a, b);
+ 419 |     |         }
+ 420 |     |     }
+ 421 |     |     function assertLt(int a, int b) internal {
+ 422 |     |         if (a >= b) {
+ 423 |     |             emit log("Error: a < b not satisfied [int]");
+ 424 |     |             emit log_named_int("  Value a", a);
+ 425 |     |             emit log_named_int("  Value b", b);
+ 426 |     |             fail();
+ 427 |     |         }
+ 428 |     |     }
+ 429 |     |     function assertLt(int a, int b, string memory err) internal {
+ 430 |     |         if (a >= b) {
+ 431 |     |             emit log_named_string("Error", err);
+ 432 |     |             assertLt(a, b);
+ 433 |     |         }
+ 434 |     |     }
+ 435 |     |     function assertLtDecimal(int a, int b, uint decimals) internal {
+ 436 |     |         if (a >= b) {
+ 437 |     |             emit log("Error: a < b not satisfied [decimal int]");
+ 438 |     |             emit log_named_decimal_int("  Value a", a, decimals);
+ 439 |     |             emit log_named_decimal_int("  Value b", b, decimals);
+ 440 |     |             fail();
+ 441 |     |         }
+ 442 |     |     }
+ 443 |     |     function assertLtDecimal(int a, int b, uint decimals, string memory err) internal {
+ 444 |     |         if (a >= b) {
+ 445 |     |             emit log_named_string("Error", err);
+ 446 |     |             assertLtDecimal(a, b, decimals);
+ 447 |     |         }
+ 448 |     |     }
+ 449 |     |     function assertLtDecimal(uint a, uint b, uint decimals) internal {
+ 450 |     |         if (a >= b) {
+ 451 |     |             emit log("Error: a < b not satisfied [decimal uint]");
+ 452 |     |             emit log_named_decimal_uint("  Value a", a, decimals);
+ 453 |     |             emit log_named_decimal_uint("  Value b", b, decimals);
+ 454 |     |             fail();
+ 455 |     |         }
+ 456 |     |     }
+ 457 |     |     function assertLtDecimal(uint a, uint b, uint decimals, string memory err) internal {
+ 458 |     |         if (a >= b) {
+ 459 |     |             emit log_named_string("Error", err);
+ 460 |     |             assertLtDecimal(a, b, decimals);
+ 461 |     |         }
+ 462 |     |     }
+ 463 |     | 
+ 464 |     |     function assertLe(uint a, uint b) internal {
+ 465 |     |         if (a > b) {
+ 466 |     |             emit log("Error: a <= b not satisfied [uint]");
+ 467 |     |             emit log_named_uint("  Value a", a);
+ 468 |     |             emit log_named_uint("  Value b", b);
+ 469 |     |             fail();
+ 470 |     |         }
+ 471 |     |     }
+ 472 |     |     function assertLe(uint a, uint b, string memory err) internal {
+ 473 |     |         if (a > b) {
+ 474 |     |             emit log_named_string("Error", err);
+ 475 |     |             assertLe(a, b);
+ 476 |     |         }
+ 477 |     |     }
+ 478 |     |     function assertLe(int a, int b) internal {
+ 479 |     |         if (a > b) {
+ 480 |     |             emit log("Error: a <= b not satisfied [int]");
+ 481 |     |             emit log_named_int("  Value a", a);
+ 482 |     |             emit log_named_int("  Value b", b);
+ 483 |     |             fail();
+ 484 |     |         }
+ 485 |     |     }
+ 486 |     |     function assertLe(int a, int b, string memory err) internal {
+ 487 |     |         if (a > b) {
+ 488 |     |             emit log_named_string("Error", err);
+ 489 |     |             assertLe(a, b);
+ 490 |     |         }
+ 491 |     |     }
+ 492 |     |     function assertLeDecimal(int a, int b, uint decimals) internal {
+ 493 |     |         if (a > b) {
+ 494 |     |             emit log("Error: a <= b not satisfied [decimal int]");
+ 495 |     |             emit log_named_decimal_int("  Value a", a, decimals);
+ 496 |     |             emit log_named_decimal_int("  Value b", b, decimals);
+ 497 |     |             fail();
+ 498 |     |         }
+ 499 |     |     }
+ 500 |     |     function assertLeDecimal(int a, int b, uint decimals, string memory err) internal {
+ 501 |     |         if (a > b) {
+ 502 |     |             emit log_named_string("Error", err);
+ 503 |     |             assertLeDecimal(a, b, decimals);
+ 504 |     |         }
+ 505 |     |     }
+ 506 |     |     function assertLeDecimal(uint a, uint b, uint decimals) internal {
+ 507 |     |         if (a > b) {
+ 508 |     |             emit log("Error: a <= b not satisfied [decimal uint]");
+ 509 |     |             emit log_named_decimal_uint("  Value a", a, decimals);
+ 510 |     |             emit log_named_decimal_uint("  Value b", b, decimals);
+ 511 |     |             fail();
+ 512 |     |         }
+ 513 |     |     }
+ 514 |     |     function assertLeDecimal(uint a, uint b, uint decimals, string memory err) internal {
+ 515 |     |         if (a > b) {
+ 516 |     |             emit log_named_string("Error", err);
+ 517 |     |             assertLeDecimal(a, b, decimals);
+ 518 |     |         }
+ 519 |     |     }
+ 520 |     | 
+ 521 |     |     function assertEq(string memory a, string memory b) internal {
+ 522 |     |         if (keccak256(abi.encodePacked(a)) != keccak256(abi.encodePacked(b))) {
+ 523 |     |             emit log("Error: a == b not satisfied [string]");
+ 524 |     |             emit log_named_string("      Left", a);
+ 525 |     |             emit log_named_string("     Right", b);
+ 526 |     |             fail();
+ 527 |     |         }
+ 528 |     |     }
+ 529 |     |     function assertEq(string memory a, string memory b, string memory err) internal {
+ 530 |     |         if (keccak256(abi.encodePacked(a)) != keccak256(abi.encodePacked(b))) {
+ 531 |     |             emit log_named_string("Error", err);
+ 532 |     |             assertEq(a, b);
+ 533 |     |         }
+ 534 |     |     }
+ 535 |     | 
+ 536 |     |     function assertNotEq(string memory a, string memory b) internal {
+ 537 |     |         if (keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b))) {
+ 538 |     |             emit log("Error: a != b not satisfied [string]");
+ 539 |     |             emit log_named_string("      Left", a);
+ 540 |     |             emit log_named_string("     Right", b);
+ 541 |     |             fail();
+ 542 |     |         }
+ 543 |     |     }
+ 544 |     |     function assertNotEq(string memory a, string memory b, string memory err) internal {
+ 545 |     |         if (keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b))) {
+ 546 |     |             emit log_named_string("Error", err);
+ 547 |     |             assertNotEq(a, b);
+ 548 |     |         }
+ 549 |     |     }
+ 550 |     | 
+ 551 |     |     function checkEq0(bytes memory a, bytes memory b) internal pure returns (bool ok) {
+ 552 |     |         ok = true;
+ 553 |     |         if (a.length == b.length) {
+ 554 |     |             for (uint i = 0; i < a.length; i++) {
+ 555 |     |                 if (a[i] != b[i]) {
+ 556 |     |                     ok = false;
+ 557 |     |                 }
+ 558 |     |             }
+ 559 |     |         } else {
+ 560 |     |             ok = false;
+ 561 |     |         }
+ 562 |     |     }
+ 563 |     |     function assertEq0(bytes memory a, bytes memory b) internal {
+ 564 |     |         if (!checkEq0(a, b)) {
+ 565 |     |             emit log("Error: a == b not satisfied [bytes]");
+ 566 |     |             emit log_named_bytes("      Left", a);
+ 567 |     |             emit log_named_bytes("     Right", b);
+ 568 |     |             fail();
+ 569 |     |         }
+ 570 |     |     }
+ 571 |     |     function assertEq0(bytes memory a, bytes memory b, string memory err) internal {
+ 572 |     |         if (!checkEq0(a, b)) {
+ 573 |     |             emit log_named_string("Error", err);
+ 574 |     |             assertEq0(a, b);
+ 575 |     |         }
+ 576 |     |     }
+ 577 |     | 
+ 578 |     |     function assertNotEq0(bytes memory a, bytes memory b) internal {
+ 579 |     |         if (checkEq0(a, b)) {
+ 580 |     |             emit log("Error: a != b not satisfied [bytes]");
+ 581 |     |             emit log_named_bytes("      Left", a);
+ 582 |     |             emit log_named_bytes("     Right", b);
+ 583 |     |             fail();
+ 584 |     |         }
+ 585 |     |     }
+ 586 |     |     function assertNotEq0(bytes memory a, bytes memory b, string memory err) internal {
+ 587 |     |         if (checkEq0(a, b)) {
+ 588 |     |             emit log_named_string("Error", err);
+ 589 |     |             assertNotEq0(a, b);
+ 590 |     |         }
+ 591 |     |     }
+ 592 |     | }
+ 593 |     | 
+
 /Users/elvisskozdopolj/Documents/GitHub/test-generator/test/lib/forge-std/src/Base.sol
   1 |     | // SPDX-License-Identifier: MIT
   2 |     | pragma solidity >=0.6.2 <0.9.0;
@@ -65,6 +660,385 @@
  26 |     |     bool public IS_SCRIPT = true;
  27 |     | }
  28 |     | 
+
+/Users/elvisskozdopolj/Documents/GitHub/test-generator/test/lib/forge-std/src/StdAssertions.sol
+   1 |     | // SPDX-License-Identifier: MIT
+   2 |     | pragma solidity >=0.6.2 <0.9.0;
+   3 |     | 
+   4 |     | import {DSTest} from "ds-test/test.sol";
+   5 |     | import {stdMath} from "./StdMath.sol";
+   6 |     | 
+   7 |     | abstract contract StdAssertions is DSTest {
+   8 |     |     event log_array(uint256[] val);
+   9 |     |     event log_array(int256[] val);
+  10 |     |     event log_array(address[] val);
+  11 |     |     event log_named_array(string key, uint256[] val);
+  12 |     |     event log_named_array(string key, int256[] val);
+  13 |     |     event log_named_array(string key, address[] val);
+  14 |     | 
+  15 |     |     function fail(string memory err) internal virtual {
+  16 |     |         emit log_named_string("Error", err);
+  17 |     |         fail();
+  18 |     |     }
+  19 |     | 
+  20 |     |     function assertFalse(bool data) internal virtual {
+  21 |     |         assertTrue(!data);
+  22 |     |     }
+  23 |     | 
+  24 |     |     function assertFalse(bool data, string memory err) internal virtual {
+  25 |     |         assertTrue(!data, err);
+  26 |     |     }
+  27 |     | 
+  28 |     |     function assertEq(bool a, bool b) internal virtual {
+  29 |     |         if (a != b) {
+  30 |     |             emit log("Error: a == b not satisfied [bool]");
+  31 |     |             emit log_named_string("      Left", a ? "true" : "false");
+  32 |     |             emit log_named_string("     Right", b ? "true" : "false");
+  33 |     |             fail();
+  34 |     |         }
+  35 |     |     }
+  36 |     | 
+  37 |     |     function assertEq(bool a, bool b, string memory err) internal virtual {
+  38 |     |         if (a != b) {
+  39 |     |             emit log_named_string("Error", err);
+  40 |     |             assertEq(a, b);
+  41 |     |         }
+  42 |     |     }
+  43 |     | 
+  44 |     |     function assertEq(bytes memory a, bytes memory b) internal virtual {
+  45 |     |         assertEq0(a, b);
+  46 |     |     }
+  47 |     | 
+  48 |     |     function assertEq(bytes memory a, bytes memory b, string memory err) internal virtual {
+  49 |     |         assertEq0(a, b, err);
+  50 |     |     }
+  51 |     | 
+  52 |     |     function assertEq(uint256[] memory a, uint256[] memory b) internal virtual {
+  53 |     |         if (keccak256(abi.encode(a)) != keccak256(abi.encode(b))) {
+  54 |     |             emit log("Error: a == b not satisfied [uint[]]");
+  55 |     |             emit log_named_array("      Left", a);
+  56 |     |             emit log_named_array("     Right", b);
+  57 |     |             fail();
+  58 |     |         }
+  59 |     |     }
+  60 |     | 
+  61 |     |     function assertEq(int256[] memory a, int256[] memory b) internal virtual {
+  62 |     |         if (keccak256(abi.encode(a)) != keccak256(abi.encode(b))) {
+  63 |     |             emit log("Error: a == b not satisfied [int[]]");
+  64 |     |             emit log_named_array("      Left", a);
+  65 |     |             emit log_named_array("     Right", b);
+  66 |     |             fail();
+  67 |     |         }
+  68 |     |     }
+  69 |     | 
+  70 |     |     function assertEq(address[] memory a, address[] memory b) internal virtual {
+  71 |     |         if (keccak256(abi.encode(a)) != keccak256(abi.encode(b))) {
+  72 |     |             emit log("Error: a == b not satisfied [address[]]");
+  73 |     |             emit log_named_array("      Left", a);
+  74 |     |             emit log_named_array("     Right", b);
+  75 |     |             fail();
+  76 |     |         }
+  77 |     |     }
+  78 |     | 
+  79 |     |     function assertEq(uint256[] memory a, uint256[] memory b, string memory err) internal virtual {
+  80 |     |         if (keccak256(abi.encode(a)) != keccak256(abi.encode(b))) {
+  81 |     |             emit log_named_string("Error", err);
+  82 |     |             assertEq(a, b);
+  83 |     |         }
+  84 |     |     }
+  85 |     | 
+  86 |     |     function assertEq(int256[] memory a, int256[] memory b, string memory err) internal virtual {
+  87 |     |         if (keccak256(abi.encode(a)) != keccak256(abi.encode(b))) {
+  88 |     |             emit log_named_string("Error", err);
+  89 |     |             assertEq(a, b);
+  90 |     |         }
+  91 |     |     }
+  92 |     | 
+  93 |     |     function assertEq(address[] memory a, address[] memory b, string memory err) internal virtual {
+  94 |     |         if (keccak256(abi.encode(a)) != keccak256(abi.encode(b))) {
+  95 |     |             emit log_named_string("Error", err);
+  96 |     |             assertEq(a, b);
+  97 |     |         }
+  98 |     |     }
+  99 |     | 
+ 100 |     |     // Legacy helper
+ 101 |     |     function assertEqUint(uint256 a, uint256 b) internal virtual {
+ 102 |     |         assertEq(uint256(a), uint256(b));
+ 103 |     |     }
+ 104 |     | 
+ 105 |     |     function assertApproxEqAbs(uint256 a, uint256 b, uint256 maxDelta) internal virtual {
+ 106 |     |         uint256 delta = stdMath.delta(a, b);
+ 107 |     | 
+ 108 |     |         if (delta > maxDelta) {
+ 109 |     |             emit log("Error: a ~= b not satisfied [uint]");
+ 110 |     |             emit log_named_uint("      Left", a);
+ 111 |     |             emit log_named_uint("     Right", b);
+ 112 |     |             emit log_named_uint(" Max Delta", maxDelta);
+ 113 |     |             emit log_named_uint("     Delta", delta);
+ 114 |     |             fail();
+ 115 |     |         }
+ 116 |     |     }
+ 117 |     | 
+ 118 |     |     function assertApproxEqAbs(uint256 a, uint256 b, uint256 maxDelta, string memory err) internal virtual {
+ 119 |     |         uint256 delta = stdMath.delta(a, b);
+ 120 |     | 
+ 121 |     |         if (delta > maxDelta) {
+ 122 |     |             emit log_named_string("Error", err);
+ 123 |     |             assertApproxEqAbs(a, b, maxDelta);
+ 124 |     |         }
+ 125 |     |     }
+ 126 |     | 
+ 127 |     |     function assertApproxEqAbsDecimal(uint256 a, uint256 b, uint256 maxDelta, uint256 decimals) internal virtual {
+ 128 |     |         uint256 delta = stdMath.delta(a, b);
+ 129 |     | 
+ 130 |     |         if (delta > maxDelta) {
+ 131 |     |             emit log("Error: a ~= b not satisfied [uint]");
+ 132 |     |             emit log_named_decimal_uint("      Left", a, decimals);
+ 133 |     |             emit log_named_decimal_uint("     Right", b, decimals);
+ 134 |     |             emit log_named_decimal_uint(" Max Delta", maxDelta, decimals);
+ 135 |     |             emit log_named_decimal_uint("     Delta", delta, decimals);
+ 136 |     |             fail();
+ 137 |     |         }
+ 138 |     |     }
+ 139 |     | 
+ 140 |     |     function assertApproxEqAbsDecimal(uint256 a, uint256 b, uint256 maxDelta, uint256 decimals, string memory err)
+ 141 |     |         internal
+ 142 |     |         virtual
+ 143 |     |     {
+ 144 |     |         uint256 delta = stdMath.delta(a, b);
+ 145 |     | 
+ 146 |     |         if (delta > maxDelta) {
+ 147 |     |             emit log_named_string("Error", err);
+ 148 |     |             assertApproxEqAbsDecimal(a, b, maxDelta, decimals);
+ 149 |     |         }
+ 150 |     |     }
+ 151 |     | 
+ 152 |     |     function assertApproxEqAbs(int256 a, int256 b, uint256 maxDelta) internal virtual {
+ 153 |     |         uint256 delta = stdMath.delta(a, b);
+ 154 |     | 
+ 155 |     |         if (delta > maxDelta) {
+ 156 |     |             emit log("Error: a ~= b not satisfied [int]");
+ 157 |     |             emit log_named_int("       Left", a);
+ 158 |     |             emit log_named_int("      Right", b);
+ 159 |     |             emit log_named_uint(" Max Delta", maxDelta);
+ 160 |     |             emit log_named_uint("     Delta", delta);
+ 161 |     |             fail();
+ 162 |     |         }
+ 163 |     |     }
+ 164 |     | 
+ 165 |     |     function assertApproxEqAbs(int256 a, int256 b, uint256 maxDelta, string memory err) internal virtual {
+ 166 |     |         uint256 delta = stdMath.delta(a, b);
+ 167 |     | 
+ 168 |     |         if (delta > maxDelta) {
+ 169 |     |             emit log_named_string("Error", err);
+ 170 |     |             assertApproxEqAbs(a, b, maxDelta);
+ 171 |     |         }
+ 172 |     |     }
+ 173 |     | 
+ 174 |     |     function assertApproxEqAbsDecimal(int256 a, int256 b, uint256 maxDelta, uint256 decimals) internal virtual {
+ 175 |     |         uint256 delta = stdMath.delta(a, b);
+ 176 |     | 
+ 177 |     |         if (delta > maxDelta) {
+ 178 |     |             emit log("Error: a ~= b not satisfied [int]");
+ 179 |     |             emit log_named_decimal_int("      Left", a, decimals);
+ 180 |     |             emit log_named_decimal_int("     Right", b, decimals);
+ 181 |     |             emit log_named_decimal_uint(" Max Delta", maxDelta, decimals);
+ 182 |     |             emit log_named_decimal_uint("     Delta", delta, decimals);
+ 183 |     |             fail();
+ 184 |     |         }
+ 185 |     |     }
+ 186 |     | 
+ 187 |     |     function assertApproxEqAbsDecimal(int256 a, int256 b, uint256 maxDelta, uint256 decimals, string memory err)
+ 188 |     |         internal
+ 189 |     |         virtual
+ 190 |     |     {
+ 191 |     |         uint256 delta = stdMath.delta(a, b);
+ 192 |     | 
+ 193 |     |         if (delta > maxDelta) {
+ 194 |     |             emit log_named_string("Error", err);
+ 195 |     |             assertApproxEqAbsDecimal(a, b, maxDelta, decimals);
+ 196 |     |         }
+ 197 |     |     }
+ 198 |     | 
+ 199 |     |     function assertApproxEqRel(
+ 200 |     |         uint256 a,
+ 201 |     |         uint256 b,
+ 202 |     |         uint256 maxPercentDelta // An 18 decimal fixed point number, where 1e18 == 100%
+ 203 |     |     ) internal virtual {
+ 204 |     |         if (b == 0) return assertEq(a, b); // If the left is 0, right must be too.
+ 205 |     | 
+ 206 |     |         uint256 percentDelta = stdMath.percentDelta(a, b);
+ 207 |     | 
+ 208 |     |         if (percentDelta > maxPercentDelta) {
+ 209 |     |             emit log("Error: a ~= b not satisfied [uint]");
+ 210 |     |             emit log_named_uint("        Left", a);
+ 211 |     |             emit log_named_uint("       Right", b);
+ 212 |     |             emit log_named_decimal_uint(" Max % Delta", maxPercentDelta * 100, 18);
+ 213 |     |             emit log_named_decimal_uint("     % Delta", percentDelta * 100, 18);
+ 214 |     |             fail();
+ 215 |     |         }
+ 216 |     |     }
+ 217 |     | 
+ 218 |     |     function assertApproxEqRel(
+ 219 |     |         uint256 a,
+ 220 |     |         uint256 b,
+ 221 |     |         uint256 maxPercentDelta, // An 18 decimal fixed point number, where 1e18 == 100%
+ 222 |     |         string memory err
+ 223 |     |     ) internal virtual {
+ 224 |     |         if (b == 0) return assertEq(a, b, err); // If the left is 0, right must be too.
+ 225 |     | 
+ 226 |     |         uint256 percentDelta = stdMath.percentDelta(a, b);
+ 227 |     | 
+ 228 |     |         if (percentDelta > maxPercentDelta) {
+ 229 |     |             emit log_named_string("Error", err);
+ 230 |     |             assertApproxEqRel(a, b, maxPercentDelta);
+ 231 |     |         }
+ 232 |     |     }
+ 233 |     | 
+ 234 |     |     function assertApproxEqRelDecimal(
+ 235 |     |         uint256 a,
+ 236 |     |         uint256 b,
+ 237 |     |         uint256 maxPercentDelta, // An 18 decimal fixed point number, where 1e18 == 100%
+ 238 |     |         uint256 decimals
+ 239 |     |     ) internal virtual {
+ 240 |     |         if (b == 0) return assertEq(a, b); // If the left is 0, right must be too.
+ 241 |     | 
+ 242 |     |         uint256 percentDelta = stdMath.percentDelta(a, b);
+ 243 |     | 
+ 244 |     |         if (percentDelta > maxPercentDelta) {
+ 245 |     |             emit log("Error: a ~= b not satisfied [uint]");
+ 246 |     |             emit log_named_decimal_uint("        Left", a, decimals);
+ 247 |     |             emit log_named_decimal_uint("       Right", b, decimals);
+ 248 |     |             emit log_named_decimal_uint(" Max % Delta", maxPercentDelta * 100, 18);
+ 249 |     |             emit log_named_decimal_uint("     % Delta", percentDelta * 100, 18);
+ 250 |     |             fail();
+ 251 |     |         }
+ 252 |     |     }
+ 253 |     | 
+ 254 |     |     function assertApproxEqRelDecimal(
+ 255 |     |         uint256 a,
+ 256 |     |         uint256 b,
+ 257 |     |         uint256 maxPercentDelta, // An 18 decimal fixed point number, where 1e18 == 100%
+ 258 |     |         uint256 decimals,
+ 259 |     |         string memory err
+ 260 |     |     ) internal virtual {
+ 261 |     |         if (b == 0) return assertEq(a, b, err); // If the left is 0, right must be too.
+ 262 |     | 
+ 263 |     |         uint256 percentDelta = stdMath.percentDelta(a, b);
+ 264 |     | 
+ 265 |     |         if (percentDelta > maxPercentDelta) {
+ 266 |     |             emit log_named_string("Error", err);
+ 267 |     |             assertApproxEqRelDecimal(a, b, maxPercentDelta, decimals);
+ 268 |     |         }
+ 269 |     |     }
+ 270 |     | 
+ 271 |     |     function assertApproxEqRel(int256 a, int256 b, uint256 maxPercentDelta) internal virtual {
+ 272 |     |         if (b == 0) return assertEq(a, b); // If the left is 0, right must be too.
+ 273 |     | 
+ 274 |     |         uint256 percentDelta = stdMath.percentDelta(a, b);
+ 275 |     | 
+ 276 |     |         if (percentDelta > maxPercentDelta) {
+ 277 |     |             emit log("Error: a ~= b not satisfied [int]");
+ 278 |     |             emit log_named_int("        Left", a);
+ 279 |     |             emit log_named_int("       Right", b);
+ 280 |     |             emit log_named_decimal_uint(" Max % Delta", maxPercentDelta * 100, 18);
+ 281 |     |             emit log_named_decimal_uint("     % Delta", percentDelta * 100, 18);
+ 282 |     |             fail();
+ 283 |     |         }
+ 284 |     |     }
+ 285 |     | 
+ 286 |     |     function assertApproxEqRel(int256 a, int256 b, uint256 maxPercentDelta, string memory err) internal virtual {
+ 287 |     |         if (b == 0) return assertEq(a, b, err); // If the left is 0, right must be too.
+ 288 |     | 
+ 289 |     |         uint256 percentDelta = stdMath.percentDelta(a, b);
+ 290 |     | 
+ 291 |     |         if (percentDelta > maxPercentDelta) {
+ 292 |     |             emit log_named_string("Error", err);
+ 293 |     |             assertApproxEqRel(a, b, maxPercentDelta);
+ 294 |     |         }
+ 295 |     |     }
+ 296 |     | 
+ 297 |     |     function assertApproxEqRelDecimal(int256 a, int256 b, uint256 maxPercentDelta, uint256 decimals) internal virtual {
+ 298 |     |         if (b == 0) return assertEq(a, b); // If the left is 0, right must be too.
+ 299 |     | 
+ 300 |     |         uint256 percentDelta = stdMath.percentDelta(a, b);
+ 301 |     | 
+ 302 |     |         if (percentDelta > maxPercentDelta) {
+ 303 |     |             emit log("Error: a ~= b not satisfied [int]");
+ 304 |     |             emit log_named_decimal_int("        Left", a, decimals);
+ 305 |     |             emit log_named_decimal_int("       Right", b, decimals);
+ 306 |     |             emit log_named_decimal_uint(" Max % Delta", maxPercentDelta * 100, 18);
+ 307 |     |             emit log_named_decimal_uint("     % Delta", percentDelta * 100, 18);
+ 308 |     |             fail();
+ 309 |     |         }
+ 310 |     |     }
+ 311 |     | 
+ 312 |     |     function assertApproxEqRelDecimal(int256 a, int256 b, uint256 maxPercentDelta, uint256 decimals, string memory err)
+ 313 |     |         internal
+ 314 |     |         virtual
+ 315 |     |     {
+ 316 |     |         if (b == 0) return assertEq(a, b, err); // If the left is 0, right must be too.
+ 317 |     | 
+ 318 |     |         uint256 percentDelta = stdMath.percentDelta(a, b);
+ 319 |     | 
+ 320 |     |         if (percentDelta > maxPercentDelta) {
+ 321 |     |             emit log_named_string("Error", err);
+ 322 |     |             assertApproxEqRelDecimal(a, b, maxPercentDelta, decimals);
+ 323 |     |         }
+ 324 |     |     }
+ 325 |     | 
+ 326 |     |     function assertEqCall(address target, bytes memory callDataA, bytes memory callDataB) internal virtual {
+ 327 |     |         assertEqCall(target, callDataA, target, callDataB, true);
+ 328 |     |     }
+ 329 |     | 
+ 330 |     |     function assertEqCall(address targetA, bytes memory callDataA, address targetB, bytes memory callDataB)
+ 331 |     |         internal
+ 332 |     |         virtual
+ 333 |     |     {
+ 334 |     |         assertEqCall(targetA, callDataA, targetB, callDataB, true);
+ 335 |     |     }
+ 336 |     | 
+ 337 |     |     function assertEqCall(address target, bytes memory callDataA, bytes memory callDataB, bool strictRevertData)
+ 338 |     |         internal
+ 339 |     |         virtual
+ 340 |     |     {
+ 341 |     |         assertEqCall(target, callDataA, target, callDataB, strictRevertData);
+ 342 |     |     }
+ 343 |     | 
+ 344 |     |     function assertEqCall(
+ 345 |     |         address targetA,
+ 346 |     |         bytes memory callDataA,
+ 347 |     |         address targetB,
+ 348 |     |         bytes memory callDataB,
+ 349 |     |         bool strictRevertData
+ 350 |     |     ) internal virtual {
+ 351 |     |         (bool successA, bytes memory returnDataA) = address(targetA).call(callDataA);
+ 352 |     |         (bool successB, bytes memory returnDataB) = address(targetB).call(callDataB);
+ 353 |     | 
+ 354 |     |         if (successA && successB) {
+ 355 |     |             assertEq(returnDataA, returnDataB, "Call return data does not match");
+ 356 |     |         }
+ 357 |     | 
+ 358 |     |         if (!successA && !successB && strictRevertData) {
+ 359 |     |             assertEq(returnDataA, returnDataB, "Call revert data does not match");
+ 360 |     |         }
+ 361 |     | 
+ 362 |     |         if (!successA && successB) {
+ 363 |     |             emit log("Error: Calls were not equal");
+ 364 |     |             emit log_named_bytes("  Left call revert data", returnDataA);
+ 365 |     |             emit log_named_bytes(" Right call return data", returnDataB);
+ 366 |     |             fail();
+ 367 |     |         }
+ 368 |     | 
+ 369 |     |         if (successA && !successB) {
+ 370 |     |             emit log("Error: Calls were not equal");
+ 371 |     |             emit log_named_bytes("  Left call return data", returnDataA);
+ 372 |     |             emit log_named_bytes(" Right call revert data", returnDataB);
+ 373 |     |             fail();
+ 374 |     |         }
+ 375 |     |     }
+ 376 |     | }
+ 377 |     | 
 
 /Users/elvisskozdopolj/Documents/GitHub/test-generator/test/lib/forge-std/src/StdChains.sol
    1 |     | // SPDX-License-Identifier: MIT
@@ -1132,6 +2106,134 @@
  816 |     |     }
  817 |     | }
  818 |     | 
+
+/Users/elvisskozdopolj/Documents/GitHub/test-generator/test/lib/forge-std/src/StdError.sol
+  1 |     | // SPDX-License-Identifier: MIT
+  2 |     | // Panics work for versions >=0.8.0, but we lowered the pragma to make this compatible with Test
+  3 |     | pragma solidity >=0.6.2 <0.9.0;
+  4 |     | 
+  5 |     | library stdError {
+  6 |     |     bytes public constant assertionError = abi.encodeWithSignature("Panic(uint256)", 0x01);
+  7 |     |     bytes public constant arithmeticError = abi.encodeWithSignature("Panic(uint256)", 0x11);
+  8 |     |     bytes public constant divisionError = abi.encodeWithSignature("Panic(uint256)", 0x12);
+  9 |     |     bytes public constant enumConversionError = abi.encodeWithSignature("Panic(uint256)", 0x21);
+ 10 |     |     bytes public constant encodeStorageError = abi.encodeWithSignature("Panic(uint256)", 0x22);
+ 11 |     |     bytes public constant popError = abi.encodeWithSignature("Panic(uint256)", 0x31);
+ 12 |     |     bytes public constant indexOOBError = abi.encodeWithSignature("Panic(uint256)", 0x32);
+ 13 |     |     bytes public constant memOverflowError = abi.encodeWithSignature("Panic(uint256)", 0x41);
+ 14 |     |     bytes public constant zeroVarError = abi.encodeWithSignature("Panic(uint256)", 0x51);
+ 15 |     | }
+ 16 |     | 
+
+/Users/elvisskozdopolj/Documents/GitHub/test-generator/test/lib/forge-std/src/StdInvariant.sol
+   1 |     | // SPDX-License-Identifier: MIT
+   2 |     | pragma solidity >=0.6.2 <0.9.0;
+   3 |     | 
+   4 |     | pragma experimental ABIEncoderV2;
+   5 |     | 
+   6 |     | abstract contract StdInvariant {
+   7 |     |     struct FuzzSelector {
+   8 |     |         address addr;
+   9 |     |         bytes4[] selectors;
+  10 |     |     }
+  11 |     | 
+  12 |     |     struct FuzzInterface {
+  13 |     |         address addr;
+  14 |     |         string[] artifacts;
+  15 |     |     }
+  16 |     | 
+  17 |     |     address[] private _excludedContracts;
+  18 |     |     address[] private _excludedSenders;
+  19 |     |     address[] private _targetedContracts;
+  20 |     |     address[] private _targetedSenders;
+  21 |     | 
+  22 |     |     string[] private _excludedArtifacts;
+  23 |     |     string[] private _targetedArtifacts;
+  24 |     | 
+  25 |     |     FuzzSelector[] private _targetedArtifactSelectors;
+  26 |     |     FuzzSelector[] private _targetedSelectors;
+  27 |     | 
+  28 |     |     FuzzInterface[] private _targetedInterfaces;
+  29 |     | 
+  30 |     |     // Functions for users:
+  31 |     |     // These are intended to be called in tests.
+  32 |     | 
+  33 |     |     function excludeContract(address newExcludedContract_) internal {
+  34 |     |         _excludedContracts.push(newExcludedContract_);
+  35 |     |     }
+  36 |     | 
+  37 |     |     function excludeSender(address newExcludedSender_) internal {
+  38 |     |         _excludedSenders.push(newExcludedSender_);
+  39 |     |     }
+  40 |     | 
+  41 |     |     function excludeArtifact(string memory newExcludedArtifact_) internal {
+  42 |     |         _excludedArtifacts.push(newExcludedArtifact_);
+  43 |     |     }
+  44 |     | 
+  45 |     |     function targetArtifact(string memory newTargetedArtifact_) internal {
+  46 |     |         _targetedArtifacts.push(newTargetedArtifact_);
+  47 |     |     }
+  48 |     | 
+  49 |     |     function targetArtifactSelector(FuzzSelector memory newTargetedArtifactSelector_) internal {
+  50 |     |         _targetedArtifactSelectors.push(newTargetedArtifactSelector_);
+  51 |     |     }
+  52 |     | 
+  53 |     |     function targetContract(address newTargetedContract_) internal {
+  54 |     |         _targetedContracts.push(newTargetedContract_);
+  55 |     |     }
+  56 |     | 
+  57 |     |     function targetSelector(FuzzSelector memory newTargetedSelector_) internal {
+  58 |     |         _targetedSelectors.push(newTargetedSelector_);
+  59 |     |     }
+  60 |     | 
+  61 |     |     function targetSender(address newTargetedSender_) internal {
+  62 |     |         _targetedSenders.push(newTargetedSender_);
+  63 |     |     }
+  64 |     | 
+  65 |     |     function targetInterface(FuzzInterface memory newTargetedInterface_) internal {
+  66 |     |         _targetedInterfaces.push(newTargetedInterface_);
+  67 |     |     }
+  68 |     | 
+  69 |     |     // Functions for forge:
+  70 |     |     // These are called by forge to run invariant tests and don't need to be called in tests.
+  71 |     | 
+  72 |     |     function excludeArtifacts() public view returns (string[] memory excludedArtifacts_) {
+  73 |     |         excludedArtifacts_ = _excludedArtifacts;
+  74 |     |     }
+  75 |     | 
+  76 |     |     function excludeContracts() public view returns (address[] memory excludedContracts_) {
+  77 |     |         excludedContracts_ = _excludedContracts;
+  78 |     |     }
+  79 |     | 
+  80 |     |     function excludeSenders() public view returns (address[] memory excludedSenders_) {
+  81 |     |         excludedSenders_ = _excludedSenders;
+  82 |     |     }
+  83 |     | 
+  84 |     |     function targetArtifacts() public view returns (string[] memory targetedArtifacts_) {
+  85 |     |         targetedArtifacts_ = _targetedArtifacts;
+  86 |     |     }
+  87 |     | 
+  88 |     |     function targetArtifactSelectors() public view returns (FuzzSelector[] memory targetedArtifactSelectors_) {
+  89 |     |         targetedArtifactSelectors_ = _targetedArtifactSelectors;
+  90 |     |     }
+  91 |     | 
+  92 |     |     function targetContracts() public view returns (address[] memory targetedContracts_) {
+  93 |     |         targetedContracts_ = _targetedContracts;
+  94 |     |     }
+  95 |     | 
+  96 |     |     function targetSelectors() public view returns (FuzzSelector[] memory targetedSelectors_) {
+  97 |     |         targetedSelectors_ = _targetedSelectors;
+  98 |     |     }
+  99 |     | 
+ 100 |     |     function targetSenders() public view returns (address[] memory targetedSenders_) {
+ 101 |     |         targetedSenders_ = _targetedSenders;
+ 102 |     |     }
+ 103 |     | 
+ 104 |     |     function targetInterfaces() public view returns (FuzzInterface[] memory targetedInterfaces_) {
+ 105 |     |         targetedInterfaces_ = _targetedInterfaces;
+ 106 |     |     }
+ 107 |     | }
+ 108 |     | 
 
 /Users/elvisskozdopolj/Documents/GitHub/test-generator/test/lib/forge-std/src/StdJson.sol
    1 |     | // SPDX-License-Identifier: MIT
@@ -2310,6 +3412,42 @@
  225 |     |     }
  226 |     | }
  227 |     | 
+
+/Users/elvisskozdopolj/Documents/GitHub/test-generator/test/lib/forge-std/src/Test.sol
+  1 |     | // SPDX-License-Identifier: MIT
+  2 |     | pragma solidity >=0.6.2 <0.9.0;
+  3 |     | 
+  4 |     | pragma experimental ABIEncoderV2;
+  5 |     | 
+  6 |     | // 💬 ABOUT
+  7 |     | // Forge Std's default Test.
+  8 |     | 
+  9 |     | // 🧩 MODULES
+ 10 |     | import {console} from "./console.sol";
+ 11 |     | import {console2} from "./console2.sol";
+ 12 |     | import {safeconsole} from "./safeconsole.sol";
+ 13 |     | import {StdAssertions} from "./StdAssertions.sol";
+ 14 |     | import {StdChains} from "./StdChains.sol";
+ 15 |     | import {StdCheats} from "./StdCheats.sol";
+ 16 |     | import {stdError} from "./StdError.sol";
+ 17 |     | import {StdInvariant} from "./StdInvariant.sol";
+ 18 |     | import {stdJson} from "./StdJson.sol";
+ 19 |     | import {stdMath} from "./StdMath.sol";
+ 20 |     | import {StdStorage, stdStorage} from "./StdStorage.sol";
+ 21 |     | import {StdStyle} from "./StdStyle.sol";
+ 22 |     | import {StdUtils} from "./StdUtils.sol";
+ 23 |     | import {Vm} from "./Vm.sol";
+ 24 |     | 
+ 25 |     | // 📦 BOILERPLATE
+ 26 |     | import {TestBase} from "./Base.sol";
+ 27 |     | import {DSTest} from "ds-test/test.sol";
+ 28 |     | 
+ 29 |     | // ⭐️ TEST
+ 30 |     | abstract contract Test is TestBase, DSTest, StdAssertions, StdChains, StdCheats, StdInvariant, StdUtils {
+ 31 |     | // Note: IS_TEST() must return true.
+ 32 |     | // Note: Must have failure system, https://github.com/dapphub/ds-test/blob/cd98eff28324bfac652e63a239a60632a761790b/src/test.sol#L39-L76.
+ 33 |     | }
+ 34 |     | 
 
 /Users/elvisskozdopolj/Documents/GitHub/test-generator/test/lib/forge-std/src/Vm.sol
     1 |     | // Automatically @generated by scripts/vm.py. Do not modify manually.
@@ -20383,60 +21521,67 @@
   97 |     |         }
   98 |     |     }
   99 |     | 
- 100 |     |     // ------------------------------
- 101 |     |     //         --  bytes  --
- 102 |     |     // ------------------------------
- 103 |     |     bytes providedBytes;
- 104 |     |     bytes32 providedBytes32;
- 105 |     | 
- 106 |     |     // TODO bytes32, etc.
- 107 | *   |     function setBytes(bytes memory input) public {
- 108 | *r  |         require(input.length > 20);
- 109 | *   |         providedBytes = input;
- 110 |     |     }
- 111 |     | 
- 112 | *   |     function check_bytes() public view {
- 113 | *   |         if (providedBytes.length > 20) {
- 114 |     |             assert(false);
- 115 |     |         }
- 116 |     |     }
- 117 |     | 
- 118 | *   |     function setBytes32(bytes32 input) public {
- 119 | *r  |         require(input != bytes32(0));
- 120 | *   |         providedBytes32 = input;
- 121 |     |     }
- 122 |     | 
- 123 | *   |     function check_bytes32() public {
- 124 | *   |         if (providedBytes32 != bytes32(0)) {
- 125 | *   |             assert(false);
- 126 |     |         }
- 127 |     |     } 
- 128 |     | 
- 129 |     |     // ------------------------------
- 130 |     |     //         --  combination  --
- 131 |     |     // ------------------------------
- 132 |     |     bool combBool;
- 133 |     |     uint256 combUint256;
- 134 |     |     int256 combInt256;
- 135 |     |     address combAddress;
- 136 |     |     string combString;
- 137 |     |     bytes combBytes;
- 138 |     | 
- 139 | *   |     function setCombination(bool bool_input, uint256 unsigned_input, int256 signed_input, address address_input, string memory str_input, bytes memory bytes_input) public {
- 140 | *   |         combBool = bool_input;
- 141 | *   |         combUint256 = unsigned_input;
- 142 | *   |         combInt256 = signed_input;
- 143 | *   |         combAddress = address_input;
- 144 | *   |         combString = str_input;
- 145 | *   |         combBytes = bytes_input;
- 146 |     |     }
- 147 |     | 
- 148 | *   |     function check_combined_input() public view {
- 149 | *   |         if (combBool && combUint256 > 0 && combInt256 < 0 && combAddress != address(0) && bytes(combString).length > 0 && combBytes.length > 0) {
- 150 | *   |             assert(false);
- 151 |     |         }
- 152 |     |     }
- 153 |     | }
+ 100 | *   |     function check_specific_string(string memory provided, string memory target) public {
+ 101 | *r  |         require(bytes(provided).length > 0);
+ 102 | *   |         if (keccak256(bytes(provided)) == keccak256(bytes(hex"00"))) {
+ 103 | *   |             assert(false);
+ 104 |     |         }
+ 105 |     |     }
+ 106 |     | 
+ 107 |     |     // ------------------------------
+ 108 |     |     //         --  bytes  --
+ 109 |     |     // ------------------------------
+ 110 |     |     bytes providedBytes;
+ 111 |     |     bytes32 providedBytes32;
+ 112 |     | 
+ 113 |     |     // TODO bytes32, etc.
+ 114 | *   |     function setBytes(bytes memory input) public {
+ 115 | *r  |         require(input.length > 20);
+ 116 | *   |         providedBytes = input;
+ 117 |     |     }
+ 118 |     | 
+ 119 | *   |     function check_bytes() public view {
+ 120 | *   |         if (providedBytes.length > 20) {
+ 121 |     |             assert(false);
+ 122 |     |         }
+ 123 |     |     }
+ 124 |     | 
+ 125 | *   |     function setBytes32(bytes32 input) public {
+ 126 | *r  |         require(input != bytes32(0));
+ 127 | *   |         providedBytes32 = input;
+ 128 |     |     }
+ 129 |     | 
+ 130 | *   |     function check_bytes32() public {
+ 131 | *   |         if (providedBytes32 != bytes32(0)) {
+ 132 | *   |             assert(false);
+ 133 |     |         }
+ 134 |     |     } 
+ 135 |     | 
+ 136 |     |     // ------------------------------
+ 137 |     |     //         --  combination  --
+ 138 |     |     // ------------------------------
+ 139 |     |     bool combBool;
+ 140 |     |     uint256 combUint256;
+ 141 |     |     int256 combInt256;
+ 142 |     |     address combAddress;
+ 143 |     |     string combString;
+ 144 |     |     bytes combBytes;
+ 145 |     | 
+ 146 | *   |     function setCombination(bool bool_input, uint256 unsigned_input, int256 signed_input, address address_input, string memory str_input, bytes memory bytes_input) public {
+ 147 | *   |         combBool = bool_input;
+ 148 | *   |         combUint256 = unsigned_input;
+ 149 | *   |         combInt256 = signed_input;
+ 150 | *   |         combAddress = address_input;
+ 151 | *   |         combString = str_input;
+ 152 | *   |         combBytes = bytes_input;
+ 153 |     |     }
+ 154 |     | 
+ 155 | *   |     function check_combined_input() public view {
+ 156 | *   |         if (combBool && combUint256 > 0 && combInt256 < 0 && combAddress != address(0) && bytes(combString).length > 0 && combBytes.length > 0) {
+ 157 | *   |             assert(false);
+ 158 |     |         }
+ 159 |     |     }
+ 160 |     | }
 
 /Users/elvisskozdopolj/Documents/GitHub/test-generator/test/src/DynamicArrays.sol
    1 |     | pragma solidity ^0.8.0;
@@ -21242,4 +22387,126 @@
  152 |     |     }
  153 |     | }
  154 |     | 
+
+/Users/elvisskozdopolj/Documents/GitHub/test-generator/test/test/BasicTypes_Echidna_Test.t.sol
+   1 |     | // SPDX-License-Identifier: UNLICENSED
+   2 |     | pragma solidity ^0.8.13;
+   3 |     | import "forge-std/Test.sol";
+   4 |     | import "forge-std/console2.sol";
+   5 |     | import "../src/BasicTypes.sol";
+   6 |     | 
+   7 |     | contract BasicTypes_Echidna_Test is Test {
+   8 |     |     BasicTypes target;
+   9 |     | 
+  10 |     |     function setUp() public {
+  11 |     |         target = new BasicTypes();
+  12 |     |     }
+  13 |     |     function test_auto_check_large_positive_int256_0() public { 
+  14 |     |         
+  15 |     |         vm.prank(0x0000000000000000000000000000000000010000);
+  16 |     |         target.setInt256(57896044618658097711785492504343953926634992332820282019728792003956564819967);
+  17 |     |         
+  18 |     |         vm.prank(0x0000000000000000000000000000000000010000);
+  19 |     |         target.check_large_positive_int256();
+  20 |     |     }
+  21 |     |     
+  22 |     | /*     function test_auto_check_bytes32_1() public { 
+  23 |     |         
+  24 |     |         vm.prank(0x0000000000000000000000000000000000010000);
+  25 |     |         target.setBytes32(bytes32(hex"000000000000000000000000000000000000000000000000000000000000005c313835"));
+  26 |     |         
+  27 |     |         vm.prank(0x0000000000000000000000000000000000010000);
+  28 |     |         target.check_bytes32();
+  29 |     |     } */
+  30 |     |     
+  31 |     |     function test_auto_check_combined_input_2() public { 
+  32 |     |         
+  33 |     |         vm.prank(0x0000000000000000000000000000000000010000);
+  34 |     |         target.setCombination(true, 57128289344427898022897251869689318228644666479777574762312788645080208847162, -21, 0x0000000000000000000000000000000000010000, string(hex"c281766f775c313932c28024c2abc2844b57067368766214605c14381172"), hex"5065726d69742861646472657373206f776e65722c61646472657373207370656e6465722c75696e743235362076616c75652c75696e74323536206e6f6e63652c75696e74323536646561646c696e6529");
+  35 |     |         
+  36 |     |         vm.prank(0x0000000000000000000000000000000000010000);
+  37 |     |         target.check_combined_input();
+  38 |     |     }
+  39 |     |     
+  40 |     |     function test_auto_check_large_negative_int256_3() public { 
+  41 |     |         
+  42 |     |         vm.prank(0x0000000000000000000000000000000000010000);
+  43 |     |         target.setInt256(-57896044618658097711785492504343953926634992332820282019728792003956564819968);
+  44 |     |         
+  45 |     |         vm.prank(0x0000000000000000000000000000000000010000);
+  46 |     |         target.check_large_negative_int256();
+  47 |     |     }
+  48 |     |     
+  49 |     |     function test_auto_check_string_4() public { 
+  50 |     |         
+  51 |     |         vm.prank(0x0000000000000000000000000000000000010000);
+  52 |     |         target.setString(string(hex"000000000000000000000000000000000000005238"));
+  53 |     |         
+  54 |     |         vm.prank(0x0000000000000000000000000000000000010000);
+  55 |     |         target.check_string();
+  56 |     |     }
+  57 |     |     
+  58 |     |     function test_auto_check_specific_string_5() public { 
+  59 |     |         
+  60 |     |         vm.prank(0x0000000000000000000000000000000000010000);
+  61 |     |         target.check_specific_string(string(hex"00"), string(hex"00"));
+  62 |     |     }
+  63 |     |     
+  64 |     |     function test_auto_check_bytes_6() public { 
+  65 |     |         
+  66 |     |         vm.prank(0x0000000000000000000000000000000000010000);
+  67 |     |         target.setBytes(hex"00000000000000000000000000000000005c3138371b5c31383715");
+  68 |     |         
+  69 |     |         vm.prank(0x0000000000000000000000000000000000010000);
+  70 |     |         target.check_bytes();
+  71 |     |     }
+  72 |     |     
+  73 |     |     function test_auto_check_bool_7() public { 
+  74 |     |         
+  75 |     |         vm.prank(0x0000000000000000000000000000000000010000);
+  76 |     |         target.setBool(true);
+  77 |     |         
+  78 |     |         vm.prank(0x0000000000000000000000000000000000010000);
+  79 |     |         target.check_bool();
+  80 |     |     }
+  81 |     |     
+  82 |     |     function test_auto_check_int256_8() public { 
+  83 |     |         
+  84 |     |         vm.prank(0x0000000000000000000000000000000000010000);
+  85 |     |         target.setInt256(0);
+  86 |     |         
+  87 |     |         vm.prank(0x0000000000000000000000000000000000010000);
+  88 |     |         target.check_int256();
+  89 |     |     }
+  90 |     |     
+  91 |     |     function test_auto_check_address_9() public { 
+  92 |     |         
+  93 |     |         vm.prank(0x0000000000000000000000000000000000010000);
+  94 |     |         target.setAddress(0x00000000000000000000000000000000DeaDBeef);
+  95 |     |         
+  96 |     |         vm.prank(0x0000000000000000000000000000000000010000);
+  97 |     |         target.check_address();
+  98 |     |     }
+  99 |     |     
+ 100 |     |     function test_auto_check_uint256_10() public { 
+ 101 |     |         
+ 102 |     |         vm.prank(0x0000000000000000000000000000000000010000);
+ 103 |     |         target.setUint256(0);
+ 104 |     |         
+ 105 |     |         vm.prank(0x0000000000000000000000000000000000010000);
+ 106 |     |         target.check_uint256();
+ 107 |     |     }
+ 108 |     |     
+ 109 |     |     function test_auto_check_large_uint256_11() public { 
+ 110 |     |         
+ 111 |     |         vm.prank(0x0000000000000000000000000000000000010000);
+ 112 |     |         target.setUint256(115792089237316195423570985008687907853269984665640564039457584007913129639935);
+ 113 |     |         
+ 114 |     |         vm.prank(0x0000000000000000000000000000000000010000);
+ 115 |     |         target.check_large_uint256();
+ 116 |     |     }
+ 117 |     |     
+ 118 |     | }
+ 119 |     | 
+ 120 |     |     
 
