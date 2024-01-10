@@ -18,7 +18,7 @@ contract TimeAdvancement {
         timestamp = block.timestamp;
     }
 
-    function check_timestamp() view public {
+    function check_timestamp() public {
         if (timeSet) {
             assert(block.timestamp <= timestamp);
         }
@@ -32,7 +32,7 @@ contract TimeAdvancement {
         blockNumber = block.number;
     }
 
-    function check_block() view public {
+    function check_block() public {
         if (blockSet) {
             assert(block.number <= blockNumber);
         }
@@ -42,7 +42,7 @@ contract TimeAdvancement {
     //         --  both  --
     // ------------------------------
 
-    function check_time_and_block() view public {
+    function check_time_and_block() public {
         if (blockSet && timeSet) {
             assert(block.timestamp <= timestamp || block.number <= blockNumber);
         }

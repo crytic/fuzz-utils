@@ -13,7 +13,7 @@ contract BasicTypes {
         first = set;
     }
 
-    function check_bool() public view {
+    function check_bool() public {
         if (first) {
             assert(false);
         }
@@ -28,13 +28,13 @@ contract BasicTypes {
         _uint256 = input;
     }
 
-    function check_uint256() public view {
+    function check_uint256() public {
         if (_uint256 % 2 == 0) {
             assert(false);
         }
     }
 
-    function check_large_uint256() public view {
+    function check_large_uint256() public {
         if (_uint256 == type(uint256).max) {
             assert(false);
         }
@@ -49,19 +49,19 @@ contract BasicTypes {
         _int256 = input;
     }
 
-    function check_int256() public view {
+    function check_int256() public {
         if (_int256 % 2 == 0) {
             assert(false);
         }
     }
 
-    function check_large_positive_int256() public view {
+    function check_large_positive_int256() public {
         if (_int256 == type(int256).max) {
             assert(false);
         }
     }
 
-    function check_large_negative_int256() public view {
+    function check_large_negative_int256() public {
         if (_int256 == type(int256).min) {
             assert(false);
         }
@@ -76,7 +76,7 @@ contract BasicTypes {
         providedAddress = input;
     }
 
-    function check_address() public view {
+    function check_address() public {
         if (providedAddress != address(0)) {
             assert(false);
         }
@@ -91,13 +91,13 @@ contract BasicTypes {
         providedString = input;
     }
 
-    function check_string() public view {
+    function check_string() public {
         if (bytes(providedString).length > 20) {
             assert(false);
         }
     }
 
-    function check_specific_string(string memory provided, string memory target) public {
+    function check_specific_string(string memory provided) public {
         require(bytes(provided).length > 0);
         if (keccak256(bytes(provided)) == keccak256(bytes(hex"00"))) {
             assert(false);
@@ -116,7 +116,7 @@ contract BasicTypes {
         providedBytes = input;
     }
 
-    function check_bytes() public view {
+    function check_bytes() public {
         if (providedBytes.length > 20) {
             assert(false);
         }
@@ -152,7 +152,7 @@ contract BasicTypes {
         combBytes = bytes_input;
     }
 
-    function check_combined_input() public view {
+    function check_combined_input() public {
         if (combBool && combUint256 > 0 && combInt256 < 0 && combAddress != address(0) && bytes(combString).length > 0 && combBytes.length > 0) {
             assert(false);
         }

@@ -15,7 +15,7 @@ contract FixedArrays {
         }  
     }
 
-    function check_boolArr() public view {
+    function check_boolArr() public {
         if (boolArr[0] && !boolArr[1] && boolArr[2]) {
             assert(false);
         }
@@ -31,7 +31,7 @@ contract FixedArrays {
         }
     }
 
-    function check_uintArr() public view {
+    function check_uintArr() public {
         uint256 sum;
         for(uint256 i; i < uintArr.length; i++) {
             sum += uintArr[i];
@@ -51,7 +51,7 @@ contract FixedArrays {
         }
     }
 
-    function check_intArr() public view {
+    function check_intArr() public {
         int256 sum;
         for(uint256 i; i < intArr.length; i++) {
             sum += intArr[i];
@@ -72,7 +72,7 @@ contract FixedArrays {
         }
     }
 
-    function check_addressArr() public view {
+    function check_addressArr() public {
         uint256 count = 1;
         // At least 3 should be non-zero
         for(uint256 i; i < addressArr.length; i++) {
@@ -96,7 +96,7 @@ contract FixedArrays {
         }
     }
 
-    function check_strArr() public view {
+    function check_strArr() public {
         if (bytes(strArr[0]).length > 0 && bytes(strArr[1]).length > 0) {
             assert(false);
         }
@@ -112,7 +112,7 @@ contract FixedArrays {
         }
     }
 
-    function check_bytesArr() public view {
+    function check_bytesArr() public {
         if (bytesArr[0].length > 0 && bytesArr[1].length > 0) {
             assert(false);
         }

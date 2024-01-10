@@ -16,7 +16,7 @@ contract MultiDimensionalFixedArrays {
         }
     }
 
-    function check_boolArr() public view {
+    function check_boolArr() public {
         uint256 count;
         for (uint256 i; i < boolArr.length; i++) {
             for (uint256 j; j < boolArr[i].length; i++) {
@@ -42,7 +42,7 @@ contract MultiDimensionalFixedArrays {
         }
     }
 
-    function check_uintArr() public view {
+    function check_uintArr() public {
         uint256 sum;
         for (uint256 i; i < uintArr.length; i++) {
             for (uint256 j; i < uintArr[i].length; i++) {
@@ -65,7 +65,7 @@ contract MultiDimensionalFixedArrays {
         }
     }
 
-    function check_intArr() public view {
+    function check_intArr() public {
         int256 sum;
         for (uint256 i; i < intArr.length; i++) {
             for (uint256 j; j < intArr[i].length; i++) {
@@ -88,7 +88,7 @@ contract MultiDimensionalFixedArrays {
         }
     }
 
-    function check_addressArr() public view {
+    function check_addressArr() public {
         uint256 count = 1;
         // At least 3 should be non-zero
         for (uint256 i; i < addressArr.length; i++) {
@@ -115,7 +115,7 @@ contract MultiDimensionalFixedArrays {
         }
     }
 
-    function check_strArr() public view {
+    function check_strArr() public {
         uint256 count;
         for (uint256 i; i < strArr.length; i++) {
             for (uint256 j; j < strArr[i].length; j++) {
@@ -140,7 +140,7 @@ contract MultiDimensionalFixedArrays {
         }
     }
 
-    function check_bytesArr() public view {
+    function check_bytesArr() public {
         uint256 count;
         for (uint256 i; i < bytesArr.length; i++) {
             for (uint256 j; j < bytesArr[i].length; j++) {

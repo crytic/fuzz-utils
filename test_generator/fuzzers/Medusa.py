@@ -13,6 +13,7 @@ from slither.core.declarations.structure_contract import StructureContract
 from slither.core.declarations.enum import Enum
 from slither.core.declarations.enum_contract import EnumContract
 from test_generator.templates.foundry_templates import templates
+from test_generator.utils.encoding import parse_medusa_byte_string
 
 
 class Medusa:
@@ -136,7 +137,7 @@ class Medusa:
             literal_bytes = f'{input_type}(hex"{param}")'
             return literal_bytes
         elif "string" in input_type:
-            hex_string = self._parse_byte_string(param)
+            hex_string = parse_medusa_byte_string(param)
             interpreted_string = f'string(hex"{hex_string}")'
             return interpreted_string
         else:
@@ -260,18 +261,3 @@ class Medusa:
         name = f"dyn{input_type}Arr_{index}"
         declaration = f"{input_type}[] memory {name} = new {input_type}[]({length});\n"
         return name, declaration
-
-    def _parse_byte_string(self, s):
-        # Replace Haskell-specific escapes with Python bytes
-        s = s.replace("\\NUL", "\x00")
-        s = s.replace("\\SOH", "\x01")
-
-        # Handle octal escapes (like \\135)
-        def octal_to_byte(match):
-            octal_value = match.group(0)[1:]  # Remove the backslash
-            return str([int(octal_value, 8)])
-
-        s = re.sub(r"\\[0-3]?[0-7][0-7]", octal_to_byte, s)
-
-        # Convert to bytes and then to hexadecimal
-        return s.encode().hex()

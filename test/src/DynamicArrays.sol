@@ -15,7 +15,7 @@ contract DynamicArrays {
         }  
     }
 
-    function check_boolArr() public view {
+    function check_boolArr() public {
         uint256 count;
         for(uint256 i; i < boolDynArr.length; i++) {
             if (boolDynArr[i]) {
@@ -38,7 +38,7 @@ contract DynamicArrays {
         }
     }
 
-    function check_uintDynArr() public view {
+    function check_uintDynArr() public {
         uint256 sum;
         for(uint256 i; i < uintDynArr.length; i++) {
             sum += uintDynArr[i];
@@ -60,7 +60,7 @@ contract DynamicArrays {
         }
     }
 
-    function check_intDynArr() public view {
+    function check_intDynArr() public {
         int256 sum;
         for(uint256 i; i < intDynArr.length; i++) {
             sum += intDynArr[i];
@@ -82,7 +82,7 @@ contract DynamicArrays {
         }
     }
 
-    function check_addressDynArr() public view {
+    function check_addressDynArr() public {
         uint256 count = 0;
         // At least 3 should be non-zero
         for(uint256 i; i < addressDynArr.length; i++) {
@@ -106,7 +106,7 @@ contract DynamicArrays {
         }
     }
 
-    function check_strDynArr() public view {
+    function check_strDynArr() public {
         uint256 count;
         for(uint256 i; i < strDynArr.length; i++) {
             if (bytes(strDynArr[i]).length > 0) {
@@ -129,7 +129,7 @@ contract DynamicArrays {
         }
     }
 
-    function check_bytesArr() public view {
+    function check_bytesArr() public {
         uint256 count;
         for(uint256 i; i < bytesDynArr.length; i++) {
             if(bytesDynArr[i].length > 0) {

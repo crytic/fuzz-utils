@@ -55,3 +55,6 @@ def parse_echidna_byte_string(s: str) -> str:
     s = re.sub(r"\\[0-3]?[0-7][0-7]", octal_to_byte, s)
     # Convert to bytes and then to hexadecimal
     return s.encode().hex()
+
+def parse_medusa_byte_string(s: str) -> str:
+    return s.encode('utf-8').hex()
