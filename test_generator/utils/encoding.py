@@ -50,9 +50,11 @@ def parse_echidna_byte_string(s: str) -> str:
     # Handle octal escapes (like \\135)
     def octal_to_byte(match):
         octal_value = match.group(0)[1:]  # Remove the backslash
+
         return chr(int(octal_value, 8))
 
     s = re.sub(r"\\[0-3]?[0-7][0-7]", octal_to_byte, s)
+
     # Convert to bytes and then to hexadecimal
     return s.encode().hex()
 

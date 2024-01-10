@@ -139,6 +139,7 @@ class Echidna:
                 is_fixed_size = isinstance(param["contents"], list)
                 size = param["contents"][0] if is_fixed_size else ""
                 contents = param["contents"][1] if is_fixed_size else param["contents"]
+
                 # Haskell encoding needs to be stripped and then converted to a hex literal
                 hex_string = parse_echidna_byte_string(contents.strip('"'))
                 interpreted_string = f'hex"{hex_string}"'
