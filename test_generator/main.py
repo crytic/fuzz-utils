@@ -5,6 +5,8 @@ import json
 import argparse
 import jinja2
 
+from pkg_resources import require
+
 from slither import Slither
 from slither.core.declarations.contract import Contract
 from test_generator.utils.crytic_print import CryticPrint
@@ -108,6 +110,12 @@ def main() -> None:
         "--fuzzer",
         dest="selected_fuzzer",
         help="Define the fuzzer used. Valid inputs: 'echidna', 'medusa'",
+    )
+    parser.add_argument(
+        "--version",
+        help="displays the current version",
+        version=require("test-generator")[0].version,
+        action="version",
     )
 
     args = parser.parse_args()
