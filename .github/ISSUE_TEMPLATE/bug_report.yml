@@ -1,0 +1,50 @@
+--- 
+body: 
+  - 
+    attributes: 
+      value: |
+          Please check the issues tab to avoid duplicates.
+          If you are having difficulty installing test-generator,
+          please head over to the "Discussions" page.
+          Thanks for taking the time to fill out this bug report!
+    type: markdown
+  - 
+    attributes: 
+      label: "Describe the issue:"
+    id: what-happened
+    type: textarea
+    validations: 
+      required: true
+  - 
+    attributes: 
+      description: "It can be a github repo, etherscan link, or code snippet."
+      label: "Code example to reproduce the issue:"
+      placeholder: "`contract A {}`\n"
+    id: reproduce
+    type: textarea
+    validations: 
+      required: true
+  - 
+    attributes: 
+      description: |
+          What version of test-generator are you running? 
+          Run `test-generator --version`
+      label: "Version:"
+    id: version
+    type: textarea
+    validations: 
+      required: true
+  - 
+    attributes: 
+      description: |
+          Please copy and paste any relevant log output. This 
+          will be automatically formatted into code, so no need for backticks.
+      render: shell
+      label: "Relevant log output:"
+    id: logs
+    type: textarea
+description: "File a bug report"
+labels: 
+  - bug-candidate
+name: "Bug Report"
+title: "[Bug-Candidate]: "
