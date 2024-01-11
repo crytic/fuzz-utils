@@ -9,7 +9,7 @@ setup(
     url="https://github.com/crytic/test-generator",
     author="Trail of Bits",
     version="0.0.1",
-    packages=find_packages(exclude=["test"]),
+    packages=find_packages(exclude=["tests"]),
     python_requires=">=3.7",
     install_requires=[
         "colorama",
