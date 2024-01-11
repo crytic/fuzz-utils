@@ -13,7 +13,10 @@ def test_medusa_basic_types(basic_types):
     path = os.path.join(os.getcwd(), "test", "BasicTypes_Medusa_Test.t.sol")
     assert os.path.exists(path)
 
-    # Ensure the file can be compiled and tested
+    # Ensure the file can be compiled
+    subprocess.run(["forge", "build", "--build-info"], capture_output=True, text=True, check=True)
+
+    # Ensure the file can be tested
     result = subprocess.run(["forge", "test", "--match-contract", "BasicTypes_Medusa_Test"], capture_output=True, text=True, check=False)
     output = result.stdout
 
@@ -35,7 +38,10 @@ def test_medusa_fixed_array_types(fixed_size_arrays):
     path = os.path.join(os.getcwd(), "test", "FixedArrays_Medusa_Test.t.sol")
     assert os.path.exists(path)
 
-    # Ensure the file can be compiled and tested
+    # Ensure the file can be compiled
+    subprocess.run(["forge", "build", "--build-info"], capture_output=True, text=True, check=True)
+
+    # Ensure the file can be tested
     result = subprocess.run(["forge", "test", "--match-contract", "FixedArrays_Medusa_Test"], capture_output=True, text=True, check=False)
     output = result.stdout
 
@@ -57,7 +63,10 @@ def test_medusa_dynamic_array_types(dynamic_arrays):
     path = os.path.join(os.getcwd(), "test", "DynamicArrays_Medusa_Test.t.sol")
     assert os.path.exists(path)
 
-    # Ensure the file can be compiled and tested
+    # Ensure the file can be compiled
+    subprocess.run(["forge", "build", "--build-info"], capture_output=True, text=True, check=True)
+
+    # Ensure the file can be tested
     result = subprocess.run(["forge", "test", "--match-contract", "DynamicArrays_Medusa_Test"], capture_output=True, text=True, check=False)
     output = result.stdout
 
@@ -79,7 +88,10 @@ def test_medusa_structs_and_enums(structs_and_enums):
     path = os.path.join(os.getcwd(), "test", "TupleTypes_Medusa_Test.t.sol")
     assert os.path.exists(path)
 
-    # Ensure the file can be compiled and tested
+    # Ensure the file can be compiled
+    subprocess.run(["forge", "build", "--build-info"], capture_output=True, text=True, check=True)
+
+    # Ensure the file can be tested
     result = subprocess.run(["forge", "test", "--match-contract", "TupleTypes_Medusa_Test"], capture_output=True, text=True, check=False)
     output = result.stdout
 
