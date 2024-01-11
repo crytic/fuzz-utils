@@ -5,13 +5,18 @@ from test_generator.main import FoundryTest
 from test_generator.fuzzers.Echidna import Echidna
 from test_generator.fuzzers.Medusa import Medusa
 
+
 class TestGenerator:
     def __init__(self, target, target_path, corpus_dir):
         slither = Slither(target_path)
         echidna = Echidna(target, f"echidna-corpora/{corpus_dir}", slither)
         medusa = Medusa(target, f"medusa-corpora/{corpus_dir}", slither)
-        self.echidna_generator = FoundryTest("../src/", target, f"echidna-corpora/{corpus_dir}", "./test/", slither, echidna)
-        self.medusa_generator = FoundryTest("../src/", target, f"medusa-corpora/{corpus_dir}", "./test/", slither, medusa)
+        self.echidna_generator = FoundryTest(
+            "../src/", target, f"echidna-corpora/{corpus_dir}", "./test/", slither, echidna
+        )
+        self.medusa_generator = FoundryTest(
+            "../src/", target, f"medusa-corpora/{corpus_dir}", "./test/", slither, medusa
+        )
 
     def echidna_generate_tests(self):
         self.echidna_generator.create_poc()
@@ -19,16 +24,18 @@ class TestGenerator:
     def medusa_generate_tests(self):
         self.medusa_generator.create_poc()
 
+
 @pytest.fixture(autouse=True)
 def change_test_dir(request, monkeypatch):
     # Directory of the test file
     test_dir = request.fspath.dirname
 
     # Path to the test_data directory
-    data_dir = os.path.join(test_dir, 'test_data')
+    data_dir = os.path.join(test_dir, "test_data")
 
     # Change the current working directory to test_data
     monkeypatch.chdir(data_dir)
+
 
 @pytest.fixture
 def basic_types():
@@ -38,6 +45,7 @@ def basic_types():
 
     return TestGenerator(target, target_path, corpus_dir)
 
+
 @pytest.fixture
 def fixed_size_arrays():
     target = "FixedArrays"
@@ -46,6 +54,7 @@ def fixed_size_arrays():
 
     return TestGenerator(target, target_path, corpus_dir)
 
+
 @pytest.fixture
 def dynamic_arrays():
     target = "DynamicArrays"
@@ -53,6 +62,7 @@ def dynamic_arrays():
     corpus_dir = "corpus-dyn-arr"
 
     return TestGenerator(target, target_path, corpus_dir)
+
 
 @pytest.fixture
 def structs_and_enums():

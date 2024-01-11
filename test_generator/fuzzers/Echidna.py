@@ -14,6 +14,7 @@ from slither.core.declarations.enum import Enum
 from test_generator.templates.foundry_templates import templates
 from test_generator.utils.encoding import parse_echidna_byte_string
 
+
 class Echidna:
     """
     Handles the generation of Foundry test files from Echidna reproducers
@@ -144,7 +145,11 @@ class Echidna:
                 hex_string = parse_echidna_byte_string(contents.strip('"'))
                 interpreted_string = f'hex"{hex_string}"'
                 if not recursive:
-                    result = f"bytes{size}({interpreted_string})" if is_fixed_size else interpreted_string
+                    result = (
+                        f"bytes{size}({interpreted_string})"
+                        if is_fixed_size
+                        else interpreted_string
+                    )
                     return result
                 else:
                     casting = f"bytes{size}({interpreted_string})"
