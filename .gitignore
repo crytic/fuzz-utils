@@ -64,3 +64,6 @@ test.py
 cache/
 out/
 crytic-export/
+
+# VENV
+test-generator/
