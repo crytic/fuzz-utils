@@ -1,3 +1,4 @@
+""" Globally available fixtures"""
 import os
 import pytest
 from slither import Slither
@@ -7,6 +8,7 @@ from test_generator.fuzzers.Medusa import Medusa
 
 
 class TestGenerator:
+    """ Helper class for testing all fuzzers with the tool"""
     def __init__(self, target, target_path, corpus_dir):
         slither = Slither(target_path)
         echidna = Echidna(target, f"echidna-corpora/{corpus_dir}", slither)
@@ -19,14 +21,17 @@ class TestGenerator:
         )
 
     def echidna_generate_tests(self):
+        """ Runs the test-generator tool for an Echidna corpus"""
         self.echidna_generator.create_poc()
 
     def medusa_generate_tests(self):
+        """ Runs the test-generator tool for a Medusa corpus"""
         self.medusa_generator.create_poc()
 
 
 @pytest.fixture(autouse=True)
 def change_test_dir(request, monkeypatch):
+    """ Helper fixture to change the working directory"""
     # Directory of the test file
     test_dir = request.fspath.dirname
 
@@ -39,6 +44,7 @@ def change_test_dir(request, monkeypatch):
 
 @pytest.fixture
 def basic_types():
+    """ Fixture for the BasicTypes test contract"""
     target = "BasicTypes"
     target_path = "./src/BasicTypes.sol"
     corpus_dir = "corpus-basic"
@@ -48,6 +54,7 @@ def basic_types():
 
 @pytest.fixture
 def fixed_size_arrays():
+    """ Fixture for the FixedArrays test contract"""
     target = "FixedArrays"
     target_path = "./src/FixedArrays.sol"
     corpus_dir = "corpus-fixed-arr"
@@ -57,6 +64,7 @@ def fixed_size_arrays():
 
 @pytest.fixture
 def dynamic_arrays():
+    """ Fixture for the DynamicArrays test contract"""
     target = "DynamicArrays"
     target_path = "./src/DynamicArrays.sol"
     corpus_dir = "corpus-dyn-arr"
@@ -66,6 +74,7 @@ def dynamic_arrays():
 
 @pytest.fixture
 def structs_and_enums():
+    """ Fixture for the TupleTypes test contract"""
     target = "TupleTypes"
     target_path = "./src/TupleTypes.sol"
     corpus_dir = "corpus-struct"

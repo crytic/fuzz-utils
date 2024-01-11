@@ -1,4 +1,4 @@
-""" BasicTypes tests"""
+""" Tests for generating compilable test files from an Medusa corpus"""
 from pathlib import Path
 import os
 import re
@@ -9,6 +9,7 @@ PATTERN = r"(\d+)\s+failing tests,\s+(\d+)\s+tests succeeded"
 
 
 def test_medusa_basic_types(basic_types):
+    """ Tests the BasicTypes contract with a Medusa corpus"""
     basic_types.medusa_generate_tests()
     # Ensure the file was created
     path = os.path.join(os.getcwd(), "test", "BasicTypes_Medusa_Test.t.sol")
@@ -40,6 +41,7 @@ def test_medusa_basic_types(basic_types):
 
 
 def test_medusa_fixed_array_types(fixed_size_arrays):
+    """ Tests the FixedArrays contract with a Medusa corpus"""
     fixed_size_arrays.medusa_generate_tests()
     # Ensure the file was created
     path = os.path.join(os.getcwd(), "test", "FixedArrays_Medusa_Test.t.sol")
@@ -71,6 +73,7 @@ def test_medusa_fixed_array_types(fixed_size_arrays):
 
 
 def test_medusa_dynamic_array_types(dynamic_arrays):
+    """ Tests the DynamicArrays contract with a Medusa corpus"""
     dynamic_arrays.medusa_generate_tests()
     # Ensure the file was created
     path = os.path.join(os.getcwd(), "test", "DynamicArrays_Medusa_Test.t.sol")
@@ -102,6 +105,7 @@ def test_medusa_dynamic_array_types(dynamic_arrays):
 
 
 def test_medusa_structs_and_enums(structs_and_enums):
+    """ Tests the TupleTypes contract with a Medusa corpus"""
     structs_and_enums.medusa_generate_tests()
     # Ensure the file was created
     path = os.path.join(os.getcwd(), "test", "TupleTypes_Medusa_Test.t.sol")

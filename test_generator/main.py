@@ -34,10 +34,11 @@ class FoundryTest:
         self.corpus_path = corpus_path
         self.test_dir = test_dir
         self.slither = slither
-        self.target = self._get_target_contract()
+        self.target = self.get_target_contract()
         self.fuzzer = fuzzer
 
-    def _get_target_contract(self) -> Contract:
+    def get_target_contract(self) -> Contract:
+        """ Gets the Slither Contract object for the specified contract file"""
         contracts = self.slither.get_contract_from_name(self.target_name)
         # Loop in case slither fetches multiple contracts for some reason (e.g., similar names?)
         for contract in contracts:
@@ -45,7 +46,7 @@ class FoundryTest:
                 return contract
 
         # TODO throw error if no contract found
-        exit(-1)
+        sys.exit(-1)
 
     def create_poc(self) -> str:
         """Takes in a directory path to the echidna reproducers and generates a test file"""
@@ -85,6 +86,7 @@ class FoundryTest:
 
 
 def main() -> None:
+    """ The main entry point """
     parser = argparse.ArgumentParser(
         prog="test-generator", description="Generate test harnesses for Echidna failed properties."
     )
@@ -134,7 +136,7 @@ def main() -> None:
             fuzzer = Medusa(target_contract, corpus_dir, slither)
         case _:
             # TODO create a descriptive error
-            exit(-1)
+            sys.exit(-1)
 
     CryticPrint().print_information(
         f"Generating Foundry unit tests based on the {fuzzer.name} reproducers..."

@@ -14,7 +14,8 @@ logging-fstring-interpolation,
 logging-not-lazy,
 duplicate-code,
 import-error,
-unsubscriptable-object
+unsubscriptable-object,
+too-many-arguments
 """
 [tool.mypy]
 warn_incomplete_stub = true
