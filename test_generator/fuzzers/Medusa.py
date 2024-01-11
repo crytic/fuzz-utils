@@ -1,10 +1,11 @@
 """ Generates a test file from Medusa reproducers """
-import re
+import sys
 from typing import Any
 import jinja2
 
 from slither import Slither
 from slither.core.declarations.contract import Contract
+from slither.core.declarations.function_contract import FunctionContract
 from slither.core.solidity_types.elementary_type import ElementaryType
 from slither.core.solidity_types.user_defined_type import UserDefinedType
 from slither.core.solidity_types.array_type import ArrayType
@@ -26,10 +27,11 @@ class Medusa:
         self.target_name = target_name
         self.corpus_path = corpus_path
         self.slither = slither
-        self.target = self._get_target_contract()
+        self.target = self.get_target_contract()
         self.reproducer_dir = f"{corpus_path}/test_results"
 
-    def _get_target_contract(self) -> Contract:
+    def get_target_contract(self) -> Contract:
+        """Finds and returns Slither Contract"""
         contracts = self.slither.get_contract_from_name(self.target_name)
         # Loop in case slither fetches multiple contracts for some reason (e.g., similar names?)
         for contract in contracts:
@@ -37,7 +39,7 @@ class Medusa:
                 return contract
 
         # TODO throw error if no contract found
-        exit(-1)
+        sys.exit(-1)
 
     def parse_reproducer(self, calls: Any, index: int) -> str:
         """
@@ -67,13 +69,9 @@ class Medusa:
         # 1. Parse call object and save the variables
         time_delay = int(call_dict["blockTimestampDelay"])
         block_delay = int(call_dict["blockNumberDelay"])
-        has_delay = True if time_delay > 0 or block_delay > 0 else False
+        has_delay = time_delay > 0 or block_delay > 0
 
         # TODO check how Medusa handles empty calls
-        """ if call_dict["call"]["tag"] == "NoCall":
-            template = jinja2.Template(templates["EMPTY"])
-            call_str = template.render(time_delay=time_delay, block_delay=block_delay)
-            return (call_str, "") """
 
         function_name = call_dict["call"]["dataAbiValues"]["methodName"]
         function_parameters = call_dict["call"]["dataAbiValues"]["inputValues"]
@@ -82,7 +80,7 @@ class Medusa:
         caller = call_dict["call"]["from"]
         value = int(call_dict["call"]["value"], 16)
 
-        slither_entry_point = None
+        slither_entry_point: FunctionContract
 
         for entry_point in self.target.functions_entry_points:
             if entry_point.name == function_name:
@@ -92,7 +90,6 @@ class Medusa:
         variable_definition, call_definition = self._decode_function_params(
             function_parameters, False, slither_entry_point
         )
-        params = ", ".join(call_definition)
 
         # 3. Generate a call string and return it
         template = jinja2.Template(templates["CALL"])
@@ -102,7 +99,7 @@ class Medusa:
             block_delay=block_delay,
             caller=caller,
             value=value,
-            function_parameters=params,
+            function_parameters=", ".join(call_definition),
             function_name=function_name,
             contract_name=self.target_name,
         )
@@ -125,23 +122,23 @@ class Medusa:
                         (str): String of the input parameter literal
         """
         input_type = input_parameter.type
+
         if "bool" in input_type:
             return param.lower()
-        elif "int" in input_type:
+        if "int" in input_type:
             if not recursive:
                 return param
-            else:
-                return f"{input_type}({param})"
-        elif "bytes" in input_type:
+            return f"{input_type}({param})"
+        if "bytes" in input_type:
             # Haskell encoding needs to be stripped and then converted to a hex literal
             literal_bytes = f'{input_type}(hex"{param}")'
             return literal_bytes
-        elif "string" in input_type:
+        if "string" in input_type:
             hex_string = parse_medusa_byte_string(param)
             interpreted_string = f'string(hex"{hex_string}")'
             return interpreted_string
-        else:
-            return param
+
+        return param
 
     def _match_array_type(
         self, param: dict, index: int, input_parameter: Any
@@ -152,18 +149,18 @@ class Medusa:
             # Fixed array
             _, func_params = self._decode_function_params(param, True, input_parameter)
             return f"[{','.join(func_params)}]", "", index
-        else:
-            # Dynamic arrays
-            # Consider cases where the array items are more complex types (bytes, string, tuples)
-            definitions, func_params = self._decode_function_params(param, True, input_parameter)
-            name, var_def = self._get_memarr(param, index, input_parameter)
-            definitions += var_def
 
-            for idx, temp_param in enumerate(func_params):
-                definitions += "\t\t" + name + f"[{idx}] = {temp_param};\n"
-            index += 1
+        # Dynamic arrays
+        # Consider cases where the array items are more complex types (bytes, string, tuples)
+        definitions, func_params = self._decode_function_params(param, True, input_parameter)
+        name, var_def = self._get_memarr(param, index, input_parameter)
+        definitions += var_def
 
-            return name, definitions, index
+        for idx, temp_param in enumerate(func_params):
+            definitions += "\t\t" + name + f"[{idx}] = {temp_param};\n"
+        index += 1
+
+        return name, definitions, index
 
     def _match_user_defined_type(
         self, param: list[Any] | dict[Any, Any], input_parameter: Any
@@ -201,12 +198,11 @@ class Medusa:
                             )
                         )
                     case ArrayType():
-                        [inputs, definitions, new_index] = self._match_array_type(
+                        [inputs, definitions, index] = self._match_array_type(
                             input_value, index, input_parameter
                         )
                         params.append(inputs)
                         variable_definitions += definitions
-                        index = new_index
                     case UserDefinedType():
                         [definitions, func_params] = self._match_user_defined_type(
                             input_value, input_parameter
@@ -221,9 +217,9 @@ class Medusa:
             for param_idx, param in enumerate(function_params):
                 input_parameter = None
                 if recursive:
-                    try:
+                    if isinstance(entry_point, list):
                         input_parameter = entry_point[param_idx].type
-                    except:
+                    else:
                         input_parameter = entry_point.type
 
                 else:
@@ -235,12 +231,11 @@ class Medusa:
                             self._match_elementary_types(str(param), recursive, input_parameter)
                         )
                     case ArrayType():
-                        [inputs, definitions, new_index] = self._match_array_type(
+                        [inputs, definitions, index] = self._match_array_type(
                             param, index, input_parameter
                         )
                         params.append(inputs)
                         variable_definitions += definitions
-                        index = new_index
                     case UserDefinedType():
                         [definitions, func_params] = self._match_user_defined_type(
                             param, input_parameter
@@ -255,8 +250,8 @@ class Medusa:
         # 3. Return a list of function parameters
         if len(variable_definitions) > 0:
             return variable_definitions, params
-        else:
-            return "", params
+
+        return "", params
 
     def _get_memarr(
         self, function_params: dict | list, index: int, input_parameter: Any

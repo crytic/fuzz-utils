@@ -87,7 +87,7 @@ class FoundryTest:
         return test_file_str
 
 
-def main() -> None:
+def main() -> None:  # type: ignore[func-returns-value]
     """The main entry point"""
     parser = argparse.ArgumentParser(
         prog="test-generator", description="Generate test harnesses for Echidna failed properties."
@@ -149,8 +149,6 @@ def main() -> None:
     test_generator.create_poc()
     CryticPrint().print_success("Done!")
 
-    return None
-
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main())  # type: ignore[func-returns-value]

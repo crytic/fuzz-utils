@@ -1,5 +1,5 @@
 """ Generates a test file from Echidna reproducers """
-import re
+import sys
 from typing import Any
 import jinja2
 
@@ -24,10 +24,11 @@ class Echidna:
         self.name = "Echidna"
         self.target_name = target_name
         self.slither = slither
-        self.target = self._get_target_contract()
+        self.target = self.get_target_contract()
         self.reproducer_dir = f"{corpus_path}/reproducers"
 
-    def _get_target_contract(self) -> Contract:
+    def get_target_contract(self) -> Contract:
+        """Finds and returns Slither Contract"""
         contracts = self.slither.get_contract_from_name(self.target_name)
         # Loop in case slither fetches multiple contracts for some reason (e.g., similar names?)
         for contract in contracts:
@@ -35,7 +36,7 @@ class Echidna:
                 return contract
 
         # TODO throw error if no contract found
-        exit(-1)
+        sys.exit(-1)
 
     def parse_reproducer(self, calls: Any, index: int) -> str:
         """
@@ -65,7 +66,7 @@ class Echidna:
         # 1. Parse call object and save the variables
         time_delay = int(call_dict["delay"][0], 16)
         block_delay = int(call_dict["delay"][1], 16)
-        has_delay = True if time_delay > 0 or block_delay > 0 else False
+        has_delay = time_delay > 0 or block_delay > 0
 
         if call_dict["call"]["tag"] == "NoCall":
             template = jinja2.Template(templates["EMPTY"])
@@ -89,7 +90,6 @@ class Echidna:
         variable_definition, call_definition = self._decode_function_params(
             function_parameters, False, slither_entry_point
         )
-        params = ", ".join(call_definition)
 
         # 3. Generate a call string and return it
         template = jinja2.Template(templates["CALL"])
@@ -99,7 +99,7 @@ class Echidna:
             block_delay=block_delay,
             caller=caller,
             value=value,
-            function_parameters=params,
+            function_parameters=", ".join(call_definition),
             function_name=function_name,
             contract_name=self.target_name,
         )
@@ -131,9 +131,9 @@ class Echidna:
                 cast = "uint" if param["tag"] == "AbiUInt" else "int"
                 if not recursive:
                     return param["contents"][1]
-                else:
-                    casting = f'{cast}{str(param["contents"][0])}({param["contents"][1]})'
-                    return casting
+
+                casting = f'{cast}{str(param["contents"][0])}({param["contents"][1]})'
+                return casting
             case "AbiAddress":
                 return param["contents"]
             case "AbiBytes" | "AbiBytesDynamic":
@@ -151,9 +151,9 @@ class Echidna:
                         else interpreted_string
                     )
                     return result
-                else:
-                    casting = f"bytes{size}({interpreted_string})"
-                    return casting
+
+                casting = f"bytes{size}({interpreted_string})"
+                return casting
             case "AbiString":
                 hex_string = parse_echidna_byte_string(param["contents"].strip('"'))
                 interpreted_string = f'string(hex"{hex_string}")'
@@ -202,9 +202,9 @@ class Echidna:
                 if isinstance(input_parameter.type, Enum):
                     enum_uint = self._match_elementary_types(param, False)
                     return "", f"{input_parameter}({enum_uint})"
-                else:
-                    # TODO is this even reachable?
-                    return "", ""
+
+                # TODO is this even reachable?
+                return "", ""
             case _:
                 return "", ""
 
@@ -219,9 +219,9 @@ class Echidna:
         for param_idx, param in enumerate(function_params):
             input_parameter = None
             if recursive:
-                try:
+                if isinstance(entry_point, list):
                     input_parameter = entry_point[param_idx].type
-                except:
+                else:
                     input_parameter = entry_point.type
 
             else:
@@ -251,8 +251,8 @@ class Echidna:
         # 3. Return a list of function parameters
         if len(variable_definitions) > 0:
             return variable_definitions, params
-        else:
-            return "", params
+
+        return "", params
 
     def _get_memarr(self, function_params: dict, index: int) -> tuple[str, str]:
         length = len(function_params[1])
