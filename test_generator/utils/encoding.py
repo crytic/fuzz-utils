@@ -49,7 +49,7 @@ def parse_echidna_byte_string(s: str) -> str:
         s = s.replace(key, value)
 
     # Handle octal escapes (like \\135)
-    def octal_to_byte(match):
+    def octal_to_byte(match: re.Match) -> str:
         octal_value = match.group(0)[1:]  # Remove the backslash
 
         return chr(int(octal_value, 8))
@@ -61,5 +61,5 @@ def parse_echidna_byte_string(s: str) -> str:
 
 
 def parse_medusa_byte_string(s: str) -> str:
-    """ Decode bytes* or string type from Medusa format to Solidity hex literal"""
+    """Decode bytes* or string type from Medusa format to Solidity hex literal"""
     return s.encode("utf-8").hex()

@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-PY_MODULE := test-generator
+PY_MODULE := test_generator
 TEST_MODULE := tests
 
 # Optionally overriden by the user, if they're using a virtual environment manager.
@@ -40,9 +40,8 @@ run: $(VENV)/pyvenv.cfg
 lint: $(VENV)/pyvenv.cfg
 	. $(VENV_BIN)/activate && \
 		black --check . && \
-		pylint $(PY_MODULE) $(TEST_MODULE) 
-		# ruff $(ALL_PY_SRCS) && \
-		# mypy $(PY_MODULE) && 
+		pylint $(PY_MODULE) $(TEST_MODULE)  && \
+		mypy $(PY_MODULE)
 
 .PHONY: reformat
 reformat:

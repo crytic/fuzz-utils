@@ -38,7 +38,7 @@ class FoundryTest:
         self.fuzzer = fuzzer
 
     def get_target_contract(self) -> Contract:
-        """ Gets the Slither Contract object for the specified contract file"""
+        """Gets the Slither Contract object for the specified contract file"""
         contracts = self.slither.get_contract_from_name(self.target_name)
         # Loop in case slither fetches multiple contracts for some reason (e.g., similar names?)
         for contract in contracts:
@@ -58,7 +58,7 @@ class FoundryTest:
             full_path = os.path.join(self.fuzzer.reproducer_dir, entry)
 
             if os.path.isfile(full_path):
-                with open(full_path, "r", encoding="utf8") as file:
+                with open(full_path, "r", encoding="utf-8") as file:
                     file_list.append(json.load(file))
 
         # 2. Parse each reproducer file and add each test function to the functions list
@@ -84,9 +84,11 @@ class FoundryTest:
             f"Generated a test file in {write_path}_{self.fuzzer.name}_Test.t.sol"
         )
 
+        return test_file_str
+
 
 def main() -> None:
-    """ The main entry point """
+    """The main entry point"""
     parser = argparse.ArgumentParser(
         prog="test-generator", description="Generate test harnesses for Echidna failed properties."
     )
@@ -127,7 +129,7 @@ def main() -> None:
     inheritance_path = args.inheritance_path
     target_contract = args.target_contract
     slither = Slither(file_path)
-    fuzzer = None
+    fuzzer: Echidna | Medusa
 
     match args.selected_fuzzer.lower():
         case "echidna":
@@ -146,6 +148,8 @@ def main() -> None:
     )
     test_generator.create_poc()
     CryticPrint().print_success("Done!")
+
+    return None
 
 
 if __name__ == "__main__":

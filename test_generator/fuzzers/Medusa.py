@@ -39,7 +39,7 @@ class Medusa:
         # TODO throw error if no contract found
         exit(-1)
 
-    def parse_reproducer(self, calls: list, index: int) -> str:
+    def parse_reproducer(self, calls: Any, index: int) -> str:
         """
         Takes a list of call dicts and returns a Foundry unit test string containing the call sequence.
         """
@@ -59,7 +59,7 @@ class Medusa:
         # 3. Using the call list to generate a test string
         # 4. Return the test string
 
-    def _parse_call_object(self, call_dict) -> (str, str):
+    def _parse_call_object(self, call_dict: dict) -> tuple[str, str]:
         """
         Takes a single call dictionary, parses it, and returns the series of function calls as a string, along with
         the name of the last function, which is used as the name of the test.
@@ -112,7 +112,7 @@ class Medusa:
 
         return call_str, function_name
 
-    def _match_elementary_types(self, param: str, recursive: bool, input_parameter) -> str:
+    def _match_elementary_types(self, param: str, recursive: bool, input_parameter: Any) -> str:
         """
         Returns a string which represents a elementary type literal value. e.g. "5" or "uint256(5)"
 
@@ -143,7 +143,9 @@ class Medusa:
         else:
             return param
 
-    def _match_array_type(self, param: dict, index: int, input_parameter) -> tuple[str, str, int]:
+    def _match_array_type(
+        self, param: dict, index: int, input_parameter: Any
+    ) -> tuple[str, str, int]:
         # TODO check if fixed arrays are considered dynamic or not
         dynamic = input_parameter.is_dynamic_array
         if not dynamic:
@@ -163,7 +165,9 @@ class Medusa:
 
             return name, definitions, index
 
-    def _match_user_defined_type(self, param: dict | str, input_parameter) -> tuple[str, str]:
+    def _match_user_defined_type(
+        self, param: list[Any] | dict[Any, Any], input_parameter: Any
+    ) -> tuple[str, str]:
         match input_parameter.type:
             case Structure() | StructureContract():
                 definitions, func_params = self._decode_function_params(
@@ -172,10 +176,12 @@ class Medusa:
                 return definitions, f"{input_parameter}({','.join(func_params)})"
             case Enum() | EnumContract():
                 return "", f"{input_parameter}({param})"
+            case _:
+                return "", ""
 
     def _decode_function_params(
         self, function_params: list | dict, recursive: bool, entry_point: Any
-    ) -> (str | None, list):
+    ) -> tuple[str, list]:
         params = []
         variable_definitions = ""
         index = 0
@@ -253,8 +259,8 @@ class Medusa:
             return "", params
 
     def _get_memarr(
-        self, function_params: list, index: int, input_parameter
-    ) -> (str | None, str | None):
+        self, function_params: dict | list, index: int, input_parameter: Any
+    ) -> tuple[str, str]:
         length = len(function_params)
 
         input_type = input_parameter.type

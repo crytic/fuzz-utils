@@ -9,7 +9,7 @@ PATTERN = r"(\d+)\s+failing tests,\s+(\d+)\s+tests succeeded"
 
 
 def test_echidna_basic_types(basic_types):
-    """ Tests the BasicTypes contract with an Echidna corpus"""
+    """Tests the BasicTypes contract with an Echidna corpus"""
     basic_types.echidna_generate_tests()
     # Ensure the file was created
     path = os.path.join(os.getcwd(), "test", "BasicTypes_Echidna_Test.t.sol")
@@ -41,7 +41,7 @@ def test_echidna_basic_types(basic_types):
 
 
 def test_echidna_fixed_array_types(fixed_size_arrays):
-    """ Tests the FixedArrays contract with an Echidna corpus"""
+    """Tests the FixedArrays contract with an Echidna corpus"""
     fixed_size_arrays.echidna_generate_tests()
     # Ensure the file was created
     path = os.path.join(os.getcwd(), "test", "FixedArrays_Echidna_Test.t.sol")
@@ -73,7 +73,7 @@ def test_echidna_fixed_array_types(fixed_size_arrays):
 
 
 def test_echidna_dynamic_array_types(dynamic_arrays):
-    """ Tests the DynamicArrays contract with an Echidna corpus"""
+    """Tests the DynamicArrays contract with an Echidna corpus"""
     dynamic_arrays.echidna_generate_tests()
     # Ensure the file was created
     path = os.path.join(os.getcwd(), "test", "DynamicArrays_Echidna_Test.t.sol")
@@ -105,7 +105,7 @@ def test_echidna_dynamic_array_types(dynamic_arrays):
 
 
 def test_echidna_structs_and_enums(structs_and_enums):
-    """ Tests the TupleTypes contract with an Echidna corpus"""
+    """Tests the TupleTypes contract with an Echidna corpus"""
     structs_and_enums.echidna_generate_tests()
     # Ensure the file was created
     path = os.path.join(os.getcwd(), "test", "TupleTypes_Echidna_Test.t.sol")

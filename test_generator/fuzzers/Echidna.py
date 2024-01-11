@@ -37,7 +37,7 @@ class Echidna:
         # TODO throw error if no contract found
         exit(-1)
 
-    def parse_reproducer(self, calls: list, index: int) -> str:
+    def parse_reproducer(self, calls: Any, index: int) -> str:
         """
         Takes a list of call dicts and returns a Foundry unit test string containing the call sequence.
         """
@@ -57,7 +57,7 @@ class Echidna:
         # 3. Using the call list to generate a test string
         # 4. Return the test string
 
-    def _parse_call_object(self, call_dict) -> (str, str):
+    def _parse_call_object(self, call_dict: dict[Any, Any]) -> tuple[str, str]:
         """
         Takes a single call dictionary, parses it, and returns the series of function calls as a string, along with
         the name of the last function, which is used as the name of the test.
@@ -158,8 +158,12 @@ class Echidna:
                 hex_string = parse_echidna_byte_string(param["contents"].strip('"'))
                 interpreted_string = f'string(hex"{hex_string}")'
                 return interpreted_string
+            case _:
+                return ""
 
-    def _match_array_type(self, param: dict, index: int, input_parameter) -> tuple[str, str, int]:
+    def _match_array_type(
+        self, param: dict, index: int, input_parameter: Any
+    ) -> tuple[str, str, int]:
         match param["tag"]:
             case "AbiArray":
                 # Consider cases where the array items are more complex types (bytes, string, tuples)
@@ -180,8 +184,10 @@ class Echidna:
                 index += 1
 
                 return name, definitions, index
+            case _:
+                return "", "", index
 
-    def _match_user_defined_type(self, param: dict, input_parameter) -> tuple[str, str]:
+    def _match_user_defined_type(self, param: dict, input_parameter: Any) -> tuple[str, str]:
         match param["tag"]:
             case "AbiTuple":
                 match input_parameter.type:
@@ -190,6 +196,8 @@ class Echidna:
                             param["contents"], True, input_parameter.type.elems_ordered
                         )
                         return definitions, f"{input_parameter}({','.join(func_params)})"
+                    case _:
+                        return "", ""
             case "AbiUInt":
                 if isinstance(input_parameter.type, Enum):
                     enum_uint = self._match_elementary_types(param, False)
@@ -197,10 +205,12 @@ class Echidna:
                 else:
                     # TODO is this even reachable?
                     return "", ""
+            case _:
+                return "", ""
 
     def _decode_function_params(
         self, function_params: list, recursive: bool, entry_point: Any
-    ) -> (str | None, list):
+    ) -> tuple[str, list]:
         params = []
         variable_definitions = ""
         index = 0
@@ -244,7 +254,7 @@ class Echidna:
         else:
             return "", params
 
-    def _get_memarr(self, function_params: dict, index: int) -> (str | None, str | None):
+    def _get_memarr(self, function_params: dict, index: int) -> tuple[str, str]:
         length = len(function_params[1])
         match function_params[0]["tag"]:
             case "AbiBoolType":
@@ -272,4 +282,4 @@ class Echidna:
                 name = f"dynStringArr_{index}"
                 return name, f"string[] memory {name} = new string[]({length});\n"
             case _:
-                return None, None
+                return "", ""
