@@ -13,7 +13,10 @@ def test_echidna_basic_types(basic_types):
     path = os.path.join(os.getcwd(), "test", "BasicTypes_Echidna_Test.t.sol")
     assert os.path.exists(path)
 
-    # Ensure the file can be compiled and tested
+    # Ensure the file can be compiled
+    subprocess.run(["forge", "build", "--build-info"], capture_output=True, text=True, check=True)
+
+    # Ensure the file can be tested
     result = subprocess.run(["forge", "test", "--match-contract", "BasicTypes_Echidna_Test"], capture_output=True, text=True, check=False)
     output = result.stdout
 
@@ -35,7 +38,10 @@ def test_echidna_fixed_array_types(fixed_size_arrays):
     path = os.path.join(os.getcwd(), "test", "FixedArrays_Echidna_Test.t.sol")
     assert os.path.exists(path)
 
-    # Ensure the file can be compiled and tested
+    # Ensure the file can be compiled
+    subprocess.run(["forge", "build", "--build-info"], capture_output=True, text=True, check=True)
+
+    # Ensure the file can be tested
     result = subprocess.run(["forge", "test", "--match-contract", "FixedArrays_Echidna_Test"], capture_output=True, text=True, check=False)
     output = result.stdout
 
@@ -57,7 +63,10 @@ def test_echidna_dynamic_array_types(dynamic_arrays):
     path = os.path.join(os.getcwd(), "test", "DynamicArrays_Echidna_Test.t.sol")
     assert os.path.exists(path)
 
-    # Ensure the file can be compiled and tested
+    # Ensure the file can be compiled
+    subprocess.run(["forge", "build", "--build-info"], capture_output=True, text=True, check=True)
+
+    # Ensure the file can be tested
     result = subprocess.run(["forge", "test", "--match-contract", "DynamicArrays_Echidna_Test"], capture_output=True, text=True, check=False)
     output = result.stdout
 
@@ -79,7 +88,10 @@ def test_echidna_structs_and_enums(structs_and_enums):
     path = os.path.join(os.getcwd(), "test", "TupleTypes_Echidna_Test.t.sol")
     assert os.path.exists(path)
 
-    # Ensure the file can be compiled and tested
+    # Ensure the file can be compiled
+    subprocess.run(["forge", "build", "--build-info"], capture_output=True, text=True, check=True)
+
+    # Ensure the file can be tested
     result = subprocess.run(["forge", "test", "--match-contract", "TupleTypes_Echidna_Test"], capture_output=True, text=True, check=False)
     output = result.stdout
 
