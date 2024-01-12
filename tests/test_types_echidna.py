@@ -3,12 +3,13 @@ from pathlib import Path
 import os
 import re
 import subprocess
+from .conftest import TestGenerator
 
 TEST_DATA_DIR = Path(__file__).resolve().parent / "test_data"
 PATTERN = r"(\d+)\s+failing tests,\s+(\d+)\s+tests succeeded"
 
 
-def test_echidna_basic_types(basic_types):
+def test_echidna_basic_types(basic_types: TestGenerator) -> None:
     """Tests the BasicTypes contract with an Echidna corpus"""
     basic_types.echidna_generate_tests()
     # Ensure the file was created
@@ -25,14 +26,13 @@ def test_echidna_basic_types(basic_types):
         text=True,
         check=False,
     )
-    output = result.stdout
 
     # Remove ansi escape sequences
     ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
-    result = ansi_escape.sub("", output)
+    output = ansi_escape.sub("", result.stdout)
 
     # Ensure all tests fail
-    match = re.search(PATTERN, result)
+    match = re.search(PATTERN, output)
     if match:
         tests_passed = int(match.group(2))
         assert tests_passed == 0
@@ -40,7 +40,7 @@ def test_echidna_basic_types(basic_types):
         assert False, "No tests were ran"
 
 
-def test_echidna_fixed_array_types(fixed_size_arrays):
+def test_echidna_fixed_array_types(fixed_size_arrays: TestGenerator) -> None:
     """Tests the FixedArrays contract with an Echidna corpus"""
     fixed_size_arrays.echidna_generate_tests()
     # Ensure the file was created
@@ -57,14 +57,13 @@ def test_echidna_fixed_array_types(fixed_size_arrays):
         text=True,
         check=False,
     )
-    output = result.stdout
 
     # Remove ansi escape sequences
     ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
-    result = ansi_escape.sub("", output)
+    output = ansi_escape.sub("", result.stdout)
 
     # Ensure all tests fail
-    match = re.search(PATTERN, result)
+    match = re.search(PATTERN, output)
     if match:
         tests_passed = int(match.group(2))
         assert tests_passed == 0
@@ -72,7 +71,7 @@ def test_echidna_fixed_array_types(fixed_size_arrays):
         assert False, "No tests were ran"
 
 
-def test_echidna_dynamic_array_types(dynamic_arrays):
+def test_echidna_dynamic_array_types(dynamic_arrays: TestGenerator) -> None:
     """Tests the DynamicArrays contract with an Echidna corpus"""
     dynamic_arrays.echidna_generate_tests()
     # Ensure the file was created
@@ -89,14 +88,13 @@ def test_echidna_dynamic_array_types(dynamic_arrays):
         text=True,
         check=False,
     )
-    output = result.stdout
 
     # Remove ansi escape sequences
     ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
-    result = ansi_escape.sub("", output)
+    output = ansi_escape.sub("", result.stdout)
 
     # Ensure all tests fail
-    match = re.search(PATTERN, result)
+    match = re.search(PATTERN, output)
     if match:
         tests_passed = int(match.group(2))
         assert tests_passed == 0
@@ -104,7 +102,7 @@ def test_echidna_dynamic_array_types(dynamic_arrays):
         assert False, "No tests were ran"
 
 
-def test_echidna_structs_and_enums(structs_and_enums):
+def test_echidna_structs_and_enums(structs_and_enums: TestGenerator) -> None:
     """Tests the TupleTypes contract with an Echidna corpus"""
     structs_and_enums.echidna_generate_tests()
     # Ensure the file was created
@@ -121,14 +119,13 @@ def test_echidna_structs_and_enums(structs_and_enums):
         text=True,
         check=False,
     )
-    output = result.stdout
 
     # Remove ansi escape sequences
     ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
-    result = ansi_escape.sub("", output)
+    output = ansi_escape.sub("", result.stdout)
 
     # Ensure all tests fail
-    match = re.search(PATTERN, result)
+    match = re.search(PATTERN, output)
     if match:
         tests_passed = int(match.group(2))
         assert tests_passed == 0

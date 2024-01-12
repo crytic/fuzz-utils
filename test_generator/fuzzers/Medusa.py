@@ -167,13 +167,13 @@ class Medusa:
         self, param: list[Any] | dict[Any, Any], input_parameter: Any
     ) -> tuple[str, str]:
         match input_parameter.type:
-            case Structure() | StructureContract():
-                definitions, func_params = self._decode_function_params(
+            case Structure() | StructureContract():  # type: ignore[misc]
+                definitions, func_params = self._decode_function_params(  # type: ignore[unreachable]
                     param, True, input_parameter.type.elems_ordered
                 )
                 return definitions, f"{input_parameter}({','.join(func_params)})"
-            case Enum() | EnumContract():
-                return "", f"{input_parameter}({param})"
+            case Enum() | EnumContract():  # type: ignore[misc]
+                return "", f"{input_parameter}({param})"  # type: ignore[unreachable]
             case _:
                 return "", ""
 
@@ -192,20 +192,20 @@ class Medusa:
                 input_value = function_params[var.name]
 
                 match input_parameter:
-                    case ElementaryType():
-                        params.append(
+                    case ElementaryType():  # type: ignore[misc]
+                        params.append(  # type: ignore[unreachable]
                             self._match_elementary_types(
                                 str(input_value), recursive, input_parameter
                             )
                         )
-                    case ArrayType():
-                        [inputs, definitions, index] = self._match_array_type(
+                    case ArrayType():  # type: ignore[misc]
+                        [inputs, definitions, index] = self._match_array_type(  # type: ignore[unreachable]
                             input_value, index, input_parameter
                         )
                         params.append(inputs)
                         variable_definitions += definitions
-                    case UserDefinedType():
-                        definitions, func_params = self._match_user_defined_type(
+                    case UserDefinedType():  # type: ignore[misc]
+                        definitions, func_params = self._match_user_defined_type(  # type: ignore[unreachable]
                             input_value, input_parameter
                         )
                         variable_definitions += definitions
@@ -227,18 +227,18 @@ class Medusa:
                     input_parameter = entry_point.parameters[param_idx].type
 
                 match input_parameter:
-                    case ElementaryType():
-                        params.append(
+                    case ElementaryType():  # type: ignore[misc]
+                        params.append(  # type: ignore[unreachable]
                             self._match_elementary_types(str(param), recursive, input_parameter)
                         )
-                    case ArrayType():
-                        inputs, definitions, index = self._match_array_type(
+                    case ArrayType():  # type: ignore[misc]
+                        inputs, definitions, index = self._match_array_type(  # type: ignore[unreachable]
                             param, index, input_parameter
                         )
                         params.append(inputs)
                         variable_definitions += definitions
-                    case UserDefinedType():
-                        definitions, func_params = self._match_user_defined_type(
+                    case UserDefinedType():  # type: ignore[misc]
+                        definitions, func_params = self._match_user_defined_type(  # type: ignore[unreachable]
                             param, input_parameter
                         )
                         variable_definitions += definitions

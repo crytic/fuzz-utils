@@ -1,4 +1,5 @@
 """ Generates a test file from Echidna reproducers """
+# type: ignore[misc] # Ignores 'Any' input parameter
 import sys
 from typing import Any
 import jinja2
@@ -192,8 +193,8 @@ class Echidna:
         match param["tag"]:
             case "AbiTuple":
                 match input_parameter.type:
-                    case Structure() | StructureContract():
-                        definitions, func_params = self._decode_function_params(
+                    case Structure() | StructureContract():  # type: ignore[misc]
+                        definitions, func_params = self._decode_function_params(  # type: ignore[unreachable]
                             param["contents"], True, input_parameter.type.elems_ordered
                         )
                         return definitions, f"{input_parameter}({','.join(func_params)})"
@@ -229,19 +230,17 @@ class Echidna:
                 input_parameter = entry_point.parameters[param_idx].type
 
             match input_parameter:
-                case ElementaryType():
-                    params.append(self._match_elementary_types(param, recursive))
-                case ArrayType():
-                    inputs, definitions, new_index = self._match_array_type(
+                case ElementaryType():  # type: ignore[misc]
+                    params.append(self._match_elementary_types(param, recursive))  # type: ignore[unreachable]
+                case ArrayType():  # type: ignore[misc]
+                    inputs, definitions, new_index = self._match_array_type(  # type: ignore[unreachable]
                         param, index, input_parameter
                     )
                     params.append(inputs)
                     variable_definitions += definitions
                     index = new_index
-                case UserDefinedType():
-                    definitions, func_params = self._match_user_defined_type(
-                        param, input_parameter
-                    )
+                case UserDefinedType():  # type: ignore[misc]
+                    definitions, func_params = self._match_user_defined_type(param, input_parameter)  # type: ignore[unreachable]
                     variable_definitions += definitions
                     params.append(func_params)
                 case _:
