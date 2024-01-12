@@ -13,6 +13,7 @@ from test_generator.utils.crytic_print import CryticPrint
 from test_generator.templates.foundry_templates import templates
 from test_generator.fuzzers.Medusa import Medusa
 from test_generator.fuzzers.Echidna import Echidna
+from test_generator.utils.error_handler import handle_exit
 
 
 class FoundryTest:
@@ -94,7 +95,7 @@ def main() -> None:  # type: ignore[func-returns-value]
     )
     parser.add_argument("file_path", help="Path to the Echidna test harness.")
     parser.add_argument(
-        "-cd", "--corpus-dir", dest="corpus_dir", help="Path to the corpus directory"
+        "-cd", "--corpus-dir", dest="corpus_dir", help="Path to the corpus directory", required=True
     )
     parser.add_argument("-c", "--contract", dest="target_contract", help="Define the contract name")
     parser.add_argument(
@@ -123,6 +124,12 @@ def main() -> None:  # type: ignore[func-returns-value]
     )
 
     args = parser.parse_args()
+
+    missing_args = [arg for arg, value in vars(args).items() if value is None]
+    if missing_args:
+        parser.print_help()
+        handle_exit(f"\n* Missing required arguments: {', '.join(missing_args)}")
+
     file_path = args.file_path
     corpus_dir = args.corpus_dir
     test_directory = args.test_directory
@@ -137,8 +144,9 @@ def main() -> None:  # type: ignore[func-returns-value]
         case "medusa":
             fuzzer = Medusa(target_contract, corpus_dir, slither)
         case _:
-            # TODO create a descriptive error
-            sys.exit(-1)
+            handle_exit(
+                f"\n* The requested fuzzer {args.selected_fuzzer} is not supported. Supported fuzzers: echidna, medusa."
+            )
 
     CryticPrint().print_information(
         f"Generating Foundry unit tests based on the {fuzzer.name} reproducers..."

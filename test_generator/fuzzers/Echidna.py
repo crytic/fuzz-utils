@@ -1,19 +1,21 @@
 """ Generates a test file from Echidna reproducers """
 # type: ignore[misc] # Ignores 'Any' input parameter
-import sys
-from typing import Any
+from typing import Any, NoReturn
 import jinja2
 
 from slither import Slither
 from slither.core.declarations.contract import Contract
+from slither.core.declarations.function_contract import FunctionContract
 from slither.core.solidity_types.elementary_type import ElementaryType
 from slither.core.solidity_types.user_defined_type import UserDefinedType
 from slither.core.solidity_types.array_type import ArrayType
 from slither.core.declarations.structure import Structure
 from slither.core.declarations.structure_contract import StructureContract
 from slither.core.declarations.enum import Enum
+from test_generator.utils.crytic_print import CryticPrint
 from test_generator.templates.foundry_templates import templates
 from test_generator.utils.encoding import parse_echidna_byte_string
+from test_generator.utils.error_handler import handle_exit
 
 
 class Echidna:
@@ -36,8 +38,7 @@ class Echidna:
             if contract.name == self.target_name:
                 return contract
 
-        # TODO throw error if no contract found
-        sys.exit(-1)
+        handle_exit(f"\n* Slither could not find the specified contract `{self.target_name}`.")
 
     def parse_reproducer(self, calls: Any, index: int) -> str:
         """
@@ -46,18 +47,16 @@ class Echidna:
         call_list = []
         end = len(calls) - 1
         function_name = ""
+        # 1. For each object in the list process the call object and add it to the call list
         for idx, call in enumerate(calls):
             call_str, fn_name = self._parse_call_object(call)
             call_list.append(call_str)
             if idx == end:
                 function_name = fn_name + "_" + str(index)
 
+        # 2. Generate the test string and return it
         template = jinja2.Template(templates["TEST"])
         return template.render(function_name=function_name, call_list=call_list)
-        # 1. Take a reproducer list and create a test file based on the name of the last function of the list e.g. test_auto_$function_name
-        # 2. For each object in the list process the call object and add it to the call list
-        # 3. Using the call list to generate a test string
-        # 4. Return the test string
 
     def _parse_call_object(self, call_dict: dict[Any, Any]) -> tuple[str, str]:
         """
@@ -81,11 +80,16 @@ class Echidna:
         caller = call_dict["src"]
         value = int(call_dict["value"], 16)
 
-        slither_entry_point = None
+        slither_entry_point: FunctionContract
 
         for entry_point in self.target.functions_entry_points:
             if entry_point.name == function_name:
                 slither_entry_point = entry_point
+
+        if 'slither_entry_point' not in locals():
+            handle_exit(
+                f"\n* Slither could not find the function `{function_name}` specified in the call object"
+            )
 
         # 2. Decode the function parameters
         variable_definition, call_definition = self._decode_function_params(
@@ -111,7 +115,7 @@ class Echidna:
         return call_str, function_name
 
     # pylint: disable=R0201
-    def _match_elementary_types(self, param: dict, recursive: bool) -> str:
+    def _match_elementary_types(self, param: dict, recursive: bool) -> str | NoReturn:
         """
         Returns a string which represents a elementary type literal value. e.g. "5" or "uint256(5)"
 
@@ -161,11 +165,13 @@ class Echidna:
                 interpreted_string = f'string(hex"{hex_string}")'
                 return interpreted_string
             case _:
-                return ""
+                handle_exit(
+                    f"\n* The parameter tag `{param['tag']}` could not be found in the call object. This could indicate an issue in decoding the call sequence, or a missing feature. Please open an issue at https://github.com/crytic/test-generator/issues"
+                )
 
     def _match_array_type(
         self, param: dict, index: int, input_parameter: Any
-    ) -> tuple[str, str, int]:
+    ) -> tuple[str, str, int] | NoReturn:
         match param["tag"]:
             case "AbiArray":
                 # Consider cases where the array items are more complex types (bytes, string, tuples)
@@ -187,9 +193,13 @@ class Echidna:
 
                 return name, definitions, index
             case _:
-                return "", "", index
+                handle_exit(
+                    f"\n* The parameter tag `{param['tag']}` could not be found in the call object. This could indicate an issue in decoding the call sequence, or a missing feature. Please open an issue at https://github.com/crytic/test-generator/issues"
+                )
 
-    def _match_user_defined_type(self, param: dict, input_parameter: Any) -> tuple[str, str]:
+    def _match_user_defined_type(
+        self, param: dict, input_parameter: Any
+    ) -> tuple[str, str] | NoReturn:
         match param["tag"]:
             case "AbiTuple":
                 match input_parameter.type:
@@ -199,16 +209,22 @@ class Echidna:
                         )
                         return definitions, f"{input_parameter}({','.join(func_params)})"
                     case _:
-                        return "", ""
+                        handle_exit(
+                            f"\n* The parameter type `{input_parameter.type}` could not be found. This could indicate an issue in decoding the call sequence, or a missing feature. Please open an issue at https://github.com/crytic/test-generator/issues"
+                        )
             case "AbiUInt":
                 if isinstance(input_parameter.type, Enum):
                     enum_uint = self._match_elementary_types(param, False)
                     return "", f"{input_parameter}({enum_uint})"
 
                 # TODO is this even reachable?
-                return "", ""
+                handle_exit(
+                    f"\n* The parameter type `{input_parameter.type}` does not match the intended type `Enum`. This could indicate an issue in decoding the call sequence, or a missing feature. Please open an issue at https://github.com/crytic/test-generator/issues"
+                )
             case _:
-                return "", ""
+                handle_exit(
+                    f"\n* The parameter tag `{param['tag']}` could not be found in the call object. This could indicate an issue in decoding the call sequence, or a missing feature. Please open an issue at https://github.com/crytic/test-generator/issues"
+                )
 
     def _decode_function_params(
         self, function_params: list, recursive: bool, entry_point: Any
@@ -245,7 +261,9 @@ class Echidna:
                     params.append(func_params)
                 case _:
                     # TODO should handle all cases, but keeping this just in case
-                    print("UNHANDLED INPUT TYPE -> DEFAULT CASE")
+                    CryticPrint().print_information(
+                        f"\n* Attempted to decode an unidentified type {input_parameter}, this call will be skipped. Please open an issue at https://github.com/crytic/test-generator/issues"
+                    )
                     continue
 
         # 3. Return a list of function parameters
