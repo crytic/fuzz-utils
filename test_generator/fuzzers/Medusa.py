@@ -109,6 +109,7 @@ class Medusa:
 
         return call_str, function_name
 
+    # pylint: disable=R0201
     def _match_elementary_types(self, param: str, recursive: bool, input_parameter: Any) -> str:
         """
         Returns a string which represents a elementary type literal value. e.g. "5" or "uint256(5)"
@@ -204,7 +205,7 @@ class Medusa:
                         params.append(inputs)
                         variable_definitions += definitions
                     case UserDefinedType():
-                        [definitions, func_params] = self._match_user_defined_type(
+                        definitions, func_params = self._match_user_defined_type(
                             input_value, input_parameter
                         )
                         variable_definitions += definitions
@@ -231,13 +232,13 @@ class Medusa:
                             self._match_elementary_types(str(param), recursive, input_parameter)
                         )
                     case ArrayType():
-                        [inputs, definitions, index] = self._match_array_type(
+                        inputs, definitions, index = self._match_array_type(
                             param, index, input_parameter
                         )
                         params.append(inputs)
                         variable_definitions += definitions
                     case UserDefinedType():
-                        [definitions, func_params] = self._match_user_defined_type(
+                        definitions, func_params = self._match_user_defined_type(
                             param, input_parameter
                         )
                         variable_definitions += definitions
@@ -253,6 +254,7 @@ class Medusa:
 
         return "", params
 
+    # pylint: disable=R0201
     def _get_memarr(
         self, function_params: dict | list, index: int, input_parameter: Any
     ) -> tuple[str, str]:

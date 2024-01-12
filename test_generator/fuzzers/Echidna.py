@@ -109,6 +109,7 @@ class Echidna:
 
         return call_str, function_name
 
+    # pylint: disable=R0201
     def _match_elementary_types(self, param: dict, recursive: bool) -> str:
         """
         Returns a string which represents a elementary type literal value. e.g. "5" or "uint256(5)"
@@ -231,14 +232,14 @@ class Echidna:
                 case ElementaryType():
                     params.append(self._match_elementary_types(param, recursive))
                 case ArrayType():
-                    [inputs, definitions, new_index] = self._match_array_type(
+                    inputs, definitions, new_index = self._match_array_type(
                         param, index, input_parameter
                     )
                     params.append(inputs)
                     variable_definitions += definitions
                     index = new_index
                 case UserDefinedType():
-                    [definitions, func_params] = self._match_user_defined_type(
+                    definitions, func_params = self._match_user_defined_type(
                         param, input_parameter
                     )
                     variable_definitions += definitions
@@ -254,6 +255,7 @@ class Echidna:
 
         return "", params
 
+    # pylint: disable=R0201
     def _get_memarr(self, function_params: dict, index: int) -> tuple[str, str]:
         length = len(function_params[1])
         match function_params[0]["tag"]:
