@@ -86,7 +86,7 @@ class Echidna:
             if entry_point.name == function_name:
                 slither_entry_point = entry_point
 
-        if 'slither_entry_point' not in locals():
+        if "slither_entry_point" not in locals():
             handle_exit(
                 f"\n* Slither could not find the function `{function_name}` specified in the call object"
             )
