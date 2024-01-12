@@ -178,7 +178,7 @@ class Echidna:
                 definitions, func_params = self._decode_function_params(
                     param["contents"][1], True, input_parameter
                 )
-                name, var_def = self._get_memarr(param["contents"], index) # type: ignore[unpacking-non-sequence]
+                name, var_def = self._get_memarr(param["contents"], index)  # type: ignore[unpacking-non-sequence]
                 definitions += var_def
 
                 for idx, temp_param in enumerate(func_params):

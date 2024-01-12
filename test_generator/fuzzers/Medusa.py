@@ -238,7 +238,7 @@ class Medusa:
                         params.append(inputs)
                         variable_definitions += definitions
                     case UserDefinedType():  # type: ignore[misc]
-                        definitions, func_params = self._match_user_defined_type(  # type: ignore[unreachable,unpacking-non-sequence]
+                        definitions, func_params = self._match_user_defined_type(  # type: ignore[unreachable, unpacking-non-sequence]
                             param, input_parameter
                         )
                         variable_definitions += definitions

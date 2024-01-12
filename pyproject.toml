@@ -15,7 +15,8 @@ logging-not-lazy,
 duplicate-code,
 import-error,
 unsubscriptable-object,
-too-many-arguments
+too-many-arguments,
+unpacking-non-sequence
 """
 [tool.mypy]
 warn_incomplete_stub = true
