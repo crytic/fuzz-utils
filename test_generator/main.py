@@ -34,10 +34,11 @@ class FoundryTest:
         self.corpus_path = corpus_path
         self.test_dir = test_dir
         self.slither = slither
-        self.target = self._get_target_contract()
+        self.target = self.get_target_contract()
         self.fuzzer = fuzzer
 
-    def _get_target_contract(self) -> Contract:
+    def get_target_contract(self) -> Contract:
+        """Gets the Slither Contract object for the specified contract file"""
         contracts = self.slither.get_contract_from_name(self.target_name)
         # Loop in case slither fetches multiple contracts for some reason (e.g., similar names?)
         for contract in contracts:
@@ -45,7 +46,7 @@ class FoundryTest:
                 return contract
 
         # TODO throw error if no contract found
-        exit(-1)
+        sys.exit(-1)
 
     def create_poc(self) -> str:
         """Takes in a directory path to the echidna reproducers and generates a test file"""
@@ -57,7 +58,7 @@ class FoundryTest:
             full_path = os.path.join(self.fuzzer.reproducer_dir, entry)
 
             if os.path.isfile(full_path):
-                with open(full_path, "r", encoding="utf8") as file:
+                with open(full_path, "r", encoding="utf-8") as file:
                     file_list.append(json.load(file))
 
         # 2. Parse each reproducer file and add each test function to the functions list
@@ -83,8 +84,11 @@ class FoundryTest:
             f"Generated a test file in {write_path}_{self.fuzzer.name}_Test.t.sol"
         )
 
+        return test_file_str
 
-def main() -> None:
+
+def main() -> None:  # type: ignore[func-returns-value]
+    """The main entry point"""
     parser = argparse.ArgumentParser(
         prog="test-generator", description="Generate test harnesses for Echidna failed properties."
     )
@@ -125,7 +129,7 @@ def main() -> None:
     inheritance_path = args.inheritance_path
     target_contract = args.target_contract
     slither = Slither(file_path)
-    fuzzer = None
+    fuzzer: Echidna | Medusa
 
     match args.selected_fuzzer.lower():
         case "echidna":
@@ -134,7 +138,7 @@ def main() -> None:
             fuzzer = Medusa(target_contract, corpus_dir, slither)
         case _:
             # TODO create a descriptive error
-            exit(-1)
+            sys.exit(-1)
 
     CryticPrint().print_information(
         f"Generating Foundry unit tests based on the {fuzzer.name} reproducers..."
@@ -147,4 +151,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main())  # type: ignore[func-returns-value]

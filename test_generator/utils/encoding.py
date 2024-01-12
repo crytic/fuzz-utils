@@ -2,7 +2,7 @@
 import re
 
 ascii_escape_map = {
-    "\\NUL": "\x00",   # Null character
+    "\\NUL": "\x00",  # Null character
     "\\SOH": "\x01",
     "\\STX": "\x02",
     "\\ETX": "\x03",
@@ -32,23 +32,24 @@ ascii_escape_map = {
     "\\SP": "\x20",
     "\\DEL": "\x7f",
     "\\0": "\x00",
-    "\\a": "\x07",   # Alert
-    "\\b": "\x08",   # Backspace
+    "\\a": "\x07",  # Alert
+    "\\b": "\x08",  # Backspace
     "\\f": "\x0c",
     "\\n": "\x0a",  # New line
     "\\r": "\x0d",
-    "\\t": "\x09",   # Horizontal Tab
+    "\\t": "\x09",  # Horizontal Tab
     "\\v": "\x0b",  # Vertical Tab
 }
 
+
 def parse_echidna_byte_string(s: str) -> str:
-    """ Parses Haskell byte sequence into a Solidity hex literal"""
+    """Parses Haskell byte sequence into a Solidity hex literal"""
     # Replace Haskell-specific escapes with Python bytes
     for key, value in ascii_escape_map.items():
         s = s.replace(key, value)
 
     # Handle octal escapes (like \\135)
-    def octal_to_byte(match):
+    def octal_to_byte(match: re.Match) -> str:
         octal_value = match.group(0)[1:]  # Remove the backslash
 
         return chr(int(octal_value, 8))
@@ -58,5 +59,7 @@ def parse_echidna_byte_string(s: str) -> str:
     # Convert to bytes and then to hexadecimal
     return s.encode().hex()
 
+
 def parse_medusa_byte_string(s: str) -> str:
-    return s.encode('utf-8').hex()
+    """Decode bytes* or string type from Medusa format to Solidity hex literal"""
+    return s.encode("utf-8").hex()
