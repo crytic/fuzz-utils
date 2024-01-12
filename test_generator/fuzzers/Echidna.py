@@ -178,7 +178,7 @@ class Echidna:
                 definitions, func_params = self._decode_function_params(
                     param["contents"][1], True, input_parameter
                 )
-                name, var_def = self._get_memarr(param["contents"], index)
+                name, var_def = self._get_memarr(param["contents"], index) # type: ignore[unpacking-non-sequence]
                 definitions += var_def
 
                 for idx, temp_param in enumerate(func_params):
@@ -233,14 +233,14 @@ class Echidna:
                 case ElementaryType():  # type: ignore[misc]
                     params.append(self._match_elementary_types(param, recursive))  # type: ignore[unreachable]
                 case ArrayType():  # type: ignore[misc]
-                    inputs, definitions, new_index = self._match_array_type(  # type: ignore[unreachable]
+                    inputs, definitions, new_index = self._match_array_type(  # type: ignore[unreachable,unpacking-non-sequence]
                         param, index, input_parameter
                     )
                     params.append(inputs)
                     variable_definitions += definitions
                     index = new_index
                 case UserDefinedType():  # type: ignore[misc]
-                    definitions, func_params = self._match_user_defined_type(param, input_parameter)  # type: ignore[unreachable]
+                    definitions, func_params = self._match_user_defined_type(param, input_parameter)  # type: ignore[unreachable, unpacking-non-sequence]
                     variable_definitions += definitions
                     params.append(func_params)
                 case _:
