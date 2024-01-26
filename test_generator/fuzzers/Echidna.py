@@ -75,6 +75,12 @@ class Echidna:
             return (call_str, "")
 
         function_name = call_dict["call"]["contents"][0]
+
+        if not function_name:
+            template = jinja2.Template(templates["TRANSFER"])
+            call_str = template.render(time_delay=time_delay, block_delay=block_delay)
+            return (call_str, "")
+
         function_parameters = call_dict["call"]["contents"][1]
         if len(function_parameters) == 0:
             function_parameters = ""
