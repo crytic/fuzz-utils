@@ -1,6 +1,5 @@
 """ Generates a test file from Medusa reproducers """
-import sys
-from typing import Any
+from typing import Any, NoReturn
 import jinja2
 
 from slither import Slither
@@ -13,8 +12,10 @@ from slither.core.declarations.structure import Structure
 from slither.core.declarations.structure_contract import StructureContract
 from slither.core.declarations.enum import Enum
 from slither.core.declarations.enum_contract import EnumContract
+from test_generator.utils.crytic_print import CryticPrint
 from test_generator.templates.foundry_templates import templates
 from test_generator.utils.encoding import parse_medusa_byte_string
+from test_generator.utils.error_handler import handle_exit
 
 
 class Medusa:
@@ -38,8 +39,7 @@ class Medusa:
             if contract.name == self.target_name:
                 return contract
 
-        # TODO throw error if no contract found
-        sys.exit(-1)
+        handle_exit(f"\n* Slither could not find the specified contract `{self.target_name}`.")
 
     def parse_reproducer(self, calls: Any, index: int) -> str:
         """
@@ -85,6 +85,11 @@ class Medusa:
         for entry_point in self.target.functions_entry_points:
             if entry_point.name == function_name:
                 slither_entry_point = entry_point
+
+        if "slither_entry_point" not in locals():
+            handle_exit(
+                f"\n* Slither could not find the function `{function_name}` specified in the call object"
+            )
 
         # 2. Decode the function parameters
         variable_definition, call_definition = self._decode_function_params(
@@ -138,8 +143,12 @@ class Medusa:
             hex_string = parse_medusa_byte_string(param)
             interpreted_string = f'string(hex"{hex_string}")'
             return interpreted_string
+        if "address" in input_type:
+            return param
 
-        return param
+        handle_exit(
+            f"\n* The parameter type `{input_type}` could not be found in the call object. This could indicate an issue in decoding the call sequence, or a missing feature. Please open an issue at https://github.com/crytic/test-generator/issues"
+        )
 
     def _match_array_type(
         self, param: dict, index: int, input_parameter: Any
@@ -175,11 +184,13 @@ class Medusa:
             case Enum() | EnumContract():  # type: ignore[misc]
                 return "", f"{input_parameter}({param})"  # type: ignore[unreachable]
             case _:
-                return "", ""
+                handle_exit(
+                    f"\n* The parameter type `{input_parameter.type}` could not be found in the call object. This could indicate an issue in decoding the call sequence, or a missing feature. Please open an issue at https://github.com/crytic/test-generator/issues"
+                )
 
     def _decode_function_params(
         self, function_params: list | dict, recursive: bool, entry_point: Any
-    ) -> tuple[str, list]:
+    ) -> tuple[str, list] | NoReturn:
         params = []
         variable_definitions = ""
         index = 0
@@ -212,7 +223,9 @@ class Medusa:
                         params.append(func_params)
                     case _:
                         # TODO should handle all cases, but keeping this just in case
-                        print("UNHANDLED INPUT TYPE -> DEFAULT CASE")
+                        CryticPrint().print_information(
+                            f"\n* Attempted to decode an unidentified type {input_parameter}, this call will be skipped. Please open an issue at https://github.com/crytic/test-generator/issues"
+                        )
                         continue
         else:
             for param_idx, param in enumerate(function_params):
@@ -245,7 +258,9 @@ class Medusa:
                         params.append(func_params)
                     case _:
                         # TODO should handle all cases, but keeping this just in case
-                        print("UNHANDLED INPUT TYPE -> DEFAULT CASE")
+                        CryticPrint().print_information(
+                            f"\n* Attempted to decode an unidentified type {input_parameter}, this call will be skipped. Please open an issue at https://github.com/crytic/test-generator/issues"
+                        )
                         continue
 
         # 3. Return a list of function parameters
