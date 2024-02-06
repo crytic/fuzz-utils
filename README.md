@@ -1,10 +1,10 @@
 <img src="./logo.png" alt="Slither Static Analysis Framework Logo" width="500" />
 
-# Automated tool for generating Foundry unit tests for smart contract fuzzer failed properties
+# Automated tool for generating Foundry unit tests from smart contract fuzzer failed properties
 
 `test-generator` is a Python tool that generates unit tests from [Echidna](https://github.com/crytic/echidna) and [Medusa](https://github.com/crytic/medusa/tree/master) failed properties, using the generated reproducer files. It uses [Slither](https://github.com/crytic/slither) for determining types and jinja2 for generating the test files using string templates.
 
-**Disclaimer**: Please note that `test-generator` is **under development**. Currently, not all Solidity types are supported and some types (like `bytes*`, and `string`) might be improperly decoded from the corpora call sequences.
+**Disclaimer**: Please note that `test-generator` is **under development**. Currently, not all Solidity types are supported and some types (like `bytes*`, and `string`) might be improperly decoded from the corpora call sequences. We are investigating a better corpus format that will ease the creation of unit tests.
 
 ## Features
 `test-generator` provides support for:
@@ -12,6 +12,7 @@
 - ✔️ Medusa and Echidna corpora
 - ✔️ Solidity types: `bool`,`uint*`, `int*`, `address`, `struct`, `enum`, single-dimensional fixed-size arrays and dynamic arrays, multi-dimensional fixed-size arrays.
 
+Multi-dimensional dynamic arrays, function pointers, and other more complex types are in the works, but are currently not supported.
 ## Installation and pre-requisites
 
 In order to be able to use `test-generator`, you will need to install it first:
@@ -47,4 +48,4 @@ Additional options are available for the script:
 For information about how to contribute to this project, check out the [CONTRIBUTING](CONTRIBUTING.md) guidelines.
 
 ## License
-test-generator is licensed and distributed under the [AGPLv3](LICENSE).
+`test-generator` is licensed and distributed under the [AGPLv3](LICENSE).
