@@ -83,3 +83,13 @@ def structs_and_enums() -> TestGenerator:
     corpus_dir = "corpus-struct"
 
     return TestGenerator(target, target_path, corpus_dir)
+
+
+@pytest.fixture
+def value_transfer() -> TestGenerator:
+    """Fixture for the ValueTransfer test contract"""
+    target = "ValueTransfer"
+    target_path = "./src/ValueTransfer.sol"
+    corpus_dir = "corpus-value"
+
+    return TestGenerator(target, target_path, corpus_dir)

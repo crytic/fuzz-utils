@@ -35,6 +35,16 @@ __CALL_TEMPLATE: str = """
         {%- endif %}
 """
 
+__TRANSFER__TEMPLATE: str = """
+        {%- if has_delay -%}
+        vm.warp(block.timestamp + {{time_delay}});
+        vm.roll(block.number + {{block_delay}});
+        {%- endif %}
+        vm.prank({{caller}});
+        (bool success, ) = payable(address(target)).call{value: {{value}}}("");
+        require(success, "Low level call failed.");
+"""
+
 __EMPTY_CALL_TEMPLATE: str = """
         // This is an empty call which just increases the block number and timestamp
         vm.warp(block.timestamp + {{time_delay}});
@@ -60,6 +70,7 @@ interface I{target_name} {
 templates: dict = {
     "CONTRACT": __CONTRACT_TEMPLATE,
     "CALL": __CALL_TEMPLATE,
+    "TRANSFER": __TRANSFER__TEMPLATE,
     "EMPTY_CALL": __EMPTY_CALL_TEMPLATE,
     "TEST": __TEST_TEMPLATE,
     "INTERFACE": __INTERFACE_TEMPLATE,

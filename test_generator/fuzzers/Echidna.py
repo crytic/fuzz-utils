@@ -67,6 +67,8 @@ class Echidna:
         time_delay = int(call_dict["delay"][0], 16)
         block_delay = int(call_dict["delay"][1], 16)
         has_delay = time_delay > 0 or block_delay > 0
+        value = int(call_dict["value"], 16)
+        caller = call_dict["src"]
 
         if call_dict["call"]["tag"] == "NoCall":
             template = jinja2.Template(templates["EMPTY"])
@@ -74,11 +76,17 @@ class Echidna:
             return (call_str, "")
 
         function_name = call_dict["call"]["contents"][0]
+
+        if not function_name:
+            template = jinja2.Template(templates["TRANSFER"])
+            call_str = template.render(
+                time_delay=time_delay, block_delay=block_delay, value=value, caller=caller
+            )
+            return (call_str, "")
+
         function_parameters = call_dict["call"]["contents"][1]
         if len(function_parameters) == 0:
             function_parameters = ""
-        caller = call_dict["src"]
-        value = int(call_dict["value"], 16)
 
         slither_entry_point: FunctionContract
 

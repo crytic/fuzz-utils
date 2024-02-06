@@ -59,12 +59,18 @@ class FoundryTest:
             full_path = os.path.join(self.fuzzer.reproducer_dir, entry)
 
             if os.path.isfile(full_path):
-                with open(full_path, "r", encoding="utf-8") as file:
-                    file_list.append(json.load(file))
+                try:
+                    with open(full_path, "r", encoding="utf-8") as file:
+                        file_list.append(json.load(file))
+                except Exception:  # pylint: disable=broad-except
+                    print(f"Fail on {full_path}")
 
         # 2. Parse each reproducer file and add each test function to the functions list
         for idx, file in enumerate(file_list):
-            tests_list.append(self.fuzzer.parse_reproducer(file, idx))
+            try:
+                tests_list.append(self.fuzzer.parse_reproducer(file, idx))
+            except Exception:  # pylint: disable=broad-except
+                print(f"Parsing fail on {file}: index: {idx}")
 
         # 4. Generate the test file
         template = jinja2.Template(templates["CONTRACT"])

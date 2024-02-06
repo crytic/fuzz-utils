@@ -131,3 +131,34 @@ def test_echidna_structs_and_enums(structs_and_enums: TestGenerator) -> None:
         assert tests_passed == 0
     else:
         assert False, "No tests were ran"
+
+
+def test_echidna_value_transfer(value_transfer: TestGenerator) -> None:
+    """Tests the BasicTypes contract with an Echidna corpus"""
+    value_transfer.echidna_generate_tests()
+    # Ensure the file was created
+    path = os.path.join(os.getcwd(), "test", "ValueTransfer_Echidna_Test.t.sol")
+    assert os.path.exists(path)
+
+    # Ensure the file can be compiled
+    subprocess.run(["forge", "build", "--build-info"], capture_output=True, text=True, check=True)
+
+    # Ensure the file can be tested
+    result = subprocess.run(
+        ["forge", "test", "--match-contract", "ValueTransfer_Echidna_Test"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    # Remove ansi escape sequences
+    ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
+    output = ansi_escape.sub("", result.stdout)
+
+    # Ensure all tests fail
+    match = re.search(PATTERN, output)
+    if match:
+        tests_passed = int(match.group(2))
+        assert tests_passed == 0
+    else:
+        assert False, "No tests were ran"
