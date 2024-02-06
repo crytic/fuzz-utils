@@ -39,7 +39,7 @@ Below is a rough outline of test-generator's design:
 
 ## Development Environment
 
-`test-generator` currently runs requires at least Python3.8 so make sure you have a sufficiently up-to-date installation by running `python --version`. We recommend [pyenv](https://github.com/pyenv/pyenv) to manage python versions.
+`test-generator` currently runs requires at least Python3.10 so make sure you have a sufficiently up-to-date installation by running `python --version`. We recommend [pyenv](https://github.com/pyenv/pyenv) to manage python versions.
 
 To start working on modifications to test-generator locally, run:
 ```bash
