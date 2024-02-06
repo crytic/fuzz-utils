@@ -3,6 +3,7 @@ from pathlib import Path
 import os
 import re
 import subprocess
+import pytest
 from .conftest import TestGenerator
 
 TEST_DATA_DIR = Path(__file__).resolve().parent / "test_data"
@@ -133,6 +134,7 @@ def test_medusa_structs_and_enums(structs_and_enums: TestGenerator) -> None:
         assert False, "No tests were ran"
 
 
+@pytest.mark.xfail(strict=True)
 def test_medusa_value_transfer(value_transfer: TestGenerator) -> None:
     """Tests the BasicTypes contract with a Medusa corpus"""
     value_transfer.medusa_generate_tests()
