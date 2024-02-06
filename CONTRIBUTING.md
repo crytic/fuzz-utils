@@ -18,7 +18,7 @@ Test-generator uses the pull request contribution model. Please make an account 
 
 Some pull request guidelines:
 
-- Work from the [`dev`](https://github.com/crytic/test-generator/tree/dev) branch. We performed extensive tests prior to merging anything to `main`, working from `dev` will allow us to merge your work faster.
+
 - Minimize irrelevant changes (formatting, whitespace, etc) to code that would otherwise not be touched by this patch. Save formatting or style corrections for a separate pull request that does not make any semantic changes.
 - When possible, large changes should be split up into smaller focused pull requests.
 - Fill out the pull request description with a summary of what your patch does, key changes that have been made, and any further points of discussion, if applicable.
@@ -45,14 +45,9 @@ To start working on modifications to test-generator locally, run:
 ```bash
 git clone https://github.com/crytic/test-generator
 cd test-generator
-git checkout dev
-
-python3 -m venv env 
-source env/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -e .
+make dev
 ```
-This will create a virtual environment, ./env/, in the root of the repo, activate it, and install dependencies.
+This will create a virtual environment, ./env/, in the root of the repository and install dependencies.
 
 To run commands using your development version of `test-generator`, run:
 ```bash

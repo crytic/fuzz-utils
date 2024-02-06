@@ -23,6 +23,7 @@ setup(
         ],
         "test": [
             "pytest",
+            "solc-select>=0.1.4",
         ],
         "dev": [
             "slither-analyzer[lint,test]",
