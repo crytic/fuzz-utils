@@ -20,11 +20,11 @@ contract TupleTypes_Echidna_Test is Test {
     }
     
     function test_auto_check_dynamicArrStruct_1() public { 
-        uint256[] memory dynUintArr_0 = new uint256[](1);
-		dynUintArr_0[0] = uint256(1);
+        uint256[] memory dynuint256Arr_0 = new uint256[](1);
+		dynuint256Arr_0[0] = uint256(1);
 
         vm.prank(0x0000000000000000000000000000000000010000);
-        target.updateDynArrStruct(TupleTypes.DynamicArrayStruct(dynUintArr_0));
+        target.updateDynArrStruct(TupleTypes.DynamicArrayStruct(dynuint256Arr_0));
         
         vm.prank(0x0000000000000000000000000000000000010000);
         target.check_dynamicArrStruct();
