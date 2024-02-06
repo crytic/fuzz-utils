@@ -41,7 +41,8 @@ __TRANSFER__TEMPLATE: str = """
         vm.roll(block.number + {{block_delay}});
         {%- endif %}
         vm.prank({{caller}});
-        target.transfer({{value}});
+        (bool success, ) = payable(address(target)).call{value: {{value}}}("");
+        require(success, "Low level call failed.");
 """
 
 __EMPTY_CALL_TEMPLATE: str = """
