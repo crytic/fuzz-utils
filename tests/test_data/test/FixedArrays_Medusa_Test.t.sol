@@ -54,17 +54,7 @@ contract FixedArrays_Medusa_Test is Test {
         target.check_strArr();
     }
     
-    function test_auto_check_uintArr_4() public { 
-        vm.warp(block.timestamp + 360624);
-        vm.roll(block.number + 45290);
-        vm.prank(0x0000000000000000000000000000000000020000);
-        target.addUintArr([uint256(3618502788666131106986593281521497120414687020801267626233049500247285301247),uint256(0)]);
-        
-        vm.prank(0x0000000000000000000000000000000000030000);
-        target.check_uintArr();
-    }
-    
-    function test_auto_check_strArr_5() public { 
+    function test_auto_check_strArr_4() public { 
         vm.warp(block.timestamp + 244884);
         vm.roll(block.number + 11399);
         vm.prank(0x0000000000000000000000000000000000020000);
@@ -75,7 +65,7 @@ contract FixedArrays_Medusa_Test is Test {
         target.check_strArr();
     }
     
-    function test_auto_check_bytesArr_6() public { 
+    function test_auto_check_bytesArr_5() public { 
         vm.warp(block.timestamp + 262160);
         vm.roll(block.number + 28567);
         vm.prank(0x0000000000000000000000000000000000010000);
@@ -86,7 +76,7 @@ contract FixedArrays_Medusa_Test is Test {
         target.check_bytesArr();
     }
     
-    function test_auto_check_addressArr_7() public { 
+    function test_auto_check_addressArr_6() public { 
         vm.warp(block.timestamp + 360620);
         vm.roll(block.number + 13737);
         vm.prank(0x0000000000000000000000000000000000020000);
@@ -97,7 +87,7 @@ contract FixedArrays_Medusa_Test is Test {
         target.check_addressArr();
     }
     
-    function test_auto_check_addressArr_8() public { 
+    function test_auto_check_addressArr_7() public { 
         vm.warp(block.timestamp + 117639);
         vm.roll(block.number + 40006);
         vm.prank(0x0000000000000000000000000000000000030000);
@@ -108,17 +98,7 @@ contract FixedArrays_Medusa_Test is Test {
         target.check_addressArr();
     }
     
-    function test_auto_check_intArr_9() public { 
-        vm.warp(block.timestamp + 360619);
-        vm.roll(block.number + 23883);
-        vm.prank(0x0000000000000000000000000000000000010000);
-        target.addIntArr([int256(0),int256(0)]);
-        
-        vm.prank(0x0000000000000000000000000000000000010000);
-        target.check_intArr();
-    }
-    
-    function test_auto_check_bytesArr_10() public { 
+    function test_auto_check_bytesArr_8() public { 
         vm.warp(block.timestamp + 139299);
         vm.roll(block.number + 23884);
         vm.prank(0x0000000000000000000000000000000000020000);
@@ -129,7 +109,7 @@ contract FixedArrays_Medusa_Test is Test {
         target.check_bytesArr();
     }
     
-    function test_auto_check_boolArr_11() public { 
+    function test_auto_check_boolArr_9() public { 
         vm.warp(block.timestamp + 439109);
         vm.roll(block.number + 0);
         vm.prank(0x0000000000000000000000000000000000010000);
