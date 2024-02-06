@@ -192,7 +192,7 @@ class Echidna:
                 definitions, func_params = self._decode_function_params(
                     param["contents"][1], True, input_parameter
                 )
-                name, var_def = self._get_memarr(param["contents"], index)  # type: ignore[unpacking-non-sequence]
+                name, var_def = self._get_memarr(param["contents"], index, input_parameter)  # type: ignore[unpacking-non-sequence]
                 definitions += var_def
 
                 for idx, temp_param in enumerate(func_params):
@@ -281,32 +281,12 @@ class Echidna:
         return "", params
 
     # pylint: disable=R0201
-    def _get_memarr(self, function_params: dict, index: int) -> tuple[str, str]:
+    def _get_memarr(
+        self, function_params: dict, index: int, input_parameter: Any
+    ) -> tuple[str, str]:
         length = len(function_params[1])
-        match function_params[0]["tag"]:
-            case "AbiBoolType":
-                name = f"dynBoolArr_{index}"
-                return name, f"bool[] memory {name} = new bool[]({length});\n"
-            case "AbiIntType":
-                name = f"dynIntArr_{index}"
-                return (
-                    name,
-                    f"int{function_params[0]['contents']}[] memory {name} = new int{function_params[0]['contents']}[]({length});\n",
-                )
-            case "AbiUIntType":
-                name = f"dynUintArr_{index}"
-                return (
-                    name,
-                    f"uint{function_params[0]['contents']}[] memory {name} = new uint{function_params[0]['contents']}[]({length});\n",
-                )
-            case "AbiAddressType":
-                name = f"dynAddressArr_{index}"
-                return name, f"address[] memory {name} = new address[]({length});\n"
-            case "AbiBytesType" | "AbiBytesDynamicType":
-                name = f"dynBytesArr_{index}"
-                return name, f"bytes[] memory {name} = new bytes[]({length});\n"
-            case "AbiStringType":
-                name = f"dynStringArr_{index}"
-                return name, f"string[] memory {name} = new string[]({length});\n"
-            case _:
-                return "", ""
+
+        input_type = input_parameter.type
+        name = f"dyn{input_type}Arr_{index}"
+        declaration = f"{input_type}[] memory {name} = new {input_type}[]({length});\n"
+        return name, declaration
