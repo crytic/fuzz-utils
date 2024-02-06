@@ -34,7 +34,7 @@ jobs:
           pip install types-setuptools
 
           mkdir -p .github/linters
-          cp mypy.ini .github/linters
+          cp pyproject.toml .github/linters
 
       - name: Mypy
         uses: github/super-linter/slim@v4.9.2
@@ -46,4 +46,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Run only black
           VALIDATE_PYTHON_MYPY: true
-          PYTHON_MYPY_CONFIG_FILE: mypy.ini
+          PYTHON_MYPY_CONFIG_FILE: pyproject.toml
