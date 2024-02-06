@@ -9,6 +9,7 @@ on:
   push:
     branches: [main]
   pull_request:
+    branches: [main]
   schedule:
     # run CI every day even if no PRs/merges occur
     - cron: '0 12 * * *'
@@ -40,6 +41,6 @@ jobs:
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-        
+
         run: |
           make test
