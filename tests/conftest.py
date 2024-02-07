@@ -1,4 +1,5 @@
 """ Globally available fixtures"""
+# mypy: disable-error-code="disallow_untyped_decorators"
 import os
 from typing import Any
 import pytest
