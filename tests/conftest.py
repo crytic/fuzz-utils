@@ -1,5 +1,4 @@
 """ Globally available fixtures"""
-# mypy: disable-error-code="disallow_untyped_decorators"
 import os
 from typing import Any
 import pytest
@@ -34,7 +33,7 @@ class TestGenerator:
 
 
 @pytest.fixture(autouse=True)
-def change_test_dir(request: Any, monkeypatch: Any) -> None:
+def change_test_dir(request: Any, monkeypatch: Any) -> None:  # type: ignore
     """Helper fixture to change the working directory"""
     # Directory of the test file
     test_dir = request.fspath.dirname
@@ -47,7 +46,7 @@ def change_test_dir(request: Any, monkeypatch: Any) -> None:
 
 
 @pytest.fixture
-def basic_types() -> TestGenerator:
+def basic_types() -> TestGenerator:  # type: ignore
     """Fixture for the BasicTypes test contract"""
     target = "BasicTypes"
     target_path = "./src/BasicTypes.sol"
@@ -57,7 +56,7 @@ def basic_types() -> TestGenerator:
 
 
 @pytest.fixture
-def fixed_size_arrays() -> TestGenerator:
+def fixed_size_arrays() -> TestGenerator:  # type: ignore
     """Fixture for the FixedArrays test contract"""
     target = "FixedArrays"
     target_path = "./src/FixedArrays.sol"
@@ -67,7 +66,7 @@ def fixed_size_arrays() -> TestGenerator:
 
 
 @pytest.fixture
-def dynamic_arrays() -> TestGenerator:
+def dynamic_arrays() -> TestGenerator:  # type: ignore
     """Fixture for the DynamicArrays test contract"""
     target = "DynamicArrays"
     target_path = "./src/DynamicArrays.sol"
@@ -77,7 +76,7 @@ def dynamic_arrays() -> TestGenerator:
 
 
 @pytest.fixture
-def structs_and_enums() -> TestGenerator:
+def structs_and_enums() -> TestGenerator:  # type: ignore
     """Fixture for the TupleTypes test contract"""
     target = "TupleTypes"
     target_path = "./src/TupleTypes.sol"
@@ -87,7 +86,7 @@ def structs_and_enums() -> TestGenerator:
 
 
 @pytest.fixture
-def value_transfer() -> TestGenerator:
+def value_transfer() -> TestGenerator:  # type: ignore
     """Fixture for the ValueTransfer test contract"""
     target = "ValueTransfer"
     target_path = "./src/ValueTransfer.sol"
