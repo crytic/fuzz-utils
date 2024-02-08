@@ -32,8 +32,8 @@ class TestGenerator:
         self.medusa_generator.create_poc()
 
 
-@pytest.fixture(autouse=True)
-def change_test_dir(request: Any, monkeypatch: Any) -> None:  # type: ignore
+@pytest.fixture(autouse=True)  # type: ignore[misc]
+def change_test_dir(request: Any, monkeypatch: Any) -> None:
     """Helper fixture to change the working directory"""
     # Directory of the test file
     test_dir = request.fspath.dirname
@@ -45,8 +45,8 @@ def change_test_dir(request: Any, monkeypatch: Any) -> None:  # type: ignore
     monkeypatch.chdir(data_dir)
 
 
-@pytest.fixture
-def basic_types() -> TestGenerator:  # type: ignore
+@pytest.fixture  # type: ignore[misc]
+def basic_types() -> TestGenerator:
     """Fixture for the BasicTypes test contract"""
     target = "BasicTypes"
     target_path = "./src/BasicTypes.sol"
@@ -55,8 +55,8 @@ def basic_types() -> TestGenerator:  # type: ignore
     return TestGenerator(target, target_path, corpus_dir)
 
 
-@pytest.fixture
-def fixed_size_arrays() -> TestGenerator:  # type: ignore
+@pytest.fixture  # type: ignore[misc]
+def fixed_size_arrays() -> TestGenerator:
     """Fixture for the FixedArrays test contract"""
     target = "FixedArrays"
     target_path = "./src/FixedArrays.sol"
@@ -65,8 +65,8 @@ def fixed_size_arrays() -> TestGenerator:  # type: ignore
     return TestGenerator(target, target_path, corpus_dir)
 
 
-@pytest.fixture
-def dynamic_arrays() -> TestGenerator:  # type: ignore
+@pytest.fixture  # type: ignore[misc]
+def dynamic_arrays() -> TestGenerator:
     """Fixture for the DynamicArrays test contract"""
     target = "DynamicArrays"
     target_path = "./src/DynamicArrays.sol"
@@ -75,8 +75,8 @@ def dynamic_arrays() -> TestGenerator:  # type: ignore
     return TestGenerator(target, target_path, corpus_dir)
 
 
-@pytest.fixture
-def structs_and_enums() -> TestGenerator:  # type: ignore
+@pytest.fixture  # type: ignore[misc]
+def structs_and_enums() -> TestGenerator:
     """Fixture for the TupleTypes test contract"""
     target = "TupleTypes"
     target_path = "./src/TupleTypes.sol"
@@ -85,8 +85,8 @@ def structs_and_enums() -> TestGenerator:  # type: ignore
     return TestGenerator(target, target_path, corpus_dir)
 
 
-@pytest.fixture
-def value_transfer() -> TestGenerator:  # type: ignore
+@pytest.fixture  # type: ignore[misc]
+def value_transfer() -> TestGenerator:
     """Fixture for the ValueTransfer test contract"""
     target = "ValueTransfer"
     target_path = "./src/ValueTransfer.sol"
