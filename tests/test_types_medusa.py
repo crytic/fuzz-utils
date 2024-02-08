@@ -134,7 +134,7 @@ def test_medusa_structs_and_enums(structs_and_enums: TestGenerator) -> None:
         assert False, "No tests were ran"
 
 
-@pytest.mark.xfail(strict=True)
+@pytest.mark.xfail(strict=True)  # type: ignore[misc]
 def test_medusa_value_transfer(value_transfer: TestGenerator) -> None:
     """Tests the BasicTypes contract with a Medusa corpus"""
     value_transfer.medusa_generate_tests()
