@@ -66,4 +66,4 @@ out/
 crytic-export/
 
 # VENV
-test-generator/
+env/

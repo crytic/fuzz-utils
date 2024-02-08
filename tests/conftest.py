@@ -32,7 +32,7 @@ class TestGenerator:
         self.medusa_generator.create_poc()
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=True)  # type: ignore[misc]
 def change_test_dir(request: Any, monkeypatch: Any) -> None:
     """Helper fixture to change the working directory"""
     # Directory of the test file
@@ -45,7 +45,7 @@ def change_test_dir(request: Any, monkeypatch: Any) -> None:
     monkeypatch.chdir(data_dir)
 
 
-@pytest.fixture
+@pytest.fixture  # type: ignore[misc]
 def basic_types() -> TestGenerator:
     """Fixture for the BasicTypes test contract"""
     target = "BasicTypes"
@@ -55,7 +55,7 @@ def basic_types() -> TestGenerator:
     return TestGenerator(target, target_path, corpus_dir)
 
 
-@pytest.fixture
+@pytest.fixture  # type: ignore[misc]
 def fixed_size_arrays() -> TestGenerator:
     """Fixture for the FixedArrays test contract"""
     target = "FixedArrays"
@@ -65,7 +65,7 @@ def fixed_size_arrays() -> TestGenerator:
     return TestGenerator(target, target_path, corpus_dir)
 
 
-@pytest.fixture
+@pytest.fixture  # type: ignore[misc]
 def dynamic_arrays() -> TestGenerator:
     """Fixture for the DynamicArrays test contract"""
     target = "DynamicArrays"
@@ -75,7 +75,7 @@ def dynamic_arrays() -> TestGenerator:
     return TestGenerator(target, target_path, corpus_dir)
 
 
-@pytest.fixture
+@pytest.fixture  # type: ignore[misc]
 def structs_and_enums() -> TestGenerator:
     """Fixture for the TupleTypes test contract"""
     target = "TupleTypes"
@@ -85,7 +85,7 @@ def structs_and_enums() -> TestGenerator:
     return TestGenerator(target, target_path, corpus_dir)
 
 
-@pytest.fixture
+@pytest.fixture  # type: ignore[misc]
 def value_transfer() -> TestGenerator:
     """Fixture for the ValueTransfer test contract"""
     target = "ValueTransfer"

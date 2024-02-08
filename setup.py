@@ -10,14 +10,24 @@ setup(
     author="Trail of Bits",
     version="0.0.1",
     packages=find_packages(exclude=["tests"]),
-    python_requires=">=3.8",
+    python_requires=">=3.10",
     install_requires=[
-        "colorama",
-        "crytic_compile",
-        "eth_utils",
-        "slither_analyzer",
-        "web3",
-        "jinja2",
+        "colorama>=0.4.0",
+        "slither_analyzer>=0.10.0",
+        "jinja2>=3.1.0",
     ],
+    extras_require={
+        "lint": [
+            "black==22.3.0",
+            "pylint==2.13.4",
+        ],
+        "test": [
+            "pytest",
+            "solc-select>=0.1.4",
+        ],
+        "dev": [
+            "slither-analyzer[lint,test]",
+        ],
+    },
     entry_points={"console_scripts": ["test-generator = test_generator.main:main"]},
 )
