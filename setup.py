@@ -26,7 +26,7 @@ setup(
             "solc-select>=0.1.4",
         ],
         "dev": [
-            "slither-analyzer[lint,test]",
+            "test_generator[lint,test]",
         ],
     },
     entry_points={"console_scripts": ["test-generator = test_generator.main:main"]},
