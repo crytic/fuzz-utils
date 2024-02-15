@@ -1,3 +1,41 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "test_generator"
+version = "0.0.1"
+authors = [{ name = "Trail of Bits" }]
+description = "A tool for automatically generating unit tests from Echidna and Medusa reproducers."
+readme = "README.md"
+license = { "text" = "AGPL-3.0" }
+urls = { "Homepage" = "https://github.com/crytic/test-generator" }
+requires-python = ">=3.10"
+dependencies = [
+    "colorama>=0.4.0",
+    "slither_analyzer>=0.10.0",
+    "jinja2>=3.1.0"
+]
+
+[project.optional-dependencies]
+lint = [
+    "pylint==2.13.4",
+    "black==22.3.0"
+]
+test = [
+    "pytest",
+    "solc-select>=0.1.4"
+]
+dev = [
+    "test_generator[lint,test]"
+]
+
+[project.scripts]
+test-generator = "test_generator.__main__:main"
+
+[tool.setuptools.packages.find]
+    where = ["."]
+
 [tool.black]
 target-version = ["py310"]
 line-length = 100
