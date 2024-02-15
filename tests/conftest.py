@@ -4,9 +4,9 @@ from typing import Any
 import pytest
 
 from slither import Slither
-from test_generator.main import FoundryTest
-from test_generator.fuzzers.Echidna import Echidna
-from test_generator.fuzzers.Medusa import Medusa
+from fuzz_utils.main import FoundryTest
+from fuzz_utils.fuzzers.Echidna import Echidna
+from fuzz_utils.fuzzers.Medusa import Medusa
 
 
 class TestGenerator:
