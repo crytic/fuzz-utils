@@ -12,10 +12,10 @@ from slither.core.declarations.structure import Structure
 from slither.core.declarations.structure_contract import StructureContract
 from slither.core.declarations.enum import Enum
 from slither.core.declarations.enum_contract import EnumContract
-from test_generator.utils.crytic_print import CryticPrint
-from test_generator.templates.foundry_templates import templates
-from test_generator.utils.encoding import parse_medusa_byte_string
-from test_generator.utils.error_handler import handle_exit
+from fuzz_utils.utils.crytic_print import CryticPrint
+from fuzz_utils.templates.foundry_templates import templates
+from fuzz_utils.utils.encoding import parse_medusa_byte_string
+from fuzz_utils.utils.error_handler import handle_exit
 
 
 class Medusa:
@@ -147,7 +147,7 @@ class Medusa:
             return param
 
         handle_exit(
-            f"\n* The parameter type `{input_type}` could not be found in the call object. This could indicate an issue in decoding the call sequence, or a missing feature. Please open an issue at https://github.com/crytic/test-generator/issues"
+            f"\n* The parameter type `{input_type}` could not be found in the call object. This could indicate an issue in decoding the call sequence, or a missing feature. Please open an issue at https://github.com/crytic/fuzz-utils/issues"
         )
 
     def _match_array_type(
@@ -185,7 +185,7 @@ class Medusa:
                 return "", f"{input_parameter}({param})"  # type: ignore[unreachable]
             case _:
                 handle_exit(
-                    f"\n* The parameter type `{input_parameter.type}` could not be found in the call object. This could indicate an issue in decoding the call sequence, or a missing feature. Please open an issue at https://github.com/crytic/test-generator/issues"
+                    f"\n* The parameter type `{input_parameter.type}` could not be found in the call object. This could indicate an issue in decoding the call sequence, or a missing feature. Please open an issue at https://github.com/crytic/fuzz-utils/issues"
                 )
 
     def _decode_function_params(
@@ -224,7 +224,7 @@ class Medusa:
                     case _:
                         # TODO should handle all cases, but keeping this just in case
                         CryticPrint().print_information(
-                            f"\n* Attempted to decode an unidentified type {input_parameter}, this call will be skipped. Please open an issue at https://github.com/crytic/test-generator/issues"
+                            f"\n* Attempted to decode an unidentified type {input_parameter}, this call will be skipped. Please open an issue at https://github.com/crytic/fuzz-utils/issues"
                         )
                         continue
         else:
@@ -259,7 +259,7 @@ class Medusa:
                     case _:
                         # TODO should handle all cases, but keeping this just in case
                         CryticPrint().print_information(
-                            f"\n* Attempted to decode an unidentified type {input_parameter}, this call will be skipped. Please open an issue at https://github.com/crytic/test-generator/issues"
+                            f"\n* Attempted to decode an unidentified type {input_parameter}, this call will be skipped. Please open an issue at https://github.com/crytic/fuzz-utils/issues"
                         )
                         continue
 

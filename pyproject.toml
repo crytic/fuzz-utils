@@ -3,13 +3,13 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "test_generator"
+name = "fuzz-utils"
 version = "0.0.1"
 authors = [{ name = "Trail of Bits" }]
 description = "A tool for automatically generating unit tests from Echidna and Medusa reproducers."
 readme = "README.md"
 license = { "text" = "AGPL-3.0" }
-urls = { "Homepage" = "https://github.com/crytic/test-generator" }
+urls = { "Homepage" = "https://github.com/crytic/fuzz-utils" }
 requires-python = ">=3.10"
 dependencies = [
     "colorama>=0.4.0",
@@ -27,11 +27,11 @@ test = [
     "solc-select>=0.1.4"
 ]
 dev = [
-    "test_generator[lint,test]"
+    "fuzz_utils[lint,test]"
 ]
 
 [project.scripts]
-test-generator = "test_generator.main:main"
+fuzz-utils = "fuzz_utils.main:main"
 
 [tool.setuptools.packages.find]
     where = ["."]

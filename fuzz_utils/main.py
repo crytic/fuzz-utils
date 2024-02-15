@@ -9,11 +9,11 @@ from pkg_resources import require
 
 from slither import Slither
 from slither.core.declarations.contract import Contract
-from test_generator.utils.crytic_print import CryticPrint
-from test_generator.templates.foundry_templates import templates
-from test_generator.fuzzers.Medusa import Medusa
-from test_generator.fuzzers.Echidna import Echidna
-from test_generator.utils.error_handler import handle_exit
+from fuzz_utils.utils.crytic_print import CryticPrint
+from fuzz_utils.templates.foundry_templates import templates
+from fuzz_utils.fuzzers.Medusa import Medusa
+from fuzz_utils.fuzzers.Echidna import Echidna
+from fuzz_utils.utils.error_handler import handle_exit
 
 
 class FoundryTest:
@@ -97,7 +97,7 @@ class FoundryTest:
 def main() -> None:  # type: ignore[func-returns-value]
     """The main entry point"""
     parser = argparse.ArgumentParser(
-        prog="test-generator", description="Generate test harnesses for Echidna failed properties."
+        prog="fuzz-utils", description="Generate test harnesses for Echidna failed properties."
     )
     parser.add_argument("file_path", help="Path to the Echidna test harness.")
     parser.add_argument(
@@ -125,7 +125,7 @@ def main() -> None:  # type: ignore[func-returns-value]
     parser.add_argument(
         "--version",
         help="displays the current version",
-        version=require("test-generator")[0].version,
+        version=require("fuzz-utils")[0].version,
         action="version",
     )
 
@@ -157,10 +157,10 @@ def main() -> None:  # type: ignore[func-returns-value]
     CryticPrint().print_information(
         f"Generating Foundry unit tests based on the {fuzzer.name} reproducers..."
     )
-    test_generator = FoundryTest(
+    foundry_test = FoundryTest(
         inheritance_path, target_contract, corpus_dir, test_directory, slither, fuzzer
     )
-    test_generator.create_poc()
+    foundry_test.create_poc()
     CryticPrint().print_success("Done!")
 
 
