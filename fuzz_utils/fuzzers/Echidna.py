@@ -12,10 +12,10 @@ from slither.core.solidity_types.array_type import ArrayType
 from slither.core.declarations.structure import Structure
 from slither.core.declarations.structure_contract import StructureContract
 from slither.core.declarations.enum import Enum
-from test_generator.utils.crytic_print import CryticPrint
-from test_generator.templates.foundry_templates import templates
-from test_generator.utils.encoding import parse_echidna_byte_string
-from test_generator.utils.error_handler import handle_exit
+from fuzz_utils.utils.crytic_print import CryticPrint
+from fuzz_utils.templates.foundry_templates import templates
+from fuzz_utils.utils.encoding import parse_echidna_byte_string
+from fuzz_utils.utils.error_handler import handle_exit
 
 
 class Echidna:
@@ -174,7 +174,7 @@ class Echidna:
                 return interpreted_string
             case _:
                 handle_exit(
-                    f"\n* The parameter tag `{param['tag']}` could not be found in the call object. This could indicate an issue in decoding the call sequence, or a missing feature. Please open an issue at https://github.com/crytic/test-generator/issues"
+                    f"\n* The parameter tag `{param['tag']}` could not be found in the call object. This could indicate an issue in decoding the call sequence, or a missing feature. Please open an issue at https://github.com/crytic/fuzz-utils/issues"
                 )
 
     def _match_array_type(
@@ -202,7 +202,7 @@ class Echidna:
                 return name, definitions, index
             case _:
                 handle_exit(
-                    f"\n* The parameter tag `{param['tag']}` could not be found in the call object. This could indicate an issue in decoding the call sequence, or a missing feature. Please open an issue at https://github.com/crytic/test-generator/issues"
+                    f"\n* The parameter tag `{param['tag']}` could not be found in the call object. This could indicate an issue in decoding the call sequence, or a missing feature. Please open an issue at https://github.com/crytic/fuzz-utils/issues"
                 )
 
     def _match_user_defined_type(
@@ -218,7 +218,7 @@ class Echidna:
                         return definitions, f"{input_parameter}({','.join(func_params)})"
                     case _:
                         handle_exit(
-                            f"\n* The parameter type `{input_parameter.type}` could not be found. This could indicate an issue in decoding the call sequence, or a missing feature. Please open an issue at https://github.com/crytic/test-generator/issues"
+                            f"\n* The parameter type `{input_parameter.type}` could not be found. This could indicate an issue in decoding the call sequence, or a missing feature. Please open an issue at https://github.com/crytic/fuzz-utils/issues"
                         )
             case "AbiUInt":
                 if isinstance(input_parameter.type, Enum):
@@ -227,11 +227,11 @@ class Echidna:
 
                 # TODO is this even reachable?
                 handle_exit(
-                    f"\n* The parameter type `{input_parameter.type}` does not match the intended type `Enum`. This could indicate an issue in decoding the call sequence, or a missing feature. Please open an issue at https://github.com/crytic/test-generator/issues"
+                    f"\n* The parameter type `{input_parameter.type}` does not match the intended type `Enum`. This could indicate an issue in decoding the call sequence, or a missing feature. Please open an issue at https://github.com/crytic/fuzz-utils/issues"
                 )
             case _:
                 handle_exit(
-                    f"\n* The parameter tag `{param['tag']}` could not be found in the call object. This could indicate an issue in decoding the call sequence, or a missing feature. Please open an issue at https://github.com/crytic/test-generator/issues"
+                    f"\n* The parameter tag `{param['tag']}` could not be found in the call object. This could indicate an issue in decoding the call sequence, or a missing feature. Please open an issue at https://github.com/crytic/fuzz-utils/issues"
                 )
 
     def _decode_function_params(
@@ -270,7 +270,7 @@ class Echidna:
                 case _:
                     # TODO should handle all cases, but keeping this just in case
                     CryticPrint().print_information(
-                        f"\n* Attempted to decode an unidentified type {input_parameter}, this call will be skipped. Please open an issue at https://github.com/crytic/test-generator/issues"
+                        f"\n* Attempted to decode an unidentified type {input_parameter}, this call will be skipped. Please open an issue at https://github.com/crytic/fuzz-utils/issues"
                     )
                     continue
 
