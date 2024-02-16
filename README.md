@@ -15,12 +15,10 @@
 Multi-dimensional dynamic arrays, function pointers, and other more complex types are in the works, but are currently not supported.
 ## Installation and pre-requisites
 
-In order to be able to use `fuzz-utils`, you will need to install it first:
+To install `fuzz-utils`: 
 
 ```bash
-git clone git@github.com:crytic/fuzz-utils.git
-cd fuzz-utils
-pip3 install -e .
+pip install fuzz-utils
 ```
 
 These commands will install all the Python libraries and tools required to run `fuzz-utils`. However, it won't install Echidna or Medusa, so you will need to download and install the latest version yourself from its official releases ([Echidna](https://github.com/crytic/echidna/releases), [Medusa](https://github.com/crytic/medusa/releases)).
