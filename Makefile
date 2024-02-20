@@ -41,7 +41,7 @@ dev: $(VENV)/pyvenv.cfg
 
 .PHONY: run
 run: $(VENV)/pyvenv.cfg
-	@. $(VENV_BIN)/activate && test-generator $(ARGS)
+	@. $(VENV_BIN)/activate && fuzz-utils $(ARGS)
 
 $(VENV)/pyvenv.cfg: pyproject.toml
 	# Create our Python 3 virtual environment

@@ -4,7 +4,7 @@ body:
     attributes: 
       value: |
           Please check the issues tab to avoid duplicates.
-          If you are having difficulty installing test-generator,
+          If you are having difficulty installing fuzz-utils,
           please head over to the "Discussions" page.
           Thanks for taking the time to fill out this bug report!
     type: markdown
@@ -27,8 +27,8 @@ body:
   - 
     attributes: 
       description: |
-          What version of test-generator are you running? 
-          Run `test-generator --version`
+          What version of fuzz-utils are you running? 
+          Run `fuzz-utils --version`
       label: "Version:"
     id: version
     type: textarea

@@ -1,8 +1,8 @@
-# Contributing to Test-generator
+# Contributing to fuzz-utils
 
-First, thanks for your interest in contributing to `test-generator`! We welcome and appreciate all contributions, including bug reports, feature suggestions, tutorials/blog posts, and code improvements.
+First, thanks for your interest in contributing to `fuzz-utils`! We welcome and appreciate all contributions, including bug reports, feature suggestions, tutorials/blog posts, and code improvements.
 
-If you're unsure where to start, we recommend our [`good first issue`](https://github.com/crytic/test-generator/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) and [`help wanted`](https://github.com/crytic/test-generator/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) issue labels.
+If you're unsure where to start, we recommend our [`good first issue`](https://github.com/crytic/fuzz-utils/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) and [`help wanted`](https://github.com/crytic/fuzz-utils/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) issue labels.
 
 ## Bug reports and feature suggestions
 
@@ -14,7 +14,7 @@ Questions can be submitted to the "Discussions" page, and you may also join our 
 
 ## Code
 
-Test-generator uses the pull request contribution model. Please make an account on Github, fork this repo, and submit code contributions via pull request. For more documentation, look [here](https://guides.github.com/activities/forking/).
+`fuzz-utils` uses the pull request contribution model. Please make an account on Github, fork this repo, and submit code contributions via pull request. For more documentation, look [here](https://guides.github.com/activities/forking/).
 
 Some pull request guidelines:
 
@@ -26,7 +26,7 @@ Some pull request guidelines:
 
 ## Directory Structure
 
-Below is a rough outline of test-generator's design:
+Below is a rough outline of fuzz-utils's design:
 
 ```text
 .
@@ -39,24 +39,24 @@ Below is a rough outline of test-generator's design:
 
 ## Development Environment
 
-`test-generator` currently runs requires at least Python3.10 so make sure you have a sufficiently up-to-date installation by running `python --version`. We recommend [pyenv](https://github.com/pyenv/pyenv) to manage python versions.
+`fuzz-utils` currently runs requires at least Python3.10 so make sure you have a sufficiently up-to-date installation by running `python --version`. We recommend [pyenv](https://github.com/pyenv/pyenv) to manage python versions.
 
-To start working on modifications to test-generator locally, run:
+To start working on modifications to fuzz-utils locally, run:
 ```bash
-git clone https://github.com/crytic/test-generator
-cd test-generator
+git clone https://github.com/crytic/fuzz-utils
+cd fuzz-utils
 make dev
 ```
 This will create a virtual environment, ./env/, in the root of the repository and install dependencies.
 
-To run commands using your development version of `test-generator`, run:
+To run commands using your development version of `fuzz-utils`, run:
 ```bash
 source ./env/bin/activate
 ```
 
 ### Setting up IDE-based debugging
 1. Configure your IDE to use `./env/bin/python` as the interpreter.
-2. Use `test-generator` as the entrypoint for the debugger.
+2. Use `fuzz-utils` as the entrypoint for the debugger.
 3. Pycharm specific: Set the environment working directory to `./env/bin/`
 
 To run the unit tests, you need to clone this repository and run `make test`. Run a specific test with `make test TESTS=$test_name`. The names of tests can be obtained with `pytest tests --collect-only`.
