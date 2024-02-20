@@ -20,7 +20,7 @@ TESTS :=
 
 # Optionally overridden by the user/CI, to limit the installation to a specific
 # subset of development dependencies.
-TEST_GENERATOR_EXTRA := dev
+FUZZ_UTILS_EXTRA := dev
 
 # If the user selects a specific test pattern to run, set `pytest` to fail fast
 # and only run tests that match the pattern.
@@ -47,7 +47,7 @@ $(VENV)/pyvenv.cfg: pyproject.toml
 	# Create our Python 3 virtual environment
 	python3 -m venv env
 	$(VENV_BIN)/python -m pip install --upgrade pip
-	$(VENV_BIN)/python -m pip install -e .[$(TEST_GENERATOR_EXTRA)]
+	$(VENV_BIN)/python -m pip install -e .[$(FUZZ_UTILS_EXTRA)]
 
 .PHONY: lint
 lint: $(VENV)/pyvenv.cfg
