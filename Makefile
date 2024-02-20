@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-PY_MODULE := test_generator
+PY_MODULE := fuzz_utils
 TEST_MODULE := tests
 
 # Optionally overriden by the user, if they're using a virtual environment manager.
