@@ -1,5 +1,5 @@
 """
-Install script for test-generator package
+Install script for fuzz-utils package
 """
 import setuptools
 

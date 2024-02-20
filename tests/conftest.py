@@ -24,11 +24,11 @@ class TestGenerator:
         )
 
     def echidna_generate_tests(self) -> None:
-        """Runs the test-generator tool for an Echidna corpus"""
+        """Runs the fuzz-utils tool for an Echidna corpus"""
         self.echidna_generator.create_poc()
 
     def medusa_generate_tests(self) -> None:
-        """Runs the test-generator tool for a Medusa corpus"""
+        """Runs the fuzz-utils tool for a Medusa corpus"""
         self.medusa_generator.create_poc()
 
 

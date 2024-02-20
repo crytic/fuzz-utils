@@ -8,7 +8,7 @@ body:
       value: |
         Please check the issues tab to avoid duplicates.
 
-        Thanks for providing feedback on test-generator!
+        Thanks for providing feedback on fuzz-utils!
   - type: textarea
     attributes:
       label: Describe the desired feature
