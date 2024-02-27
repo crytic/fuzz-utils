@@ -25,11 +25,11 @@ class TestGenerator:
 
     def echidna_generate_tests(self) -> None:
         """Runs the fuzz-utils tool for an Echidna corpus"""
-        self.echidna_generator.create_poc()
+        self.echidna_generator.create_poc(False)
 
     def medusa_generate_tests(self) -> None:
         """Runs the fuzz-utils tool for a Medusa corpus"""
-        self.medusa_generator.create_poc()
+        self.medusa_generator.create_poc(False)
 
 
 @pytest.fixture(autouse=True)  # type: ignore[misc]

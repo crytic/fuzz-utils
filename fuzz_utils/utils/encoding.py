@@ -63,3 +63,12 @@ def parse_echidna_byte_string(s: str) -> str:
 def parse_medusa_byte_string(s: str) -> str:
     """Decode bytes* or string type from Medusa format to Solidity hex literal"""
     return s.encode("utf-8").hex()
+
+
+def strip_hex_leading_zero(hex_str: str) -> str:
+    """Strips the leading zeroes from a hex string"""
+    stripped = hex_str[2:].lstrip("0")
+    if len(stripped) == 0:
+        return "0x0"
+
+    return "0x" + stripped
