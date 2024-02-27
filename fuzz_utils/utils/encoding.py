@@ -48,16 +48,16 @@ def parse_echidna_byte_string(s: str) -> str:
     for key, value in ascii_escape_map.items():
         s = s.replace(key, value)
 
-    # Handle octal escapes (like \\135)
-    def octal_to_byte(match: re.Match) -> str:
-        octal_value = match.group(0)[1:]  # Remove the backslash
+    # Handle unicode escapes (like \\135)
+    def unicode_to_byte(match: re.Match) -> str:
+        unicode_value = match.group(0)[1:]  # Remove the backslash
 
-        return chr(int(octal_value, 8))
+        return chr(int(unicode_value, 10))
 
-    s = re.sub(r"\\[0-3]?[0-7][0-7]", octal_to_byte, s)
+    s = re.sub(r"\\[0-3]?[0-9][0-9]", unicode_to_byte, s)
 
     # Convert to bytes and then to hexadecimal
-    return s.encode().hex()
+    return s.encode("latin-1").hex()
 
 
 def parse_medusa_byte_string(s: str) -> str:
