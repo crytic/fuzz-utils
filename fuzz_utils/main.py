@@ -128,6 +128,13 @@ def main() -> None:  # type: ignore[func-returns-value]
         version=require("fuzz-utils")[0].version,
         action="version",
     )
+    parser.add_argument(
+        "--named-inputs",
+        dest="named_inputs",
+        help="Include function input names when making calls.",
+        default=False,
+        action='store_true',
+    )
 
     args = parser.parse_args()
 
@@ -146,9 +153,9 @@ def main() -> None:  # type: ignore[func-returns-value]
 
     match args.selected_fuzzer.lower():
         case "echidna":
-            fuzzer = Echidna(target_contract, corpus_dir, slither)
+            fuzzer = Echidna(target_contract, corpus_dir, slither, args.named_inputs)
         case "medusa":
-            fuzzer = Medusa(target_contract, corpus_dir, slither)
+            fuzzer = Medusa(target_contract, corpus_dir, slither, args.named_inputs)
         case _:
             handle_exit(
                 f"\n* The requested fuzzer {args.selected_fuzzer} is not supported. Supported fuzzers: echidna, medusa."
