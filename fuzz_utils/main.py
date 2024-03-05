@@ -13,6 +13,7 @@ from fuzz_utils.utils.crytic_print import CryticPrint
 from fuzz_utils.templates.foundry_templates import templates
 from fuzz_utils.fuzzers.Medusa import Medusa
 from fuzz_utils.fuzzers.Echidna import Echidna
+from fuzz_utils.templates.HarnessGenerator import HarnessGenerator
 from fuzz_utils.utils.error_handler import handle_exit
 
 
@@ -99,69 +100,97 @@ def main() -> None:  # type: ignore[func-returns-value]
     parser = argparse.ArgumentParser(
         prog="fuzz-utils", description="Generate test harnesses for Echidna failed properties."
     )
-    parser.add_argument("file_path", help="Path to the Echidna test harness.")
-    parser.add_argument(
+    subparsers = parser.add_subparsers(dest="command", help="sub-command help")
+
+    # The command parser for generating unit tests
+    parser_generate = subparsers.add_parser(
+        "generate", help="Generate unit tests from fuzzer corpora sequences."
+    )
+    parser_generate.add_argument("file_path", help="Path to the Echidna/Medusa test harness.")
+    parser_generate.add_argument(
         "-cd", "--corpus-dir", dest="corpus_dir", help="Path to the corpus directory", required=True
     )
-    parser.add_argument("-c", "--contract", dest="target_contract", help="Define the contract name")
-    parser.add_argument(
+    parser_generate.add_argument(
+        "-c", "--contract", dest="target_contract", help="Define the contract name"
+    )
+    parser_generate.add_argument(
         "-td",
         "--test-directory",
         dest="test_directory",
         help="Define the directory that contains the Foundry tests.",
     )
-    parser.add_argument(
+    parser_generate.add_argument(
         "-i",
         "--inheritance-path",
         dest="inheritance_path",
         help="Define the relative path from the test directory to the directory src/contracts directory.",
     )
-    parser.add_argument(
+    parser_generate.add_argument(
         "-f",
         "--fuzzer",
         dest="selected_fuzzer",
         help="Define the fuzzer used. Valid inputs: 'echidna', 'medusa'",
     )
-    parser.add_argument(
+    parser_generate.add_argument(
         "--version",
         help="displays the current version",
         version=require("fuzz-utils")[0].version,
         action="version",
     )
 
+    # The command parser for converting between corpus formats
+    parser_template = subparsers.add_parser(
+        "template", help="Generate a templated fuzzing harness."
+    )
+    parser_template.add_argument("file_path", help="Path to the Echidna/Medusa test harness.")
+    parser_template.add_argument(
+        "-c", "--contract", dest="target_contract", required=True, help="Define the contract name"
+    )
+    parser_template.add_argument(
+        "-o",
+        "--output-dir",
+        dest="output_dir",
+        help="Define the output directory where the result will be saved.",
+    )
+
     args = parser.parse_args()
-
-    missing_args = [arg for arg, value in vars(args).items() if value is None]
-    if missing_args:
-        parser.print_help()
-        handle_exit(f"\n* Missing required arguments: {', '.join(missing_args)}")
-
     file_path = args.file_path
-    corpus_dir = args.corpus_dir
-    test_directory = args.test_directory
-    inheritance_path = args.inheritance_path
     target_contract = args.target_contract
     slither = Slither(file_path)
-    fuzzer: Echidna | Medusa
 
-    match args.selected_fuzzer.lower():
-        case "echidna":
-            fuzzer = Echidna(target_contract, corpus_dir, slither)
-        case "medusa":
-            fuzzer = Medusa(target_contract, corpus_dir, slither)
-        case _:
-            handle_exit(
-                f"\n* The requested fuzzer {args.selected_fuzzer} is not supported. Supported fuzzers: echidna, medusa."
-            )
+    if args.command == "generate":
+        test_directory = args.test_directory
+        inheritance_path = args.inheritance_path
+        selected_fuzzer = args.selected_fuzzer.lower()
+        corpus_dir = args.corpus_dir
 
-    CryticPrint().print_information(
-        f"Generating Foundry unit tests based on the {fuzzer.name} reproducers..."
-    )
-    foundry_test = FoundryTest(
-        inheritance_path, target_contract, corpus_dir, test_directory, slither, fuzzer
-    )
-    foundry_test.create_poc()
-    CryticPrint().print_success("Done!")
+        fuzzer: Echidna | Medusa
+
+        match selected_fuzzer:
+            case "echidna":
+                fuzzer = Echidna(target_contract, corpus_dir, slither)
+            case "medusa":
+                fuzzer = Medusa(target_contract, corpus_dir, slither)
+            case _:
+                handle_exit(
+                    f"\n* The requested fuzzer {selected_fuzzer} is not supported. Supported fuzzers: echidna, medusa."
+                )
+
+        CryticPrint().print_information(
+            f"Generating Foundry unit tests based on the {fuzzer.name} reproducers..."
+        )
+        foundry_test = FoundryTest(
+            inheritance_path, target_contract, corpus_dir, test_directory, slither, fuzzer
+        )
+        foundry_test.create_poc()
+        CryticPrint().print_success("Done!")
+    elif args.command == "template":
+        output_dir = args.output_dir
+        generator = HarnessGenerator(target_contract, slither)
+        generator.generate_harness()
+        # TODO
+    else:
+        parser.print_help()
 
 
 if __name__ == "__main__":

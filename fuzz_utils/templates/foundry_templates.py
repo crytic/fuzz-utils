@@ -67,6 +67,47 @@ interface I{target_name} {
 }
 """
 
+__HARNESS_TEMPLATE: str = """// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.13;
+
+{%- for import in harness.imports -%}
+{{import}}
+{% endfor -%}
+
+{%- for actor in harness.actors -%}
+{{actor.import}}
+{% endfor -%}
+
+contract {{harness.name}} is {{inheritance}} {
+    {{harness.variables}}
+
+    {{harness.constructor}}
+
+    {{harness.functions}}
+}
+"""
+
+__ACTOR_TEMPLATE: str = """// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.13;
+
+import "crytic/properties/util/PropertiesHelper.sol";
+{%- for import in actor.imports %}
+{{import}}
+{% endfor -%}
+
+contract Actor{{actor.name}} is {{actor.dependencies}} {
+    {% for variable in actor.variables %}
+    {{variable}}
+    {% endfor -%}
+
+    {{actor.constructor}}
+    {%- for function in actor.functions %}
+    {{function}}
+    {% endfor -%}
+}
+
+"""
+
 templates: dict = {
     "CONTRACT": __CONTRACT_TEMPLATE,
     "CALL": __CALL_TEMPLATE,
@@ -74,4 +115,6 @@ templates: dict = {
     "EMPTY_CALL": __EMPTY_CALL_TEMPLATE,
     "TEST": __TEST_TEMPLATE,
     "INTERFACE": __INTERFACE_TEMPLATE,
+    "HARNESS": __HARNESS_TEMPLATE,
+    "ACTOR": __ACTOR_TEMPLATE
 }
