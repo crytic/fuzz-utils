@@ -1,7 +1,10 @@
 """ Generates a template fuzzer harness for a smart contract target """
 # type: ignore[misc] # Ignores 'Any' input parameter
+import os
+
 from slither import Slither
 from slither.core.declarations.contract import Contract
+from fuzz_utils.utils.file_manager import check_and_create_dir, save_files
 from fuzz_utils.utils.error_handler import handle_exit
 from fuzz_utils.templates.foundry_templates import templates
 from dataclasses import dataclass
