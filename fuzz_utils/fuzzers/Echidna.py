@@ -23,7 +23,9 @@ class Echidna:
     Handles the generation of Foundry test files from Echidna reproducers
     """
 
-    def __init__(self, target_name: str, corpus_path: str, slither: Slither, named_inputs: bool) -> None:
+    def __init__(
+        self, target_name: str, corpus_path: str, slither: Slither, named_inputs: bool
+    ) -> None:
         self.name = "Echidna"
         self.target_name = target_name
         self.slither = slither
@@ -59,6 +61,7 @@ class Echidna:
         template = jinja2.Template(templates["TEST"])
         return template.render(function_name=function_name, call_list=call_list)
 
+    # pylint: disable=too-many-locals,too-many-branches
     def _parse_call_object(self, call_dict: dict[Any, Any]) -> tuple[str, str]:
         """
         Takes a single call dictionary, parses it, and returns the series of function calls as a string, along with

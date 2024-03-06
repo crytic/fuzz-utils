@@ -133,7 +133,7 @@ def main() -> None:  # type: ignore[func-returns-value]
         dest="named_inputs",
         help="Include function input names when making calls.",
         default=False,
-        action='store_true',
+        action="store_true",
     )
 
     args = parser.parse_args()

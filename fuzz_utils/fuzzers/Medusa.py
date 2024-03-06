@@ -23,7 +23,9 @@ class Medusa:
     Handles the generation of Foundry test files from Medusa reproducers
     """
 
-    def __init__(self, target_name: str, corpus_path: str, slither: Slither, named_inputs: bool) -> None:
+    def __init__(
+        self, target_name: str, corpus_path: str, slither: Slither, named_inputs: bool
+    ) -> None:
         self.name = "Medusa"
         self.target_name = target_name
         self.corpus_path = corpus_path
@@ -62,6 +64,7 @@ class Medusa:
         # 3. Using the call list to generate a test string
         # 4. Return the test string
 
+    # pylint: disable=too-many-locals,too-many-branches
     def _parse_call_object(self, call_dict: dict) -> tuple[str, str]:
         """
         Takes a single call dictionary, parses it, and returns the series of function calls as a string, along with
