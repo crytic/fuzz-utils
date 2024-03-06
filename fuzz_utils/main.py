@@ -185,7 +185,11 @@ def main() -> None:  # type: ignore[func-returns-value]
         foundry_test.create_poc()
         CryticPrint().print_success("Done!")
     elif args.command == "template":
-        output_dir = args.output_dir
+        if args.output_dir:
+            output_dir = os.path.join("./test", args.output_dir)
+        else:
+            output_dir = os.path.join("./test", "fuzzing")
+
         generator = HarnessGenerator(target_contract, slither, output_dir)
         generator.generate_templates()
         # TODO

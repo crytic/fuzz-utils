@@ -148,6 +148,10 @@ class HarnessGenerator:
             variables=variables,
             functions=functions,
         )
+        
+        # Get output path
+        harness_output_path = os.path.join(self.output_dir, "harnesses")
+        harness.set_path(f"{harness_output_path}/{name}.sol")
 
         # Generate harness content
         template = jinja2.Template(templates["HARNESS"])
@@ -155,7 +159,6 @@ class HarnessGenerator:
         harness.set_content(harness_content)
 
         # Save harness to file
-        harness_output_path = os.path.join(self.output_dir, "harnesses")
         save_file(harness_output_path, f"/{name}", ".sol", harness_content)
 
     def _generate_actor(self, target_contract: Contract, name: str) -> Actor:
@@ -233,7 +236,7 @@ class HarnessGenerator:
                 continue
 
             functions.append(
-                f"// -------------------------------------\n    // {contract.name} functions\n    // -------------------------------------\n"
+                f"// -------------------------------------\n    // {contract.name} functions\n    // {contract.source_mapping.filename.relative}\n    // -------------------------------------\n"
             )
 
             for entry in contract.functions_declared:
@@ -312,7 +315,7 @@ class HarnessGenerator:
                 continue
 
             functions.append(
-                f"// -------------------------------------\n    // {contract.name} functions\n    // -------------------------------------\n"
+                f"// -------------------------------------\n    // {contract.name} functions\n    // {contract.source_mapping.filename.relative}\n    // -------------------------------------\n"
             )
 
             for entry in contract.functions_declared:
