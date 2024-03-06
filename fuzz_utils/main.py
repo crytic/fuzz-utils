@@ -186,8 +186,8 @@ def main() -> None:  # type: ignore[func-returns-value]
         CryticPrint().print_success("Done!")
     elif args.command == "template":
         output_dir = args.output_dir
-        generator = HarnessGenerator(target_contract, slither)
-        generator.generate_harness()
+        generator = HarnessGenerator(target_contract, slither, output_dir)
+        generator.generate_templates()
         # TODO
     else:
         parser.print_help()
