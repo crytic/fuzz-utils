@@ -69,25 +69,46 @@ class HarnessGenerator:
     """
     Handles the generation of Foundry test files from Echidna reproducers
     """
+    config: dict = {"name": "Default", "compilationPath": ".", "targets": [], "outputDir": "./test/fuzzing", "actors": []}
 
-    def __init__(self, target_name: str, slither: Slither, output_dir: str) -> None:
-        self.target_name = target_name
+    def __init__(self, compilation_path: str, targets: list[str], slither: Slither, output_dir: str, config: dict) -> None:
+        for key, value in config.items():
+            if key == "actors":
+                for actor in config[key]:
+                    if not "name" in actor or not "targets" in actor:
+                        handle_exit("Actor is missing attributes")
+                    if not actor["name"] or not actor["targets"]:
+                        handle_exit("One or multiple actor attributes are are empty")
+
+            if key in self.config and value:
+                self.config[key] = value
+
+        if targets:
+            self.config["targets"] = targets
+        if output_dir:
+            self.config["outputDir"] = output_dir
+        if compilation_path:
+            self.config["compilationPath"] = compilation_path
+        
+        print("Using config", self.config)
+
         self.slither = slither
-        self.target = self.get_target_contract(slither, target_name)
-        self.output_dir = output_dir
+        self.targets = [self.get_target_contract(slither, contract) for contract in self.config["targets"]]
+        self.output_dir = self.config["outputDir"]
 
     def generate_templates(self) -> None:
         """Generates the Harness and Actor fuzzing templates"""
         # Check if directories exists, if not, create them
         check_and_create_dirs(self.output_dir, ["utils", "actors", "harnesses"])
         # Generate the Actors
-        actors: list[Actor] = self._generate_actors([self.target_name], ["Basic"])
+        actors: list[Actor] = self._generate_actors()
         # Generate the harness
-        self._generate_harness(actors, [self.target], f"{self.target_name}Harness")
+        self._generate_harness(actors)
 
     def _generate_harness(
-        self, actors: list[Actor], target_contracts: list[Contract], name: str
+        self, actors: list[Actor]
     ) -> None:
+        target_contracts = self.targets
         # Generate inheritance and variables
         imports: list[str] = []
         variables: list[str] = []
@@ -117,10 +138,10 @@ class HarnessGenerator:
             constructor_arguments = ""
             if actor.contract.constructor.parameters:
                 constructor_arguments = ", ".join(
-                    [x.name.strip("_") for x in actor.contract.constructor.parameters]
+                    [f"address({x.name.strip('_')})" for x in actor.contract.constructor.parameters]
                 )
             constructor += (
-                f"            {actor.name}_actors.push(new Actor{actor.name}(address({constructor_arguments})));\n"
+                f"            {actor.name}_actors.push(new Actor{actor.name}({constructor_arguments}));\n"
                 + "        }\n"
             )
             constructor += "    }\n"
@@ -137,7 +158,7 @@ class HarnessGenerator:
 
         # Generate harness class
         harness = Harness(
-            name=name,
+            name=self.config["name"],
             constructor=constructor,
             dependencies=dependencies,
             content="",
@@ -151,7 +172,7 @@ class HarnessGenerator:
         
         # Get output path
         harness_output_path = os.path.join(self.output_dir, "harnesses")
-        harness.set_path(f"{harness_output_path}/{name}.sol")
+        harness.set_path(f"{harness_output_path}/{self.config['name']}.sol")
 
         # Generate harness content
         template = jinja2.Template(templates["HARNESS"])
@@ -159,23 +180,32 @@ class HarnessGenerator:
         harness.set_content(harness_content)
 
         # Save harness to file
-        save_file(harness_output_path, f"/{name}", ".sol", harness_content)
+        save_file(harness_output_path, f"/{self.config['name']}", ".sol", harness_content)
 
-    def _generate_actor(self, target_contract: Contract, name: str) -> Actor:
-        # Generate inheritance
-        imports: list[str] = [f'import "{target_contract.source_mapping.filename.relative}";']
+    def _generate_actor(self, target_contracts: list[Contract], name: str) -> Actor:
+        imports: list[str] = []
+        variables: list[str] = []
+        functions: list[str] = []
+        constructor_args: list[str] = []
+        constructor = ""
 
-        # Generate variables
-        contract_name = target_contract.name
-        target_name = target_contract.name.lower()
-        variables: list[str] = [f"{contract_name} {target_name};"]
+        for contract in target_contracts:
+            # Generate inheritance
+            imports.append(f'import "{contract.source_mapping.filename.relative}";')
 
-        # Generate constructor
-        constructor = f"constructor(address _{target_name})" + "{\n"
-        constructor += f"       {target_name} = {contract_name}(_{target_name});\n" + "    }\n"
+            # Generate variables
+            contract_name = contract.name
+            target_name = contract.name.lower()
+            variables.append(f"{contract_name} {target_name};")
 
-        # Generate Functions
-        functions = self._generate_actor_functions(target_contract)
+            # Generate constructor
+            constructor_args.append(f"address _{target_name}")
+            constructor += f"       {target_name} = {contract_name}(_{target_name});\n"
+
+            # Generate Functions
+            functions.extend(self._generate_actor_functions(contract))
+        
+        constructor = f"constructor({', '.join(constructor_args)})" + "{\n" + constructor + "    }\n"
 
         return Actor(
             name=name,
@@ -186,35 +216,38 @@ class HarnessGenerator:
             functions=functions,
             content="",
             path="",
-            targets=[target_contract],
+            targets=target_contracts,
             contract=None,
         )
 
-    def _generate_actors(self, targets: list[str], names: list[str]) -> list[Actor]:
+    def _generate_actors(self) -> list[Actor]:
         actor_contracts: list[Actor] = []
 
         # Check if dir exists, if not, create it
         actor_output_path = os.path.join(self.output_dir, "actors")
 
-        # Loop over all targets and generate an actor for each
-        for idx, target in enumerate(targets):
-            target_contract: Contract = self.get_target_contract(self.slither, target)
-            # Generate the actor
-            actor: Actor = self._generate_actor(target_contract, names[idx])
+        # Loop over actors list
+        for actor_config in self.config["actors"]:
+            print("config", actor_config)
+            name = actor_config["name"]
+            target_contracts: list[Contract] = [self.get_target_contract(self.slither, contract) for contract in actor_config["targets"]]
+            # Generate the Actor
+            actor: Actor = self._generate_actor(target_contracts, name)
             # Generate the templated string and append to list
             template = jinja2.Template(templates["ACTOR"])
             actor_content = template.render(actor=actor)
             # Save the file
-            save_file(actor_output_path, f"/Actor{names[idx]}", ".sol", actor_content)
+            save_file(actor_output_path, f"/Actor{name}", ".sol", actor_content)
 
             # Save content and path to Actor
             actor.set_content(actor_content)
-            actor.set_path(f"../actors/Actor{names[idx]}.sol")
+            actor.set_path(f"../actors/Actor{name}.sol")
 
-            actor_slither = Slither(f"{actor_output_path}/Actor{names[idx]}.sol")
-            actor.set_contract(self.get_target_contract(actor_slither, f"Actor{names[idx]}"))
+            actor_slither = Slither(f"{actor_output_path}/Actor{name}.sol")
+            actor.set_contract(self.get_target_contract(actor_slither, f"Actor{name}"))
 
             actor_contracts.append(actor)
+
         # Return Actors list
         return actor_contracts
 
@@ -230,7 +263,7 @@ class HarnessGenerator:
 
             has_public_fn: bool = False
             for entry in contract.functions_declared:
-                if (entry.visibility in ("public", "external")) and not entry.is_constructor:
+                if (entry.visibility in ("public", "external")) and not entry.view and not entry.pure and not entry.is_constructor:
                     has_public_fn = True
             if not has_public_fn:
                 continue
@@ -291,7 +324,7 @@ class HarnessGenerator:
                     + " {\n"
                 )
                 definition += (
-                    f"        {self.target_name.lower()}.{entry.name}({', '.join([ unused_var if not x.name else x.name for x in entry.parameters])});\n"
+                    f"        {target_contract.name.lower()}.{entry.name}({', '.join([ unused_var if not x.name else x.name for x in entry.parameters])});\n"
                     + "    }\n"
                 )
                 functions.append(definition)

@@ -142,9 +142,9 @@ def main() -> None:  # type: ignore[func-returns-value]
     parser_template = subparsers.add_parser(
         "template", help="Generate a templated fuzzing harness."
     )
-    parser_template.add_argument("file_path", help="Path to the Echidna/Medusa test harness.")
+    parser_template.add_argument("file_path", help="Path to the Solidity contract.")
     parser_template.add_argument(
-        "-c", "--contract", dest="target_contract", required=True, help="Define the contract name"
+        "-c", "--contracts", dest="target_contracts", nargs='+', help="Define a list of target contracts for the harness."
     )
     parser_template.add_argument(
         "-o",
@@ -152,10 +152,10 @@ def main() -> None:  # type: ignore[func-returns-value]
         dest="output_dir",
         help="Define the output directory where the result will be saved.",
     )
+    parser_template.add_argument("--config", dest="config", help="Define the location of the config file.")
 
     args = parser.parse_args()
     file_path = args.file_path
-    target_contract = args.target_contract
     slither = Slither(file_path)
 
     if args.command == "generate":
@@ -163,6 +163,7 @@ def main() -> None:  # type: ignore[func-returns-value]
         inheritance_path = args.inheritance_path
         selected_fuzzer = args.selected_fuzzer.lower()
         corpus_dir = args.corpus_dir
+        target_contract = args.target_contract
 
         fuzzer: Echidna | Medusa
 
@@ -185,12 +186,17 @@ def main() -> None:  # type: ignore[func-returns-value]
         foundry_test.create_poc()
         CryticPrint().print_success("Done!")
     elif args.command == "template":
+        config: dict = {}
         if args.output_dir:
             output_dir = os.path.join("./test", args.output_dir)
         else:
             output_dir = os.path.join("./test", "fuzzing")
+        if args.config:
+            with open(args.config, "r", encoding="utf-8") as readFile:
+                config = json.load(readFile)
+        print(config)
 
-        generator = HarnessGenerator(target_contract, slither, output_dir)
+        generator = HarnessGenerator(file_path, args.target_contracts, slither, output_dir, config)
         generator.generate_templates()
         # TODO
     else:
