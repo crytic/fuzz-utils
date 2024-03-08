@@ -8,11 +8,12 @@ from slither.core.declarations.contract import Contract
 from slither.core.solidity_types.user_defined_type import UserDefinedType
 from slither.core.solidity_types.array_type import ArrayType
 import jinja2
+from fuzz_utils.utils.crytic_print import CryticPrint
 from fuzz_utils.utils.file_manager import check_and_create_dirs, save_file
 from fuzz_utils.utils.error_handler import handle_exit
 from fuzz_utils.templates.foundry_templates import templates
 
-
+# pylint: disable=too-many-instance-attributes
 @dataclass
 class Actor:
     """Class for storing Actor contract data"""
@@ -69,16 +70,30 @@ class HarnessGenerator:
     """
     Handles the generation of Foundry test files from Echidna reproducers
     """
-    config: dict = {"name": "Default", "compilationPath": ".", "targets": [], "outputDir": "./test/fuzzing", "actors": []}
 
-    def __init__(self, compilation_path: str, targets: list[str], slither: Slither, output_dir: str, config: dict) -> None:
+    config: dict = {
+        "name": "Default",
+        "compilationPath": ".",
+        "targets": [],
+        "outputDir": "./test/fuzzing",
+        "actors": [],
+    }
+
+    def __init__(
+        self,
+        compilation_path: str,
+        targets: list[str],
+        slither: Slither,
+        output_dir: str,
+        config: dict,
+    ) -> None:
         for key, value in config.items():
             if key == "actors":
                 for actor in config[key]:
                     if not "name" in actor or not "targets" in actor:
                         handle_exit("Actor is missing attributes")
                     if not actor["name"] or not actor["targets"]:
-                        handle_exit("One or multiple actor attributes are are empty")
+                        handle_exit("One or multiple actor attributes are empty")
 
             if key in self.config and value:
                 self.config[key] = value
@@ -89,25 +104,37 @@ class HarnessGenerator:
             self.config["outputDir"] = output_dir
         if compilation_path:
             self.config["compilationPath"] = compilation_path
-        
-        print("Using config", self.config)
+        if not self.config["actors"]:
+            self.config["actors"] = [{"name": "Default", "targets": self.config["targets"]}]
+
+        CryticPrint().print_no_format(f"    Config: {self.config}")
 
         self.slither = slither
-        self.targets = [self.get_target_contract(slither, contract) for contract in self.config["targets"]]
+        self.targets = [
+            self.get_target_contract(slither, contract) for contract in self.config["targets"]
+        ]
         self.output_dir = self.config["outputDir"]
 
     def generate_templates(self) -> None:
         """Generates the Harness and Actor fuzzing templates"""
+        CryticPrint().print_information(
+            f"Generating the fuzzing Harness for contracts: {self.config['targets']}"
+        )
+
         # Check if directories exists, if not, create them
         check_and_create_dirs(self.output_dir, ["utils", "actors", "harnesses"])
         # Generate the Actors
         actors: list[Actor] = self._generate_actors()
+        CryticPrint().print_success("    Actors generated!")
         # Generate the harness
         self._generate_harness(actors)
+        CryticPrint().print_success("    Harness generated!")
+        CryticPrint().print_success(f"Files saved to {self.config['outputDir']}")
 
-    def _generate_harness(
-        self, actors: list[Actor]
-    ) -> None:
+    # pylint: disable=too-many-locals
+    def _generate_harness(self, actors: list[Actor]) -> None:
+        CryticPrint().print_information(f"Generating {self.config['name']} Harness")
+
         target_contracts = self.targets
         # Generate inheritance and variables
         imports: list[str] = []
@@ -136,7 +163,7 @@ class HarnessGenerator:
         for actor in actors:
             constructor += "        for(uint256 i; i < 3; i++) {\n"
             constructor_arguments = ""
-            if actor.contract.constructor.parameters:
+            if hasattr(actor.contract.constructor, "parameters"):
                 constructor_arguments = ", ".join(
                     [f"address({x.name.strip('_')})" for x in actor.contract.constructor.parameters]
                 )
@@ -169,7 +196,7 @@ class HarnessGenerator:
             variables=variables,
             functions=functions,
         )
-        
+
         # Get output path
         harness_output_path = os.path.join(self.output_dir, "harnesses")
         harness.set_path(f"{harness_output_path}/{self.config['name']}.sol")
@@ -204,8 +231,10 @@ class HarnessGenerator:
 
             # Generate Functions
             functions.extend(self._generate_actor_functions(contract))
-        
-        constructor = f"constructor({', '.join(constructor_args)})" + "{\n" + constructor + "    }\n"
+
+        constructor = (
+            f"constructor({', '.join(constructor_args)})" + "{\n" + constructor + "    }\n"
+        )
 
         return Actor(
             name=name,
@@ -221,6 +250,7 @@ class HarnessGenerator:
         )
 
     def _generate_actors(self) -> list[Actor]:
+        CryticPrint().print_information("Generating Actors:")
         actor_contracts: list[Actor] = []
 
         # Check if dir exists, if not, create it
@@ -228,9 +258,13 @@ class HarnessGenerator:
 
         # Loop over actors list
         for actor_config in self.config["actors"]:
-            print("config", actor_config)
             name = actor_config["name"]
-            target_contracts: list[Contract] = [self.get_target_contract(self.slither, contract) for contract in actor_config["targets"]]
+            target_contracts: list[Contract] = [
+                self.get_target_contract(self.slither, contract)
+                for contract in actor_config["targets"]
+            ]
+
+            CryticPrint().print_information(f"    Actor: {name}Actor...")
             # Generate the Actor
             actor: Actor = self._generate_actor(target_contracts, name)
             # Generate the templated string and append to list
@@ -251,11 +285,12 @@ class HarnessGenerator:
         # Return Actors list
         return actor_contracts
 
+    # pylint: disable=too-many-locals,too-many-branches,no-self-use
     def _generate_actor_functions(self, target_contract: Contract) -> list[str]:
         functions: list[str] = []
         contracts: list[Contract] = [target_contract]
         if len(target_contract.inheritance) > 0:
-            contracts = set(contracts) | set(target_contract.inheritance)
+            contracts = list(set(contracts) | set(target_contract.inheritance))
 
         for contract in contracts:
             if not contract.functions_declared or contract.is_interface:
@@ -263,7 +298,12 @@ class HarnessGenerator:
 
             has_public_fn: bool = False
             for entry in contract.functions_declared:
-                if (entry.visibility in ("public", "external")) and not entry.view and not entry.pure and not entry.is_constructor:
+                if (
+                    (entry.visibility in ("public", "external"))
+                    and not entry.view
+                    and not entry.pure
+                    and not entry.is_constructor
+                ):
                     has_public_fn = True
             if not has_public_fn:
                 continue
@@ -306,7 +346,7 @@ class HarnessGenerator:
                             f"{parameter.type}{location} {parameter.name if parameter.name else unused_var}"
                         )
 
-                    inputs_with_types: str = ", ".join(inputs_with_type_list)
+                    inputs_with_types = ", ".join(inputs_with_type_list)
 
                 # Loop over return types
                 return_types = ""
@@ -331,6 +371,7 @@ class HarnessGenerator:
 
         return functions
 
+    # pylint: disable=too-many-locals,no-self-use,too-many-branches
     def _generate_harness_functions(self, actor: Actor) -> list[str]:
         functions: list[str] = []
         contracts: list[Contract] = [actor.contract]
@@ -338,7 +379,6 @@ class HarnessGenerator:
         for contract in contracts:
             if not contract.functions_declared or contract.is_interface:
                 continue
-            print("contract", contract.name)
 
             has_public_fn: bool = False
             for entry in contract.functions_declared:
@@ -382,7 +422,7 @@ class HarnessGenerator:
                             location = " payable"
                         inputs_with_type_list.append(f"{parameter.type}{location} {parameter.name}")
 
-                    inputs_with_types: str = ", ".join(inputs_with_type_list)
+                    inputs_with_types = ", ".join(inputs_with_type_list)
 
                 # Loop over return types
                 return_types = ""
@@ -409,6 +449,7 @@ class HarnessGenerator:
 
         return functions
 
+    # pylint: disable=no-self-use
     def get_target_contract(self, slither: Slither, target_name: str) -> Contract:
         """Finds and returns Slither Contract"""
         contracts = slither.get_contract_from_name(target_name)

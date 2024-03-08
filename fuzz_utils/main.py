@@ -95,6 +95,7 @@ class FoundryTest:
         return test_file_str
 
 
+# pylint: disable=too-many-locals
 def main() -> None:  # type: ignore[func-returns-value]
     """The main entry point"""
     parser = argparse.ArgumentParser(
@@ -144,7 +145,11 @@ def main() -> None:  # type: ignore[func-returns-value]
     )
     parser_template.add_argument("file_path", help="Path to the Solidity contract.")
     parser_template.add_argument(
-        "-c", "--contracts", dest="target_contracts", nargs='+', help="Define a list of target contracts for the harness."
+        "-c",
+        "--contracts",
+        dest="target_contracts",
+        nargs="+",
+        help="Define a list of target contracts for the harness.",
     )
     parser_template.add_argument(
         "-o",
@@ -152,10 +157,12 @@ def main() -> None:  # type: ignore[func-returns-value]
         dest="output_dir",
         help="Define the output directory where the result will be saved.",
     )
-    parser_template.add_argument("--config", dest="config", help="Define the location of the config file.")
-
+    parser_template.add_argument(
+        "--config", dest="config", help="Define the location of the config file."
+    )
     args = parser.parse_args()
     file_path = args.file_path
+    CryticPrint().print_information("Running Slither...")
     slither = Slither(file_path)
 
     if args.command == "generate":
@@ -194,7 +201,6 @@ def main() -> None:  # type: ignore[func-returns-value]
         if args.config:
             with open(args.config, "r", encoding="utf-8") as readFile:
                 config = json.load(readFile)
-        print(config)
 
         generator = HarnessGenerator(file_path, args.target_contracts, slither, output_dir, config)
         generator.generate_templates()
