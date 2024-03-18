@@ -14,8 +14,8 @@ class TestGenerator:
 
     def __init__(self, target: str, target_path: str, corpus_dir: str):
         slither = Slither(target_path)
-        echidna = Echidna(target, f"echidna-corpora/{corpus_dir}", slither)
-        medusa = Medusa(target, f"medusa-corpora/{corpus_dir}", slither)
+        echidna = Echidna(target, f"echidna-corpora/{corpus_dir}", slither, False)
+        medusa = Medusa(target, f"medusa-corpora/{corpus_dir}", slither, False)
         self.echidna_generator = FoundryTest(
             "../src/", target, f"echidna-corpora/{corpus_dir}", "./test/", slither, echidna
         )

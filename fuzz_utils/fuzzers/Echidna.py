@@ -23,12 +23,15 @@ class Echidna:
     Handles the generation of Foundry test files from Echidna reproducers
     """
 
-    def __init__(self, target_name: str, corpus_path: str, slither: Slither) -> None:
+    def __init__(
+        self, target_name: str, corpus_path: str, slither: Slither, named_inputs: bool
+    ) -> None:
         self.name = "Echidna"
         self.target_name = target_name
         self.slither = slither
         self.target = self.get_target_contract()
         self.reproducer_dir = f"{corpus_path}/reproducers"
+        self.named_inputs = named_inputs
 
     def get_target_contract(self) -> Contract:
         """Finds and returns Slither Contract"""
@@ -58,6 +61,7 @@ class Echidna:
         template = jinja2.Template(templates["TEST"])
         return template.render(function_name=function_name, call_list=call_list)
 
+    # pylint: disable=too-many-locals,too-many-branches
     def _parse_call_object(self, call_dict: dict[Any, Any]) -> tuple[str, str]:
         """
         Takes a single call dictionary, parses it, and returns the series of function calls as a string, along with
@@ -103,6 +107,15 @@ class Echidna:
         variable_definition, call_definition = self._decode_function_params(
             function_parameters, False, slither_entry_point
         )
+        parameters_str: str = ""
+        if isinstance(slither_entry_point.parameters, list):
+            if self.named_inputs and len(slither_entry_point.parameters) > 0:
+                for idx, input_param in enumerate(slither_entry_point.parameters):
+                    call_definition[idx] = input_param.name + ": " + call_definition[idx]
+                parameters_str = "{" + ", ".join(call_definition) + "}"
+                print(parameters_str)
+            else:
+                parameters_str = ", ".join(call_definition)
 
         # 3. Generate a call string and return it
         template = jinja2.Template(templates["CALL"])
@@ -112,7 +125,7 @@ class Echidna:
             block_delay=block_delay,
             caller=caller,
             value=value,
-            function_parameters=", ".join(call_definition),
+            function_parameters=parameters_str,
             function_name=function_name,
             contract_name=self.target_name,
         )
