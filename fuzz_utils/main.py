@@ -153,7 +153,7 @@ def find_difference_between_list_and_tuple(default: list, my_tuple: tuple) -> li
     ]
 
 
-# pylint: disable=too-many-locals
+# pylint: disable=too-many-locals,too-many-statements
 def main() -> None:  # type: ignore[func-returns-value]
     """The main entry point"""
     parser = argparse.ArgumentParser(
@@ -241,9 +241,9 @@ def main() -> None:  # type: ignore[func-returns-value]
 
         match selected_fuzzer:
             case "echidna":
-                fuzzer = Echidna(target_contract, corpus_dir, slither)
+                fuzzer = Echidna(target_contract, corpus_dir, slither, args.named_inputs)
             case "medusa":
-                fuzzer = Medusa(target_contract, corpus_dir, slither)
+                fuzzer = Medusa(target_contract, corpus_dir, slither, args.named_inputs)
             case _:
                 handle_exit(
                     f"\n* The requested fuzzer {selected_fuzzer} is not supported. Supported fuzzers: echidna, medusa."
