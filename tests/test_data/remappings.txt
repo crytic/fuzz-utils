@@ -4,5 +4,5 @@ erc4626-tests/=lib/properties/lib/openzeppelin-contracts/lib/erc4626-tests/
 forge-std/=lib/forge-std/src/
 openzeppelin-contracts/=lib/properties/lib/openzeppelin-contracts/
 properties/=lib/properties/contracts/
-solmate/=lib/properties/lib/solmate/src/
+solmate/=lib/solmate/src/
 src/=src/

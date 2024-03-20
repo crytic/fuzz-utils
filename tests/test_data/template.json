@@ -1,0 +1,8 @@
+{
+    "name": "DefaultHarness",
+    "compilationPath": ".",
+    "targets": ["BasicTypes"],
+    "outputDir": "./test/fuzzing",
+    "actors": [{"name": "Default", "targets": ["BasicTypes"], "number": 3, "filters": {"strict": false, "onlyModifiers": [], "onlyPayable": false, "onlyExternalCalls": []}}],
+    "attacks": [{"name": "Donation", "targets": ["BasicTypes"], "filters": {"strict": true, "onlyModifiers": [], "onlyPayable": false, "onlyExternalCalls": ["transferFrom"]}}]
+}

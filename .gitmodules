@@ -4,3 +4,6 @@
 [submodule "tests/test_data/lib/properties"]
 	path = tests/test_data/lib/properties
 	url = https://github.com/crytic/properties
+[submodule "tests/test_data/lib/solmate"]
+	path = tests/test_data/lib/solmate
+	url = https://github.com/transmissions11/solmate
