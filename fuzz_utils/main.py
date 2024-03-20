@@ -204,7 +204,7 @@ def main() -> None:  # type: ignore[func-returns-value]
         action="store_true",
     )
 
-    # The command parser for converting between corpus formats
+    # The command parser for generating fuzzing harnesses
     parser_template = subparsers.add_parser(
         "template", help="Generate a templated fuzzing harness."
     )
