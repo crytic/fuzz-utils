@@ -196,6 +196,13 @@ def main() -> None:  # type: ignore[func-returns-value]
         version=require("fuzz-utils")[0].version,
         action="version",
     )
+    parser.add_argument(
+        "--named-inputs",
+        dest="named_inputs",
+        help="Include function input names when making calls.",
+        default=False,
+        action="store_true",
+    )
 
     # The command parser for converting between corpus formats
     parser_template = subparsers.add_parser(
