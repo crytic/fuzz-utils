@@ -14,6 +14,7 @@ from slither.core.declarations.structure_contract import StructureContract
 from slither.core.declarations.enum import Enum
 from slither.core.declarations.enum_contract import EnumContract
 from fuzz_utils.templates.foundry_templates import templates
+from fuzz_utils.utils.encoding import byte_to_escape_sequence
 from fuzz_utils.utils.error_handler import handle_exit
 
 
@@ -83,7 +84,9 @@ class Medusa:
         elif "methodSignature" in call_dict["call"]["dataAbiValues"]:
             function_name = call_dict["call"]["dataAbiValues"]["methodSignature"].split("(")[0]
         else:
-            handle_exit("The call sequence does not match the expected format. This could indicate a breaking change in one of the fuzzers. Please open an issue at https://github.com/crytic/fuzz-utils/issues")
+            handle_exit(
+                "The call sequence does not match the expected format. This could indicate a breaking change in one of the fuzzers. Please open an issue at https://github.com/crytic/fuzz-utils/issues"
+            )
 
         function_parameters = call_dict["call"]["dataAbiValues"]["inputValues"]
         data = call_dict["call"]["data"]
@@ -245,11 +248,12 @@ def process_elementary_type(parameter_type: str, values: Any) -> tuple[str, str]
 
     return (abi_type, param_value)
 
-def populate_parameter_value(parameter_type:str, values: Any) -> str:
+
+def populate_parameter_value(parameter_type: str, values: Any) -> str:
     """Returns formatted value of the parameter based on type"""
     if parameter_type == "string":
-        text = bytes.decode(values, errors="ignore").strip("\n")
-        return f'"{text}"' #f'string(hex"{bytes.hex(values)}")'
+        text = byte_to_escape_sequence(values)
+        return f'unicode"{text}"'  # f'string(hex"{bytes.hex(values)}")'
     if "bytes" in parameter_type:
         return f'{parameter_type}(hex"{bytes.hex(values)}")'
     if parameter_type == "bool":
