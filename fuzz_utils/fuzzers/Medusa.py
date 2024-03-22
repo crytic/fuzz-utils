@@ -76,8 +76,12 @@ class Medusa:
         has_delay = time_delay > 0 or block_delay > 0
 
         # TODO check how Medusa handles empty calls
-
-        function_name = call_dict["call"]["dataAbiValues"]["methodName"]
+        if "methodName" in call_dict["call"]["dataAbiValues"]:
+            function_name = call_dict["call"]["dataAbiValues"]["methodName"]
+        elif "methodSignature" in call_dict["call"]["dataAbiValues"]:
+            function_name = call_dict["call"]["dataAbiValues"]["methodSignature"].split("(")[0]
+        else:
+            handle_exit("There was an issue parsing the Medusa call sequences. This indicates a breaking change in the call sequence format, please open an issue at https://github.com/crytic/fuzz-utils/issues")
         function_parameters = call_dict["call"]["dataAbiValues"]["inputValues"]
         if len(function_parameters) == 0:
             function_parameters = ""
