@@ -1,7 +1,8 @@
 """ Generates a test file from Medusa reproducers """
-from typing import Any, NoReturn
+from typing import Any
 import jinja2
-
+from eth_abi import abi
+from eth_utils import to_checksum_address
 from slither import Slither
 from slither.core.declarations.contract import Contract
 from slither.core.declarations.function_contract import FunctionContract
@@ -12,9 +13,7 @@ from slither.core.declarations.structure import Structure
 from slither.core.declarations.structure_contract import StructureContract
 from slither.core.declarations.enum import Enum
 from slither.core.declarations.enum_contract import EnumContract
-from fuzz_utils.utils.crytic_print import CryticPrint
 from fuzz_utils.templates.foundry_templates import templates
-from fuzz_utils.utils.encoding import parse_medusa_byte_string
 from fuzz_utils.utils.error_handler import handle_exit
 
 
@@ -74,11 +73,22 @@ class Medusa:
         time_delay = int(call_dict["blockTimestampDelay"])
         block_delay = int(call_dict["blockNumberDelay"])
         has_delay = time_delay > 0 or block_delay > 0
+        function_name: str = ""
 
-        # TODO check how Medusa handles empty calls
+        # @note Medusa has no concept of empty calls
 
-        function_name = call_dict["call"]["dataAbiValues"]["methodName"]
+        # @note Added to support Medusa <=0.1.3
+        if "methodName" in call_dict["call"]["dataAbiValues"]:
+            function_name = call_dict["call"]["dataAbiValues"]["methodName"]
+        elif "methodSignature" in call_dict["call"]["dataAbiValues"]:
+            function_name = call_dict["call"]["dataAbiValues"]["methodSignature"].split("(")[0]
+        else:
+            handle_exit("The call sequence does not match the expected format. This could indicate a breaking change in one of the fuzzers. Please open an issue at https://github.com/crytic/fuzz-utils/issues")
+
         function_parameters = call_dict["call"]["dataAbiValues"]["inputValues"]
+        data = call_dict["call"]["data"]
+        data_bytes = bytes.fromhex(data[10:]) if len(data) > 10 else b""
+
         if len(function_parameters) == 0:
             function_parameters = ""
         caller = call_dict["call"]["from"]
@@ -96,19 +106,26 @@ class Medusa:
             )
 
         # 2. Decode the function parameters
-        variable_definition, call_definition = self._decode_function_params(
-            function_parameters, False, slither_entry_point
-        )
+        parameters: list = []
+        variable_definition: str = ""
+
+        if len(data_bytes) > 0 and len(slither_entry_point.parameters) > 0:
+            types, _, _ = self._get_types_signature(slither_entry_point.parameters, None)
+            # Nested tuple
+            decoded = abi.decode(types, data_bytes)
+            _, func_params, variable_definition = self._get_types_signature(
+                slither_entry_point.parameters, decoded
+            )
+            parameters.extend(func_params)
 
         parameters_str: str = ""
         if isinstance(slither_entry_point.parameters, list):
             if self.named_inputs and len(slither_entry_point.parameters) > 0:
                 for idx, input_param in enumerate(slither_entry_point.parameters):
-                    call_definition[idx] = input_param.name + ": " + call_definition[idx]
-                parameters_str = "{" + ", ".join(call_definition) + "}"
-                print(parameters_str)
+                    parameters[idx] = input_param.name + ": " + parameters[idx]
+                parameters_str = "{" + ", ".join(parameters) + "}"
             else:
-                parameters_str = ", ".join(call_definition)
+                parameters_str = ", ".join(parameters)
 
         # 3. Generate a call string and return it
         template = jinja2.Template(templates["CALL"])
@@ -128,168 +145,116 @@ class Medusa:
 
         return call_str, function_name
 
-    # pylint: disable=R0201
-    def _match_elementary_types(self, param: str, recursive: bool, input_parameter: Any) -> str:
-        """
-        Returns a string which represents a elementary type literal value. e.g. "5" or "uint256(5)"
+    def _get_types_signature(
+        self, parameters: list, decoded_values: tuple | None
+    ) -> tuple[list, list, str]:
+        types: list[str] = []
+        wrapped_parameters: list[str] = []
+        var_definitions: str = ""
 
-                Parameters:
-                        param (dict): A dictionary containing information about the function parameter
-                        recursive (int): A boolean, determining if the elementary type should be casted
-                                         e.g., "uint256(5)", or returned as is, e.g., "5".
+        for idx, parameter in enumerate(parameters):
+            value = None
+            if decoded_values:
+                value = decoded_values[idx]
 
-                Returns:
-                        (str): String of the input parameter literal
-        """
-        input_type = input_parameter.type
+            (abi_type, param_value, var_def) = self._match_type(parameter, value)
+            types.append(abi_type)
+            wrapped_parameters.append(param_value)
+            var_definitions += var_def
+        return (types, wrapped_parameters, var_definitions)
 
-        if "bool" in input_type:
-            return param.lower()
-        if "int" in input_type:
-            if not recursive:
-                return param
-            return f"{input_type}({param})"
-        if "bytes" in input_type:
-            # Haskell encoding needs to be stripped and then converted to a hex literal
-            literal_bytes = f'{input_type}(hex"{param}")'
-            return literal_bytes
-        if "string" in input_type:
-            hex_string = parse_medusa_byte_string(param)
-            interpreted_string = f'string(hex"{hex_string}")'
-            return interpreted_string
-        if "address" in input_type:
-            return param
+    def _match_type(self, parameter: Any, values: Any) -> tuple[str, str, str]:
+        abi_type: str = ""
+        param_value: str = ""
+        var_def: str = ""
 
-        handle_exit(
-            f"\n* The parameter type `{input_type}` could not be found in the call object. This could indicate an issue in decoding the call sequence, or a missing feature. Please open an issue at https://github.com/crytic/fuzz-utils/issues"
-        )
+        match parameter.type:
+            case ElementaryType():  # type: ignore[misc]
+                abi_type, param_value = process_elementary_type(parameter.type.type, values)  # type: ignore[unreachable]
+            case ArrayType():  # type: ignore[misc]
+                length = parameter.type.length if parameter.type.length else ""  # type: ignore[unreachable]
+                matched_type, _, _ = self._match_type(parameter.type, None)
+                abi_type = f"{matched_type}[{length}]"
 
-    def _match_array_type(
-        self, param: dict, index: int, input_parameter: Any
-    ) -> tuple[str, str, int]:
-        # TODO check if fixed arrays are considered dynamic or not
-        dynamic = input_parameter.is_dynamic_array
-        if not dynamic:
-            # Fixed array
-            _, func_params = self._decode_function_params(param, True, input_parameter)
-            return f"[{','.join(func_params)}]", "", index
+                if parameter.type.is_dynamic_array:
+                    # TODO make it work with multidim dynamic arrays
+                    if values:
+                        dyn_length = len(values)
 
-        # Dynamic arrays
-        # Consider cases where the array items are more complex types (bytes, string, tuples)
-        definitions, func_params = self._decode_function_params(param, True, input_parameter)
-        name, var_def = self._get_memarr(param, index, input_parameter)
-        definitions += var_def
+                        array_type: str = ""
+                        if isinstance(
+                            parameter.type.type,
+                            (Structure | StructureContract | Enum | EnumContract),
+                        ):
+                            array_type = parameter.type.type.name
+                        else:
+                            array_type = parameter.type.type
+                        var_def += f"{array_type}[] memory {parameter.name} = new {parameter.type.type}[]({dyn_length});\n"
 
-        for idx, temp_param in enumerate(func_params):
-            definitions += "\t\t" + name + f"[{idx}] = {temp_param};\n"
-        index += 1
-
-        return name, definitions, index
-
-    def _match_user_defined_type(
-        self, param: list[Any] | dict[Any, Any], input_parameter: Any
-    ) -> tuple[str, str]:
-        match input_parameter.type:
-            case Structure() | StructureContract():  # type: ignore[misc]
-                definitions, func_params = self._decode_function_params(  # type: ignore[unreachable]
-                    param, True, input_parameter.type.elems_ordered
-                )
-                return definitions, f"{input_parameter}({','.join(func_params)})"
-            case Enum() | EnumContract():  # type: ignore[misc]
-                return "", f"{input_parameter}({param})"  # type: ignore[unreachable]
-            case _:
-                handle_exit(
-                    f"\n* The parameter type `{input_parameter.type}` could not be found in the call object. This could indicate an issue in decoding the call sequence, or a missing feature. Please open an issue at https://github.com/crytic/fuzz-utils/issues"
-                )
-
-    def _decode_function_params(
-        self, function_params: list | dict, recursive: bool, entry_point: Any
-    ) -> tuple[str, list] | NoReturn:
-        params = []
-        variable_definitions = ""
-        index = 0
-        # 1. Get a list of function parameters in hex, and their types
-        # 2. Decode the types and add to the input list
-        if isinstance(function_params, dict):
-            # This should only ever be the case when the parameter is a struct
-            for var in entry_point:
-                input_parameter = var.type
-                input_value = function_params[var.name]
-
-                match input_parameter:
-                    case ElementaryType():  # type: ignore[misc]
-                        params.append(  # type: ignore[unreachable]
-                            self._match_elementary_types(
-                                str(input_value), recursive, input_parameter
-                            )
-                        )
-                    case ArrayType():  # type: ignore[misc]
-                        [inputs, definitions, index] = self._match_array_type(  # type: ignore[unreachable]
-                            input_value, index, input_parameter
-                        )
-                        params.append(inputs)
-                        variable_definitions += definitions
-                    case UserDefinedType():  # type: ignore[misc]
-                        definitions, func_params = self._match_user_defined_type(  # type: ignore[unreachable, unpacking-non-sequence]
-                            input_value, input_parameter
-                        )
-                        variable_definitions += definitions
-                        params.append(func_params)
-                    case _:
-                        # TODO should handle all cases, but keeping this just in case
-                        CryticPrint().print_information(
-                            f"\n* Attempted to decode an unidentified type {input_parameter}, this call will be skipped. Please open an issue at https://github.com/crytic/fuzz-utils/issues"
-                        )
-                        continue
-        else:
-            for param_idx, param in enumerate(function_params):
-                input_parameter = None
-                if recursive:
-                    if isinstance(entry_point, list):
-                        input_parameter = entry_point[param_idx].type
-                    else:
-                        input_parameter = entry_point.type
-
+                        for idx, value in enumerate(values):
+                            _, matched_value, _ = self._match_type(parameter.type, value)
+                            var_def += f"        {parameter.name}[{idx}] = {matched_value};\n"
+                        param_value = parameter.name
                 else:
-                    input_parameter = entry_point.parameters[param_idx].type
+                    matched_values = []
+                    if values:
+                        for idx, value in enumerate(values):
+                            _, matched_value, _ = self._match_type(parameter.type, value)
+                            matched_values.append(matched_value)
 
-                match input_parameter:
-                    case ElementaryType():  # type: ignore[misc]
-                        params.append(  # type: ignore[unreachable]
-                            self._match_elementary_types(str(param), recursive, input_parameter)
-                        )
-                    case ArrayType():  # type: ignore[misc]
-                        inputs, definitions, index = self._match_array_type(  # type: ignore[unreachable]
-                            param, index, input_parameter
-                        )
-                        params.append(inputs)
-                        variable_definitions += definitions
-                    case UserDefinedType():  # type: ignore[misc]
-                        definitions, func_params = self._match_user_defined_type(  # type: ignore[unreachable, unpacking-non-sequence]
-                            param, input_parameter
-                        )
-                        variable_definitions += definitions
-                        params.append(func_params)
-                    case _:
-                        # TODO should handle all cases, but keeping this just in case
-                        CryticPrint().print_information(
-                            f"\n* Attempted to decode an unidentified type {input_parameter}, this call will be skipped. Please open an issue at https://github.com/crytic/fuzz-utils/issues"
-                        )
-                        continue
+                        param_value = f"[{','.join(matched_values)}]"
+            case UserDefinedType():  # type: ignore[misc]
+                match parameter.type.type:  # type: ignore[unreachable]
+                    case Structure() | StructureContract():
+                        matched_types = []
+                        matched_values = []
+                        for idx, struct_field in enumerate(parameter.type.type.elems_ordered):
+                            value = None
+                            if values:
+                                value = values[idx]
 
-        # 3. Return a list of function parameters
-        if len(variable_definitions) > 0:
-            return variable_definitions, params
+                            field_type, field_value, field_definitions = self._match_type(
+                                struct_field, value
+                            )
+                            var_def += field_definitions
+                            matched_types.append(field_type)
 
-        return "", params
+                            if values:
+                                matched_values.append(field_value)
+                        abi_type = f"({','.join(matched_types)})"
+                        param_value = f"{parameter.type}({','.join(matched_values)})"
+                    case Enum() | EnumContract():
+                        abi_type = "uint8"
+                        if str(values):
+                            param_value = f"{parameter.type}({values})"
 
-    # pylint: disable=R0201
-    def _get_memarr(
-        self, function_params: dict | list, index: int, input_parameter: Any
-    ) -> tuple[str, str]:
-        length = len(function_params)
+        return (abi_type, param_value, var_def)
 
-        input_type = input_parameter.type
-        name = f"dyn{input_type}Arr_{index}"
-        declaration = f"{input_type}[] memory {name} = new {input_type}[]({length});\n"
-        return name, declaration
+
+def process_elementary_type(parameter_type: str, values: Any) -> tuple[str, str]:
+    """Returns the type for ABI decoding, and the literal value to populate unit tests"""
+    abi_type: str = ""
+    param_value: str = ""
+    if parameter_type == "string":
+        abi_type = "bytes"
+    else:
+        abi_type = parameter_type
+
+    if values is not None:
+        param_value = populate_parameter_value(parameter_type, values)
+
+    return (abi_type, param_value)
+
+def populate_parameter_value(parameter_type:str, values: Any) -> str:
+    """Returns formatted value of the parameter based on type"""
+    if parameter_type == "string":
+        text = bytes.decode(values, errors="ignore").strip("\n")
+        return f'"{text}"' #f'string(hex"{bytes.hex(values)}")'
+    if "bytes" in parameter_type:
+        return f'{parameter_type}(hex"{bytes.hex(values)}")'
+    if parameter_type == "bool":
+        return str(values).lower()
+    if parameter_type == "address":
+        return to_checksum_address(values)
+
+    return f"{parameter_type}({values})"
