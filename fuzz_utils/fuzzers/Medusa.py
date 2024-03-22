@@ -74,6 +74,7 @@ class Medusa:
         time_delay = int(call_dict["blockTimestampDelay"])
         block_delay = int(call_dict["blockNumberDelay"])
         has_delay = time_delay > 0 or block_delay > 0
+        function_name: str = ""
 
         # TODO check how Medusa handles empty calls
         if "methodName" in call_dict["call"]["dataAbiValues"]:
