@@ -11,7 +11,9 @@ from fuzz_utils.generate.fuzzers.Medusa import Medusa
 
 class TestGenerator:
     """Helper class for testing all fuzzers with the tool"""
+
     __test__ = False
+
     def __init__(self, target: str, target_path: str, corpus_dir: str):
         slither = Slither(target_path)
         echidna = Echidna(target, f"echidna-corpora/{corpus_dir}", slither, False)

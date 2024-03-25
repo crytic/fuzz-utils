@@ -2,6 +2,7 @@
 import os
 import sys
 import json
+from typing import Any
 import jinja2
 
 from slither import Slither
@@ -13,7 +14,7 @@ from fuzz_utils.generate.fuzzers.Echidna import Echidna
 from fuzz_utils.templates.foundry_templates import templates
 
 
-class FoundryTest:
+class FoundryTest:  # pylint: disable=too-many-instance-attributes
     """
     Handles the generation of Foundry test files
     """
@@ -28,6 +29,7 @@ class FoundryTest:
         self.target_name = config["targetContract"]
         self.corpus_path = config["corpusDir"]
         self.test_dir = config["testsDir"]
+        self.all_sequences = config["allSequences"]
         self.slither = slither
         self.target = self.get_target_contract()
         self.fuzzer = fuzzer
@@ -46,25 +48,34 @@ class FoundryTest:
     def create_poc(self) -> str:
         """Takes in a directory path to the echidna reproducers and generates a test file"""
 
-        file_list = []
+        file_list: list[dict[str, Any]] = []
         tests_list = []
-        # 1. Iterate over each reproducer file (open it)
-        for entry in os.listdir(self.fuzzer.reproducer_dir):
-            full_path = os.path.join(self.fuzzer.reproducer_dir, entry)
+        dir_list = []
+        if self.all_sequences:
+            dir_list = self.fuzzer.corpus_dirs
+        else:
+            dir_list = [self.fuzzer.reproducer_dir]
 
-            if os.path.isfile(full_path):
-                try:
-                    with open(full_path, "r", encoding="utf-8") as file:
-                        file_list.append(json.load(file))
-                except Exception:  # pylint: disable=broad-except
-                    print(f"Fail on {full_path}")
+        # 1. Iterate over each directory and reproducer file (open it)
+        for directory in dir_list:
+            for entry in os.listdir(directory):
+                full_path = os.path.join(directory, entry)
+
+                if os.path.isfile(full_path):
+                    try:
+                        with open(full_path, "r", encoding="utf-8") as file:
+                            file_list.append({"path": full_path, "content": json.load(file)})
+                    except Exception:  # pylint: disable=broad-except
+                        print(f"Fail on {full_path}")
 
         # 2. Parse each reproducer file and add each test function to the functions list
-        for idx, file in enumerate(file_list):
+        for idx, file_obj in enumerate(file_list):
             try:
-                tests_list.append(self.fuzzer.parse_reproducer(file, idx))
+                tests_list.append(
+                    self.fuzzer.parse_reproducer(file_obj["path"], file_obj["content"], idx)
+                )
             except Exception:  # pylint: disable=broad-except
-                print(f"Parsing fail on {file}: index: {idx}")
+                print(f"Parsing fail on {file_obj['content']}: index: {idx}")
 
         # 4. Generate the test file
         template = jinja2.Template(templates["CONTRACT"])
