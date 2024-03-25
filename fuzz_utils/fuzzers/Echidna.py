@@ -33,6 +33,7 @@ class Echidna:
         self.reproducer_dir = f"{corpus_path}/reproducers"
         self.corpus_dirs = [f"{corpus_path}/coverage", self.reproducer_dir]
         self.named_inputs = named_inputs
+        self.declared_variables: set[str] = set()
 
     def get_target_contract(self) -> Contract:
         """Finds and returns Slither Contract"""
@@ -51,6 +52,10 @@ class Echidna:
         call_list = []
         end = len(calls) - 1
         function_name = ""
+
+        # before each test case, we clear the declared variables, as those are locals
+        self.declared_variables = set()
+        
         # 1. For each object in the list process the call object and add it to the call list
         for idx, call in enumerate(calls):
             call_str, fn_name = self._parse_call_object(call)
@@ -308,5 +313,13 @@ class Echidna:
 
         input_type = input_parameter.type
         name = f"dyn{input_type}Arr_{index}"
-        declaration = f"{input_type}[] memory {name} = new {input_type}[]({length});\n"
+
+        # If the variable was already declared, just assign the new value        
+        if name in self.declared_variables:
+            declaration = f"{name} = new {input_type}[]({length});\n"
+        else:
+            declaration = f"{input_type}[] memory {name} = new {input_type}[]({length});\n"
+
+        self.declared_variables.add(name)
+
         return name, declaration
