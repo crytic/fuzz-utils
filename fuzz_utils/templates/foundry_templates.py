@@ -67,85 +67,11 @@ interface I{target_name} {
 }
 """
 
-__HARNESS_TEMPLATE: str = """// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
-
-/// --------------------------------------------------------------------
-/// @notice This file was automatically generated using fuzz-utils 
-///
-/// -- [ Prerequisites ]
-/// 1. The generated contracts depend on crytic/properties utilities
-///    which need to be installed, this can be done by running:
-///    `forge install crytic/properties`
-/// 2. Absolute paths are used for contract inheritance, requiring
-///    the main directory that contains the contracts to be added to
-///    the Foundry remappings. This can be done by adding:
-///    `directoryName/=directoryName/` to foundry.toml or remappings.txt
-///
-/// -- [ Running the fuzzers ]
-///    * The below commands contain example values which you can modify based
-///    on your needs. For further information on the configuration options
-///    please reference the fuzzer documentation *
-///    Echidna: echidna {{harness.path}} --contract {{harness.name}} --test-mode assertion --test-limit 100000 --corpus-dir echidna-corpora/corpus-{{harness.name}}
-///    Medusa: medusa fuzz --target {{harness.path}} --assertion-mode --test-limit 100000 --deployment-order "{{harness.name}}" --corpus-dir medusa-corpora/corpus-{{harness.name}}
-///    Foundry: forge test --match-contract {{harness.name}}
-/// --------------------------------------------------------------------
-
-import "properties/util/PropertiesHelper.sol";
-{% for import in harness.imports -%}
-{{import}}
-{% endfor %}
-contract {{harness.name}} is {{harness.dependencies}} {
-    {% for variable in harness.variables -%}
-    {{variable}}
-    {% endfor %}
-    {{harness.constructor}}
-    {%- for function in harness.functions %}
-    {{function}}
-    {%- endfor -%}
-}
-"""
-
-__ACTOR_TEMPLATE: str = """// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
-
-/// --------------------------------------------------------------------
-/// @notice This file was automatically generated using fuzz-utils 
-///
-/// -- [ Prerequisites ]
-/// 1. The generated contracts depend on crytic/properties utilities
-///    which need to be installed, this can be done by running:
-///    `forge install crytic/properties`
-/// 2. Absolute paths are used for contract inheritance, requiring
-///    the main directory that contains the contracts to be added to
-///    the Foundry remappings. This can be done by adding:
-///    `directoryName/=directoryName/` to foundry.toml or remappings.txt
-/// --------------------------------------------------------------------
-
-import "properties/util/PropertiesHelper.sol";
-{%- for import in actor.imports %}
-{{import}}
-{% endfor -%}
-
-contract Actor{{actor.name}} is {{actor.dependencies}} {
-    {%- for variable in actor.variables %}
-    {{variable}}
-    {% endfor -%}
-
-    {{actor.constructor}}
-    {%- for function in actor.functions %}
-    {{function}}
-    {%- endfor -%}
-}
-"""
-
 templates: dict = {
     "CONTRACT": __CONTRACT_TEMPLATE,
     "CALL": __CALL_TEMPLATE,
     "TRANSFER": __TRANSFER__TEMPLATE,
     "EMPTY_CALL": __EMPTY_CALL_TEMPLATE,
     "TEST": __TEST_TEMPLATE,
-    "INTERFACE": __INTERFACE_TEMPLATE,
-    "HARNESS": __HARNESS_TEMPLATE,
-    "ACTOR": __ACTOR_TEMPLATE,
+    "INTERFACE": __INTERFACE_TEMPLATE
 }
