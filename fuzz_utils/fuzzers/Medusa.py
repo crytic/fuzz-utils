@@ -56,6 +56,8 @@ class Medusa:  # pylint: disable=too-many-instance-attributes
         call_list = []
         end = len(calls) - 1
         function_name = ""
+        has_low_level_call: bool = False
+
         for idx, call in enumerate(calls):
             call_str, fn_name = self._parse_call_object(call)
             call_list.append(call_str)

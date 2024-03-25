@@ -18,6 +18,7 @@ from fuzz_utils.utils.encoding import parse_echidna_byte_string
 from fuzz_utils.utils.error_handler import handle_exit
 
 
+# pylint: disable=too-many-instance-attributes
 class Echidna:
     """
     Handles the generation of Foundry test files from Echidna reproducers
@@ -52,7 +53,7 @@ class Echidna:
         call_list = []
         end = len(calls) - 1
         function_name = ""
-        has_low_level_call = False
+        has_low_level_call: bool = False
 
         # before each test case, we clear the declared variables, as those are locals
         self.declared_variables = set()
