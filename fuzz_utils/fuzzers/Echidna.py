@@ -60,7 +60,9 @@ class Echidna:
 
         # 2. Generate the test string and return it
         template = jinja2.Template(templates["TEST"])
-        return template.render(function_name=function_name, call_list=call_list, file_path=file_path)
+        return template.render(
+            function_name=function_name, call_list=call_list, file_path=file_path
+        )
 
     # pylint: disable=too-many-locals,too-many-branches
     def _parse_call_object(self, call_dict: dict[Any, Any]) -> tuple[str, str]:

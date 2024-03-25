@@ -3,6 +3,7 @@ import os
 import sys
 import json
 import argparse
+from typing import Any
 import jinja2
 
 from pkg_resources import require
@@ -54,7 +55,7 @@ class FoundryTest:  # pylint: disable=too-many-instance-attributes
     def create_poc(self) -> str:
         """Takes in a directory path to the echidna reproducers and generates a test file"""
 
-        file_list = []
+        file_list: list[dict[str, Any]] = []
         tests_list = []
         dir_list = []
         if self.all_sequences:
@@ -75,11 +76,13 @@ class FoundryTest:  # pylint: disable=too-many-instance-attributes
                         print(f"Fail on {full_path}")
 
         # 2. Parse each reproducer file and add each test function to the functions list
-        for idx, file in enumerate(file_list):
+        for idx, file_obj in enumerate(file_list):
             try:
-                tests_list.append(self.fuzzer.parse_reproducer(file["path"], file["content"], idx))
+                tests_list.append(
+                    self.fuzzer.parse_reproducer(file_obj["path"], file_obj["content"], idx)
+                )
             except Exception:  # pylint: disable=broad-except
-                print(f"Parsing fail on {file}: index: {idx}")
+                print(f"Parsing fail on {file_obj['content']}: index: {idx}")
 
         # 4. Generate the test file
         template = jinja2.Template(templates["CONTRACT"])
