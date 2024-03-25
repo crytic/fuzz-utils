@@ -31,6 +31,7 @@ class Echidna:
         self.slither = slither
         self.target = self.get_target_contract()
         self.reproducer_dir = f"{corpus_path}/reproducers"
+        self.corpus_dirs = [f"{corpus_path}/coverage", self.reproducer_dir]
         self.named_inputs = named_inputs
 
     def get_target_contract(self) -> Contract:
@@ -43,7 +44,7 @@ class Echidna:
 
         handle_exit(f"\n* Slither could not find the specified contract `{self.target_name}`.")
 
-    def parse_reproducer(self, calls: Any, index: int) -> str:
+    def parse_reproducer(self, file_path: str, calls: Any, index: int) -> str:
         """
         Takes a list of call dicts and returns a Foundry unit test string containing the call sequence.
         """
@@ -59,7 +60,9 @@ class Echidna:
 
         # 2. Generate the test string and return it
         template = jinja2.Template(templates["TEST"])
-        return template.render(function_name=function_name, call_list=call_list)
+        return template.render(
+            function_name=function_name, call_list=call_list, file_path=file_path
+        )
 
     # pylint: disable=too-many-locals,too-many-branches
     def _parse_call_object(self, call_dict: dict[Any, Any]) -> tuple[str, str]:
@@ -102,6 +105,9 @@ class Echidna:
             handle_exit(
                 f"\n* Slither could not find the function `{function_name}` specified in the call object"
             )
+
+        if not slither_entry_point.payable:
+            value = 0
 
         # 2. Decode the function parameters
         variable_definition, call_definition = self._decode_function_params(

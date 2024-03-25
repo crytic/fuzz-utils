@@ -3,6 +3,7 @@ import os
 import sys
 import json
 import argparse
+from typing import Any
 import jinja2
 
 from pkg_resources import require
@@ -16,7 +17,7 @@ from fuzz_utils.fuzzers.Echidna import Echidna
 from fuzz_utils.utils.error_handler import handle_exit
 
 
-class FoundryTest:
+class FoundryTest:  # pylint: disable=too-many-instance-attributes
     """
     Handles the generation of Foundry test files
     """
@@ -29,6 +30,7 @@ class FoundryTest:
         test_dir: str,
         slither: Slither,
         fuzzer: Echidna | Medusa,
+        all_sequences: bool,
     ) -> None:
         self.inheritance_path = inheritance_path
         self.target_name = target_name
@@ -37,6 +39,7 @@ class FoundryTest:
         self.slither = slither
         self.target = self.get_target_contract()
         self.fuzzer = fuzzer
+        self.all_sequences = all_sequences
 
     def get_target_contract(self) -> Contract:
         """Gets the Slither Contract object for the specified contract file"""
@@ -52,25 +55,34 @@ class FoundryTest:
     def create_poc(self) -> str:
         """Takes in a directory path to the echidna reproducers and generates a test file"""
 
-        file_list = []
+        file_list: list[dict[str, Any]] = []
         tests_list = []
-        # 1. Iterate over each reproducer file (open it)
-        for entry in os.listdir(self.fuzzer.reproducer_dir):
-            full_path = os.path.join(self.fuzzer.reproducer_dir, entry)
+        dir_list = []
+        if self.all_sequences:
+            dir_list = self.fuzzer.corpus_dirs
+        else:
+            dir_list = [self.fuzzer.reproducer_dir]
 
-            if os.path.isfile(full_path):
-                try:
-                    with open(full_path, "r", encoding="utf-8") as file:
-                        file_list.append(json.load(file))
-                except Exception:  # pylint: disable=broad-except
-                    print(f"Fail on {full_path}")
+        # 1. Iterate over each directory and reproducer file (open it)
+        for directory in dir_list:
+            for entry in os.listdir(directory):
+                full_path = os.path.join(directory, entry)
+
+                if os.path.isfile(full_path):
+                    try:
+                        with open(full_path, "r", encoding="utf-8") as file:
+                            file_list.append({"path": full_path, "content": json.load(file)})
+                    except Exception:  # pylint: disable=broad-except
+                        print(f"Fail on {full_path}")
 
         # 2. Parse each reproducer file and add each test function to the functions list
-        for idx, file in enumerate(file_list):
+        for idx, file_obj in enumerate(file_list):
             try:
-                tests_list.append(self.fuzzer.parse_reproducer(file, idx))
+                tests_list.append(
+                    self.fuzzer.parse_reproducer(file_obj["path"], file_obj["content"], idx)
+                )
             except Exception:  # pylint: disable=broad-except
-                print(f"Parsing fail on {file}: index: {idx}")
+                print(f"Parsing fail on {file_obj['content']}: index: {idx}")
 
         # 4. Generate the test file
         template = jinja2.Template(templates["CONTRACT"])
@@ -135,6 +147,13 @@ def main() -> None:  # type: ignore[func-returns-value]
         default=False,
         action="store_true",
     )
+    parser.add_argument(
+        "--all-sequences",
+        dest="all_sequences",
+        help="Include all corpus sequences when generating unit tests.",
+        default=False,
+        action="store_true",
+    )
 
     args = parser.parse_args()
 
@@ -165,7 +184,13 @@ def main() -> None:  # type: ignore[func-returns-value]
         f"Generating Foundry unit tests based on the {fuzzer.name} reproducers..."
     )
     foundry_test = FoundryTest(
-        inheritance_path, target_contract, corpus_dir, test_directory, slither, fuzzer
+        inheritance_path,
+        target_contract,
+        corpus_dir,
+        test_directory,
+        slither,
+        fuzzer,
+        args.all_sequences,
     )
     foundry_test.create_poc()
     CryticPrint().print_success("Done!")
