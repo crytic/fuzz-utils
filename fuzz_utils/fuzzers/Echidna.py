@@ -216,6 +216,7 @@ class Echidna:
 
                 for idx, temp_param in enumerate(func_params):
                     definitions += f"\t\t{name}[{idx}] = {temp_param};\n"
+                definitions += "\t\t"
                 index += 1
 
                 return name, definitions, index
