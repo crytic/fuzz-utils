@@ -65,7 +65,10 @@ class Medusa:  # pylint: disable=too-many-instance-attributes
 
         template = jinja2.Template(templates["TEST"])
         return template.render(
-            function_name=function_name, call_list=call_list, file_path=file_path, has_low_level_call=has_low_level_call
+            function_name=function_name,
+            call_list=call_list,
+            file_path=file_path,
+            has_low_level_call=has_low_level_call,
         )
         # 1. Take a reproducer list and create a test file based on the name of the last function of the list e.g. test_auto_$function_name
         # 2. For each object in the list process the call object and add it to the call list

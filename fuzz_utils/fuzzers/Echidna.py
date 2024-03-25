@@ -56,7 +56,7 @@ class Echidna:
 
         # before each test case, we clear the declared variables, as those are locals
         self.declared_variables = set()
-        
+
         # 1. For each object in the list process the call object and add it to the call list
         for idx, call in enumerate(calls):
             call_str, fn_name = self._parse_call_object(call)
@@ -68,7 +68,10 @@ class Echidna:
         # 2. Generate the test string and return it
         template = jinja2.Template(templates["TEST"])
         return template.render(
-            function_name=function_name, call_list=call_list, file_path=file_path, has_low_level_call=has_low_level_call
+            function_name=function_name,
+            call_list=call_list,
+            file_path=file_path,
+            has_low_level_call=has_low_level_call,
         )
 
     # pylint: disable=too-many-locals,too-many-branches
@@ -315,7 +318,7 @@ class Echidna:
         input_type = input_parameter.type
         name = f"dyn{input_type}Arr_{index}"
 
-        # If the variable was already declared, just assign the new value        
+        # If the variable was already declared, just assign the new value
         if name in self.declared_variables:
             declaration = f"{name} = new {input_type}[]({length});\n"
         else:
