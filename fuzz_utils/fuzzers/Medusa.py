@@ -77,7 +77,6 @@ class Medusa:
         function_name: str = ""
 
         # @note Medusa has no concept of empty calls
-
         # @note Added to support Medusa <=0.1.3
         if "methodName" in call_dict["call"]["dataAbiValues"]:
             function_name = call_dict["call"]["dataAbiValues"]["methodName"]
