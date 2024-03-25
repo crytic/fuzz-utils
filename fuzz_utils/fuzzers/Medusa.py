@@ -18,7 +18,7 @@ from fuzz_utils.utils.encoding import byte_to_escape_sequence
 from fuzz_utils.utils.error_handler import handle_exit
 
 
-class Medusa:
+class Medusa:  # pylint: disable=too-many-instance-attributes
     """
     Handles the generation of Foundry test files from Medusa reproducers
     """
@@ -32,6 +32,11 @@ class Medusa:
         self.slither = slither
         self.target = self.get_target_contract()
         self.reproducer_dir = f"{corpus_path}/test_results"
+        self.corpus_dirs = [
+            f"{corpus_path}/call_sequences/immutable",
+            f"{corpus_path}/call_sequences/mutable",
+            self.reproducer_dir,
+        ]
         self.named_inputs = named_inputs
 
     def get_target_contract(self) -> Contract:
@@ -44,7 +49,7 @@ class Medusa:
 
         handle_exit(f"\n* Slither could not find the specified contract `{self.target_name}`.")
 
-    def parse_reproducer(self, calls: Any, index: int) -> str:
+    def parse_reproducer(self, file_path: str, calls: Any, index: int) -> str:
         """
         Takes a list of call dicts and returns a Foundry unit test string containing the call sequence.
         """
@@ -58,7 +63,7 @@ class Medusa:
                 function_name = fn_name + "_" + str(index)
 
         template = jinja2.Template(templates["TEST"])
-        return template.render(function_name=function_name, call_list=call_list)
+        return template.render(function_name=function_name, call_list=call_list, file_path=file_path)
         # 1. Take a reproducer list and create a test file based on the name of the last function of the list e.g. test_auto_$function_name
         # 2. For each object in the list process the call object and add it to the call list
         # 3. Using the call list to generate a test string
@@ -73,6 +78,7 @@ class Medusa:
         # 1. Parse call object and save the variables
         time_delay = int(call_dict["blockTimestampDelay"])
         block_delay = int(call_dict["blockNumberDelay"])
+        value = int(call_dict["call"]["value"], 16)
         has_delay = time_delay > 0 or block_delay > 0
         function_name: str = ""
 
@@ -94,7 +100,6 @@ class Medusa:
         if len(function_parameters) == 0:
             function_parameters = ""
         caller = call_dict["call"]["from"]
-        value = int(call_dict["call"]["value"], 16)
 
         slither_entry_point: FunctionContract
 
@@ -106,6 +111,9 @@ class Medusa:
             handle_exit(
                 f"\n* Slither could not find the function `{function_name}` specified in the call object"
             )
+
+        if not slither_entry_point.payable:
+            value = 0
 
         # 2. Decode the function parameters
         parameters: list = []

@@ -17,10 +17,10 @@ class TestGenerator:
         echidna = Echidna(target, f"echidna-corpora/{corpus_dir}", slither, False)
         medusa = Medusa(target, f"medusa-corpora/{corpus_dir}", slither, False)
         self.echidna_generator = FoundryTest(
-            "../src/", target, f"echidna-corpora/{corpus_dir}", "./test/", slither, echidna
+            "../src/", target, f"echidna-corpora/{corpus_dir}", "./test/", slither, echidna, False
         )
         self.medusa_generator = FoundryTest(
-            "../src/", target, f"medusa-corpora/{corpus_dir}", "./test/", slither, medusa
+            "../src/", target, f"medusa-corpora/{corpus_dir}", "./test/", slither, medusa, False
         )
 
     def echidna_generate_tests(self) -> None:
