@@ -96,11 +96,8 @@ class HarnessGenerator:
 
     def __init__(
         self,
-        compilation_path: str,
-        targets: list[str],
-        slither: Slither,
-        output_dir: str,
         config: dict,
+        slither: Slither,
         remappings: dict,
     ) -> None:
         for key, value in config.items():
@@ -125,15 +122,9 @@ class HarnessGenerator:
                         CryticPrint().print_warning(
                             "Missing filters argument in actor, using none as default."
                         )
+                    if not "targets" in actor or len(actor["targets"]) == 0:
+                        self.config["actors"][idx]["targets"] = self.config["targets"]
 
-        if targets:
-            self.config["targets"] = targets
-        if output_dir:
-            self.config["outputDir"] = output_dir
-        if compilation_path:
-            self.config["compilationPath"] = compilation_path
-        if "actors" not in config:
-            self.config["actors"][0]["targets"] = self.config["targets"]
         if remappings:
             self.remappings = remappings
 
