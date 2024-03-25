@@ -119,7 +119,6 @@ class Echidna:
                 for idx, input_param in enumerate(slither_entry_point.parameters):
                     call_definition[idx] = input_param.name + ": " + call_definition[idx]
                 parameters_str = "{" + ", ".join(call_definition) + "}"
-                print(parameters_str)
             else:
                 parameters_str = ", ".join(call_definition)
 

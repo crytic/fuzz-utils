@@ -14,7 +14,7 @@ def generate_flags(parser: ArgumentParser) -> None:
     """The unit test generation parser flags"""
     parser.add_argument("file_path", help="Path to the Echidna/Medusa test harness.")
     parser.add_argument(
-        "-cd", "--corpus-dir", dest="corpus_dir", help="Path to the corpus directory", required=True
+        "-cd", "--corpus-dir", dest="corpus_dir", help="Path to the corpus directory"
     )
     parser.add_argument("-c", "--contract", dest="target_contract", help="Define the contract name")
     parser.add_argument(
@@ -53,6 +53,13 @@ def generate_flags(parser: ArgumentParser) -> None:
         dest="config",
         help="Define the location of the config file.",
     )
+    parser.add_argument(
+        "--all-sequences",
+        dest="all_sequences",
+        help="Include all corpus sequences when generating unit tests.",
+        default=False,
+        action="store_true",
+    )
 
 
 def generate_command(args: Namespace) -> None:
@@ -77,6 +84,16 @@ def generate_command(args: Namespace) -> None:
         config["corpusDir"] = args.corpus_dir
     if args.target_contract:
         config["targetContract"] = args.target_contract
+    if args.named_inputs:
+        config["namedInputs"] = args.named_inputs
+    else:
+        if "namedInputs" not in config:
+            config["namedInputs"] = False
+    if args.all_sequences:
+        config["allSequences"] = args.all_sequences
+    else:
+        if "allSequences" not in config:
+            config["allSequences"] = False
 
     CryticPrint().print_information("Running Slither...")
     slither = Slither(args.file_path)
@@ -85,11 +102,11 @@ def generate_command(args: Namespace) -> None:
     match config["fuzzer"]:
         case "echidna":
             fuzzer = Echidna(
-                config["targetContract"], config["corpusDir"], slither, args.named_inputs
+                config["targetContract"], config["corpusDir"], slither, config["namedInputs"]
             )
         case "medusa":
             fuzzer = Medusa(
-                config["targetContract"], config["corpusDir"], slither, args.named_inputs
+                config["targetContract"], config["corpusDir"], slither, config["namedInputs"]
             )
         case _:
             handle_exit(

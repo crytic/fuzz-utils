@@ -1,15 +1,14 @@
 """Default configuration file"""
 default_config: dict = {
-    "compilationPath": ".",
-    "corpusDir": "",
     "generate": {
         "targetContract": "",
-        "compilationPath": "",
+        "compilationPath": ".",
         "corpusDir": "",
         "fuzzer": "",
         "testsDir": "",
         "inheritancePath": "",
         "namedInputs": False,
+        "allSequences": False,
     },
     "template": {
         "name": "DefaultHarness",

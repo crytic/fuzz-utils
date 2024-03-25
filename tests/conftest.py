@@ -23,6 +23,7 @@ class TestGenerator:
             "inheritancePath": "../src/",
             "corpusDir": f"echidna-corpora/{corpus_dir}",
             "testsDir": "./test/",
+            "allSequences": False,
         }
         self.echidna_generator = FoundryTest(config, slither, echidna)
         config["corpusDir"] = f"medusa-corpora/{corpus_dir}"
