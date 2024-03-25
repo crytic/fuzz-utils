@@ -59,12 +59,13 @@ class Medusa:  # pylint: disable=too-many-instance-attributes
         for idx, call in enumerate(calls):
             call_str, fn_name = self._parse_call_object(call)
             call_list.append(call_str)
+            has_low_level_call = has_low_level_call or ("(success, " in call_str)
             if idx == end:
                 function_name = fn_name + "_" + str(index)
 
         template = jinja2.Template(templates["TEST"])
         return template.render(
-            function_name=function_name, call_list=call_list, file_path=file_path
+            function_name=function_name, call_list=call_list, file_path=file_path, has_low_level_call=has_low_level_call
         )
         # 1. Take a reproducer list and create a test file based on the name of the last function of the list e.g. test_auto_$function_name
         # 2. For each object in the list process the call object and add it to the call list
