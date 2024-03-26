@@ -41,12 +41,6 @@ jobs:
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-      
-      - name: Install Foundry dependencies
-        run: forge install crytic/properties --no-commit
-      
-      - name: Set remappings
-        run: forge remappings > remappings.txt
 
       - name: Run tests
         run: |
