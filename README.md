@@ -71,6 +71,7 @@ The `template` command is used to generate a fuzzing harness. The harness can in
 - `--config`: Path to the `fuzz-utils` config JSON file
 
 **Example**
+
 In order to generate a fuzzing harness for the [BasicTypes.sol](tests/test_data/src/BasicTypes.sol) contract, we need to `cd` into the `tests/test_data/` directory which contains the Foundry project and run the command:
 ```bash
 fuzz-utils template ./src/BasicType.sol --name "DefaultHarness" --contracts BasicTypes
