@@ -47,87 +47,87 @@ contract DefaultHarness is PropertiesAsserts {
         selectedActor.setBool(set);
     }
 
-    function check_bool(uint256 actorIndex, bool set) public {
+    function check_bool(uint256 actorIndex) public {
         ActorDefault selectedActor = Default_actors[clampBetween(actorIndex, 0, Default_actors.length - 1)];
         selectedActor.check_bool();
     }
 
-    function setUint256(uint256 actorIndex, bool set, uint256 input) public {
+    function setUint256(uint256 actorIndex, uint256 input) public {
         ActorDefault selectedActor = Default_actors[clampBetween(actorIndex, 0, Default_actors.length - 1)];
         selectedActor.setUint256(input);
     }
 
-    function check_uint256(uint256 actorIndex, bool set, uint256 input) public {
+    function check_uint256(uint256 actorIndex) public {
         ActorDefault selectedActor = Default_actors[clampBetween(actorIndex, 0, Default_actors.length - 1)];
         selectedActor.check_uint256();
     }
 
-    function check_large_uint256(uint256 actorIndex, bool set, uint256 input) public {
+    function check_large_uint256(uint256 actorIndex) public {
         ActorDefault selectedActor = Default_actors[clampBetween(actorIndex, 0, Default_actors.length - 1)];
         selectedActor.check_large_uint256();
     }
 
-    function setInt256(uint256 actorIndex, bool set, uint256 input, int256 input) public {
+    function setInt256(uint256 actorIndex, int256 input) public {
         ActorDefault selectedActor = Default_actors[clampBetween(actorIndex, 0, Default_actors.length - 1)];
         selectedActor.setInt256(input);
     }
 
-    function check_int256(uint256 actorIndex, bool set, uint256 input, int256 input) public {
+    function check_int256(uint256 actorIndex) public {
         ActorDefault selectedActor = Default_actors[clampBetween(actorIndex, 0, Default_actors.length - 1)];
         selectedActor.check_int256();
     }
 
-    function check_large_positive_int256(uint256 actorIndex, bool set, uint256 input, int256 input) public {
+    function check_large_positive_int256(uint256 actorIndex) public {
         ActorDefault selectedActor = Default_actors[clampBetween(actorIndex, 0, Default_actors.length - 1)];
         selectedActor.check_large_positive_int256();
     }
 
-    function check_large_negative_int256(uint256 actorIndex, bool set, uint256 input, int256 input) public {
+    function check_large_negative_int256(uint256 actorIndex) public {
         ActorDefault selectedActor = Default_actors[clampBetween(actorIndex, 0, Default_actors.length - 1)];
         selectedActor.check_large_negative_int256();
     }
 
-    function setAddress(uint256 actorIndex, bool set, uint256 input, int256 input, address payable input) public {
+    function setAddress(uint256 actorIndex, address payable input) public {
         ActorDefault selectedActor = Default_actors[clampBetween(actorIndex, 0, Default_actors.length - 1)];
         selectedActor.setAddress(input);
     }
 
-    function check_address(uint256 actorIndex, bool set, uint256 input, int256 input, address payable input) public {
+    function check_address(uint256 actorIndex) public {
         ActorDefault selectedActor = Default_actors[clampBetween(actorIndex, 0, Default_actors.length - 1)];
         selectedActor.check_address();
     }
 
-    function setString(uint256 actorIndex, bool set, uint256 input, int256 input, address payable input, string memory input) public {
+    function setString(uint256 actorIndex, string memory input) public {
         ActorDefault selectedActor = Default_actors[clampBetween(actorIndex, 0, Default_actors.length - 1)];
         selectedActor.setString(input);
     }
 
-    function check_string(uint256 actorIndex, bool set, uint256 input, int256 input, address payable input, string memory input) public {
+    function check_string(uint256 actorIndex) public {
         ActorDefault selectedActor = Default_actors[clampBetween(actorIndex, 0, Default_actors.length - 1)];
         selectedActor.check_string();
     }
 
-    function check_specific_string(uint256 actorIndex, bool set, uint256 input, int256 input, address payable input, string memory input, string memory provided) public {
+    function check_specific_string(uint256 actorIndex, string memory provided) public {
         ActorDefault selectedActor = Default_actors[clampBetween(actorIndex, 0, Default_actors.length - 1)];
         selectedActor.check_specific_string(provided);
     }
 
-    function setBytes(uint256 actorIndex, bool set, uint256 input, int256 input, address payable input, string memory input, string memory provided, bytes memory input) public {
+    function setBytes(uint256 actorIndex, bytes memory input) public {
         ActorDefault selectedActor = Default_actors[clampBetween(actorIndex, 0, Default_actors.length - 1)];
         selectedActor.setBytes(input);
     }
 
-    function check_bytes(uint256 actorIndex, bool set, uint256 input, int256 input, address payable input, string memory input, string memory provided, bytes memory input) public {
+    function check_bytes(uint256 actorIndex) public {
         ActorDefault selectedActor = Default_actors[clampBetween(actorIndex, 0, Default_actors.length - 1)];
         selectedActor.check_bytes();
     }
 
-    function setCombination(uint256 actorIndex, bool set, uint256 input, int256 input, address payable input, string memory input, string memory provided, bytes memory input, bool bool_input, uint256 unsigned_input, int256 signed_input, address payable address_input, string memory str_input, bytes memory bytes_input) public {
+    function setCombination(uint256 actorIndex, bool bool_input, uint256 unsigned_input, int256 signed_input, address payable address_input, string memory str_input, bytes memory bytes_input) public {
         ActorDefault selectedActor = Default_actors[clampBetween(actorIndex, 0, Default_actors.length - 1)];
         selectedActor.setCombination(bool_input, unsigned_input, signed_input, address_input, str_input, bytes_input);
     }
 
-    function check_combined_input(uint256 actorIndex, bool set, uint256 input, int256 input, address payable input, string memory input, string memory provided, bytes memory input, bool bool_input, uint256 unsigned_input, int256 signed_input, address payable address_input, string memory str_input, bytes memory bytes_input) public {
+    function check_combined_input(uint256 actorIndex) public {
         ActorDefault selectedActor = Default_actors[clampBetween(actorIndex, 0, Default_actors.length - 1)];
         selectedActor.check_combined_input();
     }

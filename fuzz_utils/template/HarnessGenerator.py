@@ -1,6 +1,7 @@
 """ Generates a template fuzzer harness for a smart contract target """
 # type: ignore[misc] # Ignores 'Any' input parameter
 import os
+import copy
 from dataclasses import dataclass
 
 from slither import Slither
@@ -406,7 +407,9 @@ class HarnessGenerator:
             # Loop over function inputs
             inputs_with_types = ""
             if isinstance(entry.parameters, list):
-                inputs_with_type_list = prepend_variables if len(prepend_variables) > 0 else []
+                inputs_with_type_list = (
+                    copy.deepcopy(prepend_variables) if len(prepend_variables) > 0 else []
+                )
 
                 for parameter in entry.parameters:
                     location = ""
@@ -422,7 +425,6 @@ class HarnessGenerator:
                     )
 
                 inputs_with_types = ", ".join(inputs_with_type_list)
-
             # Loop over return types
             return_types = ""
             if isinstance(entry.return_type, list):
@@ -555,7 +557,6 @@ def should_skip_function(function: FunctionContract, config: dict | None) -> boo
 def check_and_populate_actor_fields(actors_config: dict, default_targets: list[str]) -> dict:
     """Check the Actor config fields and populates the missing ones with default values"""
     for idx, actor in enumerate(actors_config):
-        print(idx, actor)
         if "name" not in actor or "targets" not in actor:
             handle_exit("Actor is missing attributes")
         if "number" not in actor:
