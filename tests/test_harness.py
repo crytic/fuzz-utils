@@ -5,6 +5,7 @@ import subprocess
 from slither import Slither
 from slither.core.declarations.contract import Contract
 from slither.core.declarations.function_contract import FunctionContract
+from fuzz_utils.utils.remappings import find_remappings
 
 from fuzz_utils.template.HarnessGenerator import HarnessGenerator
 
@@ -29,7 +30,6 @@ default_config = {
     ],
     "attacks": [],
 }
-remappings = {"properties": "properties/", "solmate": "solmate/"}
 
 
 def test_modifier_filtering() -> None:
@@ -174,6 +174,7 @@ def run_harness(
     expected_functions: set[str],
 ) -> None:
     """Sets up the HarnessGenerator"""
+    remappings = find_remappings(False)
     config = copy.deepcopy(default_config)
     slither = Slither(compilation_path)
 
