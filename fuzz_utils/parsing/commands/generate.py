@@ -1,7 +1,6 @@
 """Defines the flags and logic associated with the `generate` command"""
 import json
 from argparse import Namespace, ArgumentParser
-from pkg_resources import require
 from slither import Slither
 from fuzz_utils.utils.crytic_print import CryticPrint
 from fuzz_utils.generate.FoundryTest import FoundryTest
@@ -12,7 +11,9 @@ from fuzz_utils.utils.error_handler import handle_exit
 
 def generate_flags(parser: ArgumentParser) -> None:
     """The unit test generation parser flags"""
-    parser.add_argument("file_path", help="Path to the Echidna/Medusa test harness.")
+    parser.add_argument(
+        "compilation_path", help="Path to the Echidna/Medusa test harness or Foundry directory."
+    )
     parser.add_argument(
         "-cd", "--corpus-dir", dest="corpus_dir", help="Path to the corpus directory"
     )
@@ -34,12 +35,6 @@ def generate_flags(parser: ArgumentParser) -> None:
         "--fuzzer",
         dest="selected_fuzzer",
         help="Define the fuzzer used. Valid inputs: 'echidna', 'medusa'",
-    )
-    parser.add_argument(
-        "--version",
-        help="displays the current version",
-        version=require("fuzz-utils")[0].version,
-        action="version",
     )
     parser.add_argument(
         "--named-inputs",
@@ -72,8 +67,8 @@ def generate_command(args: Namespace) -> None:
             if "generate" in complete_config:
                 config = complete_config["generate"]
     # Override the config with the CLI values
-    if args.file_path:
-        config["compilationPath"] = args.file_path
+    if args.compilation_path:
+        config["compilationPath"] = args.compilation_path
     if args.test_directory:
         config["testsDir"] = args.test_directory
     if args.inheritance_path:

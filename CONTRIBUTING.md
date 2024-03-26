@@ -30,8 +30,12 @@ Below is a rough outline of fuzz-utils's design:
 
 ```text
 .
-├── fuzzers # Contains supported fuzzer classes that parse and generate the test files
-├── templates # String templates used for test generation
+├── generate # Classes related to the `generate` command
+|   └── fuzzers # Supported fuzzer classes
+├── parsing # Contains the main parser logic
+|   └── commands # Flags and execution logic per supported subparser
+├── template # Classes related to the `template` command
+├── templates # Common templates such as the default config and templates for test and harness generation
 ├── utils # Utility functions
 ├── main.py # Main entry point
 └── ...

@@ -1,6 +1,7 @@
 """ Generates a test file from Echidna reproducers """
 import sys
 import argparse
+from pkg_resources import require
 from fuzz_utils.parsing.parser import define_subparsers, run_command
 
 # pylint: disable=too-many-locals,too-many-statements
@@ -8,6 +9,12 @@ def main() -> None:  # type: ignore[func-returns-value]
     """The main entry point"""
     parser = argparse.ArgumentParser(
         prog="fuzz-utils", description="Generate test harnesses for Echidna failed properties."
+    )
+    parser.add_argument(
+        "--version",
+        help="displays the current version",
+        version=require("fuzz-utils")[0].version,
+        action="version",
     )
     subparsers = parser.add_subparsers(dest="command", help="sub-command help")
     define_subparsers(subparsers)

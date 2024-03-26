@@ -100,30 +100,16 @@ class HarnessGenerator:
         slither: Slither,
         remappings: dict,
     ) -> None:
+        if "actors" in config:
+            config["actors"] = check_and_populate_actor_fields(config["actors"], config["targets"])
+        else:
+            CryticPrint().print_warning("Using default values for the Actor.")
+            config["actors"] = self.config["actors"]
+            config["actors"][0]["targets"] = config["targets"]
+
         for key, value in config.items():
             if key in self.config and value:
                 self.config[key] = value
-            # TODO add checks for attack config
-            if key == "actors":
-                for idx, actor in enumerate(config[key]):
-                    if not "name" in actor or not "targets" in actor:
-                        handle_exit("Actor is missing attributes")
-                    if not "number" in actor:
-                        self.config["actors"][idx]["number"] = 3
-                        CryticPrint().print_warning(
-                            "Missing number argument in actor, using 3 as default."
-                        )
-                    if not "filters" in actor:
-                        self.config["actors"][idx]["filters"] = {
-                            "onlyModifiers": [],
-                            "onlyPayable": False,
-                            "onlyExternalCalls": [],
-                        }
-                        CryticPrint().print_warning(
-                            "Missing filters argument in actor, using none as default."
-                        )
-                    if not "targets" in actor or len(actor["targets"]) == 0:
-                        self.config["actors"][idx]["targets"] = self.config["targets"]
 
         if remappings:
             self.remappings = remappings
@@ -564,3 +550,25 @@ def should_skip_function(function: FunctionContract, config: dict | None) -> boo
         return False
 
     return False
+
+
+def check_and_populate_actor_fields(actors_config: dict, default_targets: list[str]) -> dict:
+    """Check the Actor config fields and populates the missing ones with default values"""
+    for idx, actor in enumerate(actors_config):
+        print(idx, actor)
+        if "name" not in actor or "targets" not in actor:
+            handle_exit("Actor is missing attributes")
+        if "number" not in actor:
+            actors_config["actors"][idx]["number"] = 3
+            CryticPrint().print_warning("Missing number argument in actor, using 3 as default.")
+        if "filters" not in actor:
+            actors_config["actors"][idx]["filters"] = {
+                "onlyModifiers": [],
+                "onlyPayable": False,
+                "onlyExternalCalls": [],
+            }
+            CryticPrint().print_warning("Missing filters argument in actor, using none as default.")
+        if "targets" not in actor or len(actor["targets"]) == 0:
+            actors_config["actors"][idx]["targets"] = default_targets
+
+    return actors_config

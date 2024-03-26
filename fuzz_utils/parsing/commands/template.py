@@ -10,7 +10,7 @@ from fuzz_utils.utils.remappings import find_remappings
 
 def template_flags(parser: ArgumentParser) -> None:
     """The harness template generation parser flags"""
-    parser.add_argument("file_path", help="Path to the Solidity contract.")
+    parser.add_argument("compilation_path", help="Path to the Solidity contract.")
     parser.add_argument("-n", "--name", dest="name", help="Name of the harness contract.")
     parser.add_argument(
         "-c",
@@ -43,8 +43,8 @@ def template_command(args: Namespace) -> None:
 
     if args.target_contracts:
         config["targets"] = args.target_contracts
-    if args.file_path:
-        config["compilationPath"] = args.file_path
+    if args.compilation_path:
+        config["compilationPath"] = args.compilation_path
     if args.name:
         config["name"] = args.name
     config["outputDir"] = output_dir
