@@ -511,7 +511,7 @@ def should_skip_function(function: FunctionContract, config: dict | None) -> boo
     if config:
         if len(config["onlyModifiers"]) > 0:
             inclusionSet = set(config["onlyModifiers"])
-            modifierSet = {[x.name for x in function.modifiers]}
+            modifierSet: set = {x.name for x in function.modifiers}
             if inclusionSet & modifierSet:
                 any_match[0] = True
         else:
@@ -535,22 +535,23 @@ def should_skip_function(function: FunctionContract, config: dict | None) -> boo
         else:
             empty[2] = True
 
-        if config["strict"]:
-            if False in empty:
-                if False in any_match:
-                    return True
-            # If all are empty and at least one condition is false, skip function
+        # If all are empty don't skip any functions:
+        if all(empty):
             return False
 
-        # If at least one is non-empty and at least one condition is true, don't skip function
-        if False in empty:
-            if True in any_match:
+        # If not strict and any one is a match, don't skip the function
+        if not config["strict"]:
+            if any(any_match):
                 return False
             return True
 
-        # All are empty, don't skip any function
-        return False
-
+        # If strict, ensure all non-empty have a match
+        result = [a or b for a, b in zip(empty, any_match)]
+        if all(result):
+            return False
+        # No match, skip function
+        return True
+    # If the config isn't defined, don't skip any functions
     return False
 
 
@@ -560,16 +561,16 @@ def check_and_populate_actor_fields(actors_config: dict, default_targets: list[s
         if "name" not in actor or "targets" not in actor:
             handle_exit("Actor is missing attributes")
         if "number" not in actor:
-            actors_config["actors"][idx]["number"] = 3
+            actors_config[idx]["number"] = 3
             CryticPrint().print_warning("Missing number argument in actor, using 3 as default.")
         if "filters" not in actor:
-            actors_config["actors"][idx]["filters"] = {
+            actors_config[idx]["filters"] = {
                 "onlyModifiers": [],
                 "onlyPayable": False,
                 "onlyExternalCalls": [],
             }
             CryticPrint().print_warning("Missing filters argument in actor, using none as default.")
         if "targets" not in actor or len(actor["targets"]) == 0:
-            actors_config["actors"][idx]["targets"] = default_targets
+            actors_config[idx]["targets"] = default_targets
 
     return actors_config
