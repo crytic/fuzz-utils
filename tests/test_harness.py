@@ -43,7 +43,7 @@ def test_modifier_filtering() -> None:
     expected_functions = set(["iAmRestricted"])
     run_harness(
         "ModifierHarness",
-        "ModifierActor",
+        "Modifier",
         "./src/Filtering.sol",
         ["Filtering"],
         filters,
@@ -62,7 +62,7 @@ def test_external_call_filtering() -> None:
     expected_functions = set(["depositWithModifier", "depositNoModifier"])
     run_harness(
         "TransferHarness",
-        "TransferActor",
+        "Transfer",
         "./src/Filtering.sol",
         ["Filtering"],
         filters,
@@ -81,7 +81,7 @@ def test_payable_filtering() -> None:
     expected_functions = set(["iAmPayable"])
     run_harness(
         "PayableHarness",
-        "PayableActor",
+        "Payable",
         "./src/Filtering.sol",
         ["Filtering"],
         filters,
@@ -100,7 +100,7 @@ def test_modifier_and_external_call_filtering() -> None:
     expected_functions = set(["depositWithModifier", "depositNoModifier"])
     run_harness(
         "ModExHarness",
-        "ModExActor",
+        "ModEx",
         "./src/Filtering.sol",
         ["Filtering"],
         filters,
@@ -119,7 +119,7 @@ def test_strict_modifier_and_external_call_filtering() -> None:
     expected_functions = set(["depositWithModifier"])
     run_harness(
         "StrictModExHarness",
-        "StrictModExActor",
+        "StrictModEx",
         "./src/Filtering.sol",
         ["Filtering"],
         filters,
@@ -138,7 +138,7 @@ def test_multiple_external_calls_filtering() -> None:
     expected_functions = set(["depositWithModifier", "depositNoModifier", "withdraw"])
     run_harness(
         "MulExHarness",
-        "MulExActor",
+        "MulEx",
         "./src/Filtering.sol",
         ["Filtering"],
         filters,
@@ -157,7 +157,7 @@ def test_strict_multiple_external_calls_filtering() -> None:
     expected_functions = set(["depositWithModifier", "depositNoModifier", "withdraw"])
     run_harness(
         "StrictMulExHarness",
-        "StrictMulExActor",
+        "StrictMulEx",
         "./src/Filtering.sol",
         ["Filtering"],
         filters,
@@ -171,7 +171,7 @@ def run_harness(
     compilation_path: str,
     targets: list,
     filters: dict,
-    expected_functions: list[str],
+    expected_functions: set[str],
 ) -> None:
     """Sets up the HarnessGenerator"""
     config = copy.deepcopy(default_config)
@@ -180,8 +180,8 @@ def run_harness(
     config["name"] = harness_name
     config["compilationPath"] = compilation_path
     config["targets"] = targets
-    config["actors"][0]["filters"] = filters
-    config["actors"][0]["name"] = actor_name
+    config["actors"][0]["filters"] = filters  # type: ignore[index]
+    config["actors"][0]["name"] = actor_name  # type: ignore[index]
 
     generator = HarnessGenerator(config, slither, remappings)
     generator.generate_templates()
