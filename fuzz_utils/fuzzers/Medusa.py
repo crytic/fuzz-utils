@@ -38,6 +38,7 @@ class Medusa:  # pylint: disable=too-many-instance-attributes
             self.reproducer_dir,
         ]
         self.named_inputs = named_inputs
+        self.declared_variables: set[tuple[str, str]] = set()
 
     def get_target_contract(self) -> Contract:
         """Finds and returns Slither Contract"""
@@ -57,6 +58,9 @@ class Medusa:  # pylint: disable=too-many-instance-attributes
         end = len(calls) - 1
         function_name = ""
         has_low_level_call: bool = False
+
+        # before each test case, we clear the declared variables, as those are locals
+        self.declared_variables = set()
 
         for idx, call in enumerate(calls):
             call_str, fn_name = self._parse_call_object(call)
@@ -198,8 +202,8 @@ class Medusa:  # pylint: disable=too-many-instance-attributes
                     # TODO make it work with multidim dynamic arrays
                     if values:
                         dyn_length = len(values)
-
                         array_type: str = ""
+
                         if isinstance(
                             parameter.type.type,
                             (Structure | StructureContract | Enum | EnumContract),
@@ -207,7 +211,13 @@ class Medusa:  # pylint: disable=too-many-instance-attributes
                             array_type = parameter.type.type.name
                         else:
                             array_type = parameter.type.type
-                        var_def += f"{array_type}[] memory {parameter.name} = new {parameter.type.type}[]({dyn_length});\n"
+                        # If dynamic array of the same name and type was already declared, reuse it. Else, declare a new one.
+                        if (array_type, parameter.name) in self.declared_variables:
+                            var_def += f"{parameter.name} = new {array_type}[]({dyn_length});\n"
+                        else:
+                            var_def += f"{array_type}[] memory {parameter.name} = new {array_type}[]({dyn_length});\n"
+
+                        self.declared_variables.add((array_type, parameter.name))
 
                         for idx, value in enumerate(values):
                             _, matched_value, _ = self._match_type(parameter.type, value)

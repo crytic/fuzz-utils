@@ -34,7 +34,7 @@ class Echidna:
         self.reproducer_dir = f"{corpus_path}/reproducers"
         self.corpus_dirs = [f"{corpus_path}/coverage", self.reproducer_dir]
         self.named_inputs = named_inputs
-        self.declared_variables: set[str] = set()
+        self.declared_variables: set[tuple[str, str]] = set()
 
     def get_target_contract(self) -> Contract:
         """Finds and returns Slither Contract"""
@@ -320,11 +320,11 @@ class Echidna:
         name = f"dyn{input_type}Arr_{index}"
 
         # If the variable was already declared, just assign the new value
-        if name in self.declared_variables:
+        if (input_type, name) in self.declared_variables:
             declaration = f"{name} = new {input_type}[]({length});\n"
         else:
             declaration = f"{input_type}[] memory {name} = new {input_type}[]({length});\n"
 
-        self.declared_variables.add(name)
+        self.declared_variables.add((input_type, name))
 
         return name, declaration
