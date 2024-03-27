@@ -18,6 +18,7 @@ from fuzz_utils.utils.encoding import parse_echidna_byte_string
 from fuzz_utils.utils.error_handler import handle_exit
 
 
+# pylint: disable=too-many-instance-attributes
 class Echidna:
     """
     Handles the generation of Foundry test files from Echidna reproducers
@@ -33,6 +34,7 @@ class Echidna:
         self.reproducer_dir = f"{corpus_path}/reproducers"
         self.corpus_dirs = [f"{corpus_path}/coverage", self.reproducer_dir]
         self.named_inputs = named_inputs
+        self.declared_variables: set[tuple[str, str]] = set()
 
     def get_target_contract(self) -> Contract:
         """Finds and returns Slither Contract"""
@@ -51,17 +53,26 @@ class Echidna:
         call_list = []
         end = len(calls) - 1
         function_name = ""
+        has_low_level_call: bool = False
+
+        # before each test case, we clear the declared variables, as those are locals
+        self.declared_variables = set()
+
         # 1. For each object in the list process the call object and add it to the call list
         for idx, call in enumerate(calls):
             call_str, fn_name = self._parse_call_object(call)
             call_list.append(call_str)
+            has_low_level_call = has_low_level_call or ("(success, " in call_str)
             if idx == end:
                 function_name = fn_name + "_" + str(index)
 
         # 2. Generate the test string and return it
         template = jinja2.Template(templates["TEST"])
         return template.render(
-            function_name=function_name, call_list=call_list, file_path=file_path
+            function_name=function_name,
+            call_list=call_list,
+            file_path=file_path,
+            has_low_level_call=has_low_level_call,
         )
 
     # pylint: disable=too-many-locals,too-many-branches
@@ -306,5 +317,13 @@ class Echidna:
 
         input_type = input_parameter.type
         name = f"dyn{input_type}Arr_{index}"
-        declaration = f"{input_type}[] memory {name} = new {input_type}[]({length});\n"
+
+        # If the variable was already declared, just assign the new value
+        if (input_type, name) in self.declared_variables:
+            declaration = f"{name} = new {input_type}[]({length});\n"
+        else:
+            declaration = f"{input_type}[] memory {name} = new {input_type}[]({length});\n"
+
+        self.declared_variables.add((input_type, name))
+
         return name, declaration

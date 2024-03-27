@@ -28,7 +28,7 @@ contract {{target_name}}_{{fuzzer}}_Test is Test {
     """
 
 __CALL_TEMPLATE: str = """
-        {%- if has_delay -%}
+        {%- if has_delay %}
         vm.warp(block.timestamp + {{time_delay}});
         vm.roll(block.number + {{block_delay}});
         {%- endif %}
@@ -41,12 +41,12 @@ __CALL_TEMPLATE: str = """
 """
 
 __TRANSFER__TEMPLATE: str = """
-        {%- if has_delay -%}
+        {%- if has_delay %}
         vm.warp(block.timestamp + {{time_delay}});
         vm.roll(block.number + {{block_delay}});
         {%- endif %}
         vm.prank({{caller}});
-        (bool success, ) = payable(address(target)).call{value: {{value}}}("");
+        (success, ) = payable(address(target)).call{value: {{value}}}("");
         require(success, "Low level call failed.");
 """
 
@@ -58,7 +58,10 @@ __EMPTY_CALL_TEMPLATE: str = """
 
 __TEST_TEMPLATE: str = """
     // Reproduced from: {{file_path}}
-    function test_auto_{{function_name}}() public { {% for call in call_list %}
+    function test_auto_{{function_name}}() public { 
+        {%- if has_low_level_call %}
+        bool success; 
+        {%- endif %} {% for call in call_list %}
         {{call}}{% endfor %}
     }"""
 
