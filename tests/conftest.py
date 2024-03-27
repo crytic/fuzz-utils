@@ -4,24 +4,30 @@ from typing import Any
 import pytest
 
 from slither import Slither
-from fuzz_utils.main import FoundryTest
-from fuzz_utils.fuzzers.Echidna import Echidna
-from fuzz_utils.fuzzers.Medusa import Medusa
+from fuzz_utils.generate.FoundryTest import FoundryTest
+from fuzz_utils.generate.fuzzers.Echidna import Echidna
+from fuzz_utils.generate.fuzzers.Medusa import Medusa
 
 
 class TestGenerator:
     """Helper class for testing all fuzzers with the tool"""
 
+    __test__ = False
+
     def __init__(self, target: str, target_path: str, corpus_dir: str):
         slither = Slither(target_path)
         echidna = Echidna(target, f"echidna-corpora/{corpus_dir}", slither, False)
         medusa = Medusa(target, f"medusa-corpora/{corpus_dir}", slither, False)
-        self.echidna_generator = FoundryTest(
-            "../src/", target, f"echidna-corpora/{corpus_dir}", "./test/", slither, echidna, False
-        )
-        self.medusa_generator = FoundryTest(
-            "../src/", target, f"medusa-corpora/{corpus_dir}", "./test/", slither, medusa, False
-        )
+        config = {
+            "targetContract": target,
+            "inheritancePath": "../src/",
+            "corpusDir": f"echidna-corpora/{corpus_dir}",
+            "testsDir": "./test/",
+            "allSequences": False,
+        }
+        self.echidna_generator = FoundryTest(config, slither, echidna)
+        config["corpusDir"] = f"medusa-corpora/{corpus_dir}"
+        self.medusa_generator = FoundryTest(config, slither, medusa)
 
     def echidna_generate_tests(self) -> None:
         """Runs the fuzz-utils tool for an Echidna corpus"""
