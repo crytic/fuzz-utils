@@ -10,6 +10,7 @@ contract DynamicArrays_Medusa_Test is Test {
     function setUp() public {
         target = new DynamicArrays();
     }
+    // Reproduced from: medusa-corpora/corpus-dyn-arr/test_results/1704377304276517000-e15599be-8cab-4d01-8cd7-4cd785554cb6.json
     function test_auto_check_bytesArr_0() public { 
         bytes[] memory input = new bytes[](16);
         input[0] = bytes(hex"45cee200427cbe");
@@ -28,16 +29,21 @@ contract DynamicArrays_Medusa_Test is Test {
         input[13] = bytes(hex"177a06df87b48eb029fac004381df3055eb4a5279704df9c4b568e832140d544417ac84055e0d065177f8f6189a51ca2766a706de805e448e5bc2ede94076e7cf64f93aa7009e9748295c803af487d4345002fc7767a6ce86ab7ed8ad8");
         input[14] = bytes(hex"181190d108430b1f4c11aaffa722798e43b548ebc8df13e86197e940c400bf53938ddcba07");
         input[15] = bytes(hex"70d858e348c650a00ed04ccdd960aa62e693e0607857e6884c86149e290a024e4b04e293326a5821eea93516db070ab06e2fbe5add6b0d5b1fc88da321a616e56f8b0a9bfe0361550f713f");
-vm.warp(block.timestamp + 319057);
+
+        vm.warp(block.timestamp + 319057);
         vm.roll(block.number + 44673);
         vm.prank(0x0000000000000000000000000000000000020000);
         target.addBytesArr(input);
+        
+        
         vm.warp(block.timestamp + 4);
         vm.roll(block.number + 2);
         vm.prank(0x0000000000000000000000000000000000010000);
         target.check_bytesArr();
+        
     }
     
+    // Reproduced from: medusa-corpora/corpus-dyn-arr/test_results/1704377304277060000-e1fe2904-517b-4467-90b5-3af5a6574251.json
     function test_auto_check_bytesArr_1() public { 
         bytes[] memory input = new bytes[](59);
         input[0] = bytes(hex"d7879cbd024fd72433d63401e4b12375e20a1656d130196847da066c794b77093af4a5ba77949331e1b41c76eec0d4ac98635e71443d6c52ec39a5844bd7b65cb9e83679c03bfa86ba8d60");
@@ -99,15 +105,19 @@ vm.warp(block.timestamp + 319057);
         input[56] = bytes(hex"b3bdcc2e3f6868833904255d37f126e94ff0704c8d488bbee95941aa4a93985e5721416dcf6a7716cec26b45bcecb33894c0c79fc5e039caff60ebfd8fc0ec0079a13c8db1bad03ba704e3e6956b7f6c717f");
         input[57] = bytes(hex"2bbdeed85b3abce2035d24266757123c621de2807022c2f628d6800385d7add0a2fcd48cb7d62c23263687c4");
         input[58] = bytes(hex"172c0ad19f98");
-vm.warp(block.timestamp + 269053);
+
+        vm.warp(block.timestamp + 269053);
         vm.roll(block.number + 23881);
         vm.prank(0x0000000000000000000000000000000000020000);
         target.addBytesArr(input);
         
+        
         vm.prank(0x0000000000000000000000000000000000030000);
         target.check_bytesArr();
+        
     }
     
+    // Reproduced from: medusa-corpora/corpus-dyn-arr/test_results/1704377303350862000-7744abc8-f55a-4ab1-b4fc-43380bd596f8.json
     function test_auto_check_boolArr_2() public { 
         bool[] memory input = new bool[](14);
         input[0] = true;
@@ -124,16 +134,21 @@ vm.warp(block.timestamp + 269053);
         input[11] = false;
         input[12] = false;
         input[13] = true;
-vm.warp(block.timestamp + 320182);
+
+        vm.warp(block.timestamp + 320182);
         vm.roll(block.number + 23884);
         vm.prank(0x0000000000000000000000000000000000010000);
         target.addBoolArr(input);
+        
+        
         vm.warp(block.timestamp + 360622);
         vm.roll(block.number + 47114);
         vm.prank(0x0000000000000000000000000000000000010000);
         target.check_boolArr();
+        
     }
     
+    // Reproduced from: medusa-corpora/corpus-dyn-arr/test_results/1704377305545039000-e0720184-376d-45f2-9a03-673a130654e4.json
     function test_auto_check_strDynArr_3() public { 
         string[] memory input = new string[](85);
         input[0] = unicode"\u00cd";
@@ -221,16 +236,21 @@ vm.warp(block.timestamp + 320182);
         input[82] = unicode"\u0053\u009d\u00c5\u00a0\u0091\u0020\u00ab\u008a\u00cd\u0073\u008f\u0048\u00c7\u00fb\u0064\u001b\u00b6\u0033\u00a7\u00aa\u0052";
         input[83] = unicode"\u00f7\u0008\u00b6\u00b9\u00ab\u006c\u0049\u0092\u00ab\u0023\u0072\u0081\u008a\u00e2\u0072\u00bd\u00c7\u0057\u0063\u00c6\u0010\u007e\u000a\u000c\u00b9\u00c9\u006b\u006b\u00fa\u00f1\u00fa\u0034\u00e8\u0033\u00c8\u00a5\u0058\u0064\u00b8\u003b\u003b\u0026\u0073\u0073\u00f0\u000b\u00d0\u0020\u0063\u0028\u0056\u0084\u00da\u00ba\u00e0\u0061\u00b1\u0078\u00d4\u002b\u00e3\u00f0\u0077\u00ae\u0060\u004b\u00b7\u0066\u00a5\u0012\u00a3\u000f\u00d3";
         input[84] = unicode"\u0019\u0037\u0096\u003d\u007a\u0080\u00b8\u0037\u001f\u00f8\u0096\u0011\u009f\u00f0\u006c\u00c6\u00c9\u0050\u0050\u0001\u00a0\u0096\u0063\u00c9\u006e\u003b\u0094\u00fc\u00ec\u0009\u004d\u00da\u007f\u00df\u001b\u002a\u0012\u00bd\u00b3\u005e\u000f\u0035\u0080\u0083\u0080\u009b\u00c6\u0005\u00d6\u0095\u0076\u009c\u00fb\u00f5\u0067\u00cd\u003f\u00c5\u0011\u0076\u0004\u00b0\u0080\u0071\u00e5\u0095\u00b3\u0030";
-vm.warp(block.timestamp + 360604);
+
+        vm.warp(block.timestamp + 360604);
         vm.roll(block.number + 23884);
         vm.prank(0x0000000000000000000000000000000000030000);
         target.addStrArr(input);
+        
+        
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 0);
         vm.prank(0x0000000000000000000000000000000000020000);
         target.check_strDynArr();
+        
     }
     
+    // Reproduced from: medusa-corpora/corpus-dyn-arr/test_results/1704377303934867000-b91d964f-2912-4e40-b11c-807b89ad0c27.json
     function test_auto_check_addressDynArr_4() public { 
         address[] memory input = new address[](68);
         input[0] = 0x1CB02a2fd56e000ce64811BfD083a1c134192892;
@@ -301,16 +321,21 @@ vm.warp(block.timestamp + 360604);
         input[65] = 0xB0ddFd138a60EEEe3fc9f361192dAEFd8088e3e0;
         input[66] = 0x0000000000000000000000000000000000000005;
         input[67] = 0x0000000000000000000000000000000000000002;
-vm.warp(block.timestamp + 360623);
+
+        vm.warp(block.timestamp + 360623);
         vm.roll(block.number + 3);
         vm.prank(0x0000000000000000000000000000000000020000);
         target.addAddressArr(input);
+        
+        
         vm.warp(block.timestamp + 475435);
         vm.roll(block.number + 20);
         vm.prank(0x0000000000000000000000000000000000020000);
         target.check_addressDynArr();
+        
     }
     
+    // Reproduced from: medusa-corpora/corpus-dyn-arr/test_results/1704377304969856000-2f8481da-a733-472e-82b2-98f88ea4e703.json
     function test_auto_check_strDynArr_5() public { 
         string[] memory input = new string[](39);
         input[0] = unicode"\u00f4\u00fb\u000f\u0030\u00af\u0083\u00a2\u00ed\u00eb\u00f4\u008f\u00d5\u00ea\u0086\u00ea\u006f\u00b8\u006f\u00fb\u0031\u004c\u009f\u00dc\u00fe";
@@ -352,14 +377,70 @@ vm.warp(block.timestamp + 360623);
         input[36] = unicode"\u008b\u0075\u00a5\u0057\u000d\u00ba\u007f\u00c4\u0052\u00e4\u00df\u0011\u00bd\u0063\u00f0\u0070\u00be\u00cf\u0023\u00a5\u007f\u0024\u006f\u0091\u00fa\u002e\u00ef\u0016\u00b6\u008b\u0018\u009d\u00df\u0075\u0002\u0071\u00bd\u0033\u000e\u001d\u0065\u0076";
         input[37] = unicode"\u00f8\u008f\u000c\u00ca\u00f3\u0069\u00bf\u0026\u00e1\u0068\u008f\u0035\u003f\u00ae\u0022\u0071\u00f5\u0091\u0069\u00f5\u0072\u00f7\u00c8\u0083\u00e5\u0087\u0006\u001b\u007f\u0054\u006c\u00a9\u0003\u00a3\u00dd\u0017\u0077\u0085\u001c\u003e\u00ae\u0017\u005e\u00ce\u0017\u008a\u00fe\u0068\u0035\u002b\u0086\u00d5\u0036\u00eb\u002e\u00c4\u001e\u00c4\u00cf\u00a6\u00ae\u00e5\u0028\u0041\u00fc\u0003\u002a\u00b5\u00f1\u00a7\u000d\u00f9\u0031\u001c\u0037\u003a\u0086\u003a\u00e7\u0004\u00ce\u004c\u0027\u00fd\u002e\u0057\u00d1\u004f\u0030\u00fe\u005e\u0086\u008c\u00d5\u0059\u0040\u00e6\u003a\u001d\u0065";
         input[38] = unicode"\u00bc\u0011\u0066\u0043\u0082\u009c\u00f8\u0072\u003d\u004f\u0058\u0055\u004f\u00d4\u0049\u0073\u00c5\u0000\u002c\u0018\u00d2\u0092\u0079\u0077\u0091\u00b9\u0044\u00e9\u0068\u002d\u0071\u00b6\u00c4\u0011\u00a4\u000d\u00ae\u001a\u0004\u00ce\u00c3\u002f\u0026\u0020\u0028\u005b\u0032\u00f6\u00b6\u009d\u008e\u005b\u0076\u00e5\u00be\u0091\u006f\u009e\u0041\u0046\u00f4\u00e6\u002d\u0077\u00df\u009d\u0017\u00a3\u0011\u004c\u0077\u00fa\u0076\u00c3\u007b\u0035\u008f\u0085\u005e\u009c\u0023\u0051\u0093\u00ca\u0022\u002f\u002a\u00c1\u0029\u0083\u0066\u00f1\u0095\u0050\u0010\u00a4";
-vm.warp(block.timestamp + 360624);
+
+        vm.warp(block.timestamp + 360624);
         vm.roll(block.number + 23885);
         vm.prank(0x0000000000000000000000000000000000020000);
         target.addStrArr(input);
+        
+        
         vm.warp(block.timestamp + 322526);
         vm.roll(block.number + 0);
         vm.prank(0x0000000000000000000000000000000000020000);
         target.check_strDynArr();
+        
+    }
+    
+    // Reproduced from: medusa-corpora/corpus-dyn-arr/test_results/dyn_array_variable_definition.json
+    function test_auto_check_boolArr_6() public { 
+        bool[] memory input = new bool[](14);
+        input[0] = true;
+        input[1] = true;
+        input[2] = true;
+        input[3] = false;
+        input[4] = false;
+        input[5] = false;
+        input[6] = true;
+        input[7] = false;
+        input[8] = true;
+        input[9] = true;
+        input[10] = true;
+        input[11] = false;
+        input[12] = false;
+        input[13] = true;
+
+        vm.warp(block.timestamp + 320182);
+        vm.roll(block.number + 23884);
+        vm.prank(0x0000000000000000000000000000000000010000);
+        target.addBoolArr(input);
+        
+        input = new bool[](14);
+        input[0] = true;
+        input[1] = true;
+        input[2] = true;
+        input[3] = false;
+        input[4] = false;
+        input[5] = false;
+        input[6] = true;
+        input[7] = false;
+        input[8] = true;
+        input[9] = true;
+        input[10] = true;
+        input[11] = false;
+        input[12] = false;
+        input[13] = true;
+
+        vm.warp(block.timestamp + 320182);
+        vm.roll(block.number + 23884);
+        vm.prank(0x0000000000000000000000000000000000010000);
+        target.addBoolArr(input);
+        
+        
+        vm.warp(block.timestamp + 360622);
+        vm.roll(block.number + 47114);
+        vm.prank(0x0000000000000000000000000000000000010000);
+        target.check_boolArr();
+        
     }
     
 }
