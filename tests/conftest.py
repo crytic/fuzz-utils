@@ -2,6 +2,7 @@
 import os
 import subprocess
 import re
+import shutil
 from typing import Any, Callable
 import pytest
 
@@ -40,7 +41,7 @@ class TestGenerator:
         self.medusa_generator.create_poc()
 
 
-@pytest.fixture(autouse=True)  # type: ignore[misc]
+@pytest.fixture()  # type: ignore[misc]
 def change_test_dir(request: Any, monkeypatch: Any) -> None:
     """Helper fixture to change the working directory"""
     # Directory of the test file
@@ -101,6 +102,75 @@ def value_transfer() -> TestGenerator:
     corpus_dir = "corpus-value"
 
     return TestGenerator(target, target_path, corpus_dir)
+
+
+@pytest.fixture(scope="session")  # type: ignore[misc]
+def setup_foundry_temp_dir(tmp_path_factory):
+    """Sets up a temporary directory for the tests that contain all the necessary Foundry files"""
+    # Create a temporary directory valid for the session
+    temp_dir = tmp_path_factory.mktemp("foundry_session")
+    original_dir: str = os.getcwd()
+
+    print("Installing Forge...")
+    subprocess.run(["forge", "init", "--no-git"], check=True, cwd=temp_dir)
+    subprocess.run(["forge", "install", "crytic/properties", "--no-git"], check=True, cwd=temp_dir)
+    subprocess.run(
+        ["forge", "install", "transmissions11/solmate", "--no-git"], check=True, cwd=temp_dir
+    )
+    # Create remappings file
+    remappings = temp_dir / "remappings.txt"
+    with open(remappings, "w", encoding="utf-8") as outfile:
+        outfile.write(
+            "forge-std/=lib/forge-std/src/\nproperties/=lib/properties/contracts/\nsolmate/=lib/solmate/src/\nsrc/=src/"
+        )
+
+    # Delete unnecessary files
+    counter_path = temp_dir / "src" / "Counter.sol"
+    counter_path.unlink()
+    assert not counter_path.exists()
+
+    counter_test_path = temp_dir / "test" / "Counter.t.sol"
+    counter_test_path.unlink()
+    assert not counter_test_path.exists()
+
+    scripts_dir = temp_dir / "script"
+    shutil.rmtree(scripts_dir)
+    assert not scripts_dir.exists()
+
+    # Create the corpora directories in the temporary dir
+    echidna_corpora_dir = temp_dir / "echidna-corpora"
+    medusa_corpora_dir = temp_dir / "medusa-corpora"
+    echidna_corpora_dir.mkdir(exist_ok=True)
+    medusa_corpora_dir.mkdir(exist_ok=True)
+
+    # Copy all our contracts and corpora to the temporary directory
+    copy_directory_contents(
+        os.path.join(original_dir, "tests", "test_data", "echidna-corpora"),
+        temp_dir / "echidna-corpora",
+    )
+    copy_directory_contents(
+        os.path.join(original_dir, "tests", "test_data", "medusa-corpora"),
+        temp_dir / "medusa-corpora",
+    )
+    copy_directory_contents(
+        os.path.join(original_dir, "tests", "test_data", "src"), temp_dir / "src"
+    )
+
+    os.chdir(temp_dir)
+
+
+def copy_directory_contents(src_dir, dest_dir) -> None:
+    """
+    Copies the contents of src_dir into dest_dir. The dest_dir must already exist.
+    Directories under src_dir will be created under dest_dir and files will be copied.
+    """
+    for item in os.listdir(src_dir):
+        s = os.path.join(src_dir, item)
+        d = os.path.join(dest_dir, item)
+        if os.path.isdir(s):
+            shutil.copytree(s, d, dirs_exist_ok=True)  # For Python 3.8+, use dirs_exist_ok=True
+        else:
+            shutil.copy2(s, d)
 
 
 def run_generation_command_test(
