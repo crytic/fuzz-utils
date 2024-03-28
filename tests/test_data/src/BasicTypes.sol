@@ -122,6 +122,13 @@ contract BasicTypes {
         }
     }
 
+    function check_specific_bytes(bytes memory provided) public {
+        require(bytes(provided).length > 0);
+        if (keccak256(bytes(provided)) == keccak256(bytes(hex"1e233952a8b4"))) {
+            assert(false);
+        }
+    }
+
     /// @notice bytes32 has decoding issues right now 
     /* function setBytes32(bytes32 input) public {
         require(input != bytes32(0));

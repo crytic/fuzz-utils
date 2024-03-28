@@ -91,7 +91,7 @@ def generate_command(args: Namespace) -> None:
             config["allSequences"] = False
 
     CryticPrint().print_information("Running Slither...")
-    slither = Slither(args.file_path)
+    slither = Slither(args.compilation_path)
     fuzzer: Echidna | Medusa
 
     match config["fuzzer"]:

@@ -185,7 +185,7 @@ class Echidna:
                 contents = param["contents"][1] if is_fixed_size else param["contents"]
 
                 # Haskell encoding needs to be stripped and then converted to a hex literal
-                hex_string = parse_echidna_byte_string(contents.strip('"'))
+                hex_string = parse_echidna_byte_string(contents.strip('"'), True)
                 interpreted_string = f'hex"{hex_string}"'
                 if not recursive:
                     result = (
@@ -198,8 +198,8 @@ class Echidna:
                 casting = f"bytes{size}({interpreted_string})"
                 return casting
             case "AbiString":
-                hex_string = parse_echidna_byte_string(param["contents"].strip('"'))
-                interpreted_string = f'string(hex"{hex_string}")'
+                hex_string = parse_echidna_byte_string(param["contents"].strip('"'), False)
+                interpreted_string = f'string(unicode"{hex_string}")'
                 return interpreted_string
             case _:
                 handle_exit(
