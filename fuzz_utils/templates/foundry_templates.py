@@ -2,6 +2,11 @@
 
 __CONTRACT_TEMPLATE: str = """// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
+
+/// --------------------------------------------------------------------
+/// @notice This file was automatically generated using fuzz-utils 
+/// --------------------------------------------------------------------
+
 import "forge-std/Test.sol";
 import "forge-std/console2.sol";
 import "{{file_path}}";
@@ -33,7 +38,6 @@ __CALL_TEMPLATE: str = """
         {%- else %}
         target.{{function_name}}({{function_parameters}});
         {%- endif %}
-        
 """
 
 __TRANSFER__TEMPLATE: str = """

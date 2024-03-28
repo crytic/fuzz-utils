@@ -60,11 +60,6 @@ def parse_echidna_byte_string(s: str) -> str:
     return s.encode().hex()
 
 
-def parse_medusa_byte_string(s: str) -> str:
-    """Decode bytes* or string type from Medusa format to Solidity hex literal"""
-    return s.encode("utf-8").hex()
-
-
 def byte_to_escape_sequence(byte_data: bytes) -> str:
     """Generates unicode escaped string from bytes"""
     arr = []
