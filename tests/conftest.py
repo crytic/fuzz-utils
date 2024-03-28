@@ -105,7 +105,7 @@ def value_transfer() -> TestGenerator:
 
 
 @pytest.fixture(scope="session")  # type: ignore[misc]
-def setup_foundry_temp_dir(tmp_path_factory):
+def setup_foundry_temp_dir(tmp_path_factory: Any) -> None:
     """Sets up a temporary directory for the tests that contain all the necessary Foundry files"""
     # Create a temporary directory valid for the session
     temp_dir = tmp_path_factory.mktemp("foundry_session")
@@ -159,7 +159,7 @@ def setup_foundry_temp_dir(tmp_path_factory):
     os.chdir(temp_dir)
 
 
-def copy_directory_contents(src_dir, dest_dir) -> None:
+def copy_directory_contents(src_dir: str, dest_dir: str) -> None:
     """
     Copies the contents of src_dir into dest_dir. The dest_dir must already exist.
     Directories under src_dir will be created under dest_dir and files will be copied.
