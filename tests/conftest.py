@@ -1,6 +1,8 @@
 """ Globally available fixtures"""
 import os
-from typing import Any
+import subprocess
+import re
+from typing import Any, Callable
 import pytest
 
 from slither import Slither
@@ -99,3 +101,36 @@ def value_transfer() -> TestGenerator:
     corpus_dir = "corpus-value"
 
     return TestGenerator(target, target_path, corpus_dir)
+
+
+def run_generation_command_test(
+    generate_tests: Callable, test_name: str, fuzzer: str, pattern: str
+) -> None:
+    """Utility function to test unit test generation from a corpus and contract"""
+    generate_tests()
+    # Ensure the file was created
+    path = os.path.join(os.getcwd(), "test", f"{test_name}_{fuzzer}_Test.t.sol")
+    assert os.path.exists(path)
+
+    # Ensure the file can be compiled
+    subprocess.run(["forge", "build", "--build-info"], capture_output=True, text=True, check=True)
+
+    # Ensure the file can be tested
+    result = subprocess.run(
+        ["forge", "test", "--match-contract", f"{test_name}_{fuzzer}_Test"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    # Remove ansi escape sequences
+    ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
+    output = ansi_escape.sub("", result.stdout)
+
+    # Ensure all tests fail
+    match = re.search(pattern, output)
+    if match:
+        tests_passed = int(match.group(2))
+        assert tests_passed == 0
+    else:
+        assert False, "No tests were ran"
