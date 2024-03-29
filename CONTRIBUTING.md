@@ -80,3 +80,19 @@ To automatically reformat the code:
 - `make reformat`
 
 We use pylint `2.13.4`, black `22.3.0`.
+
+### Testing
+
+The `fuzz-utils` test suite contains basic unit tests for the available commands. All additions and modifications should be accompanied by at least one unit test. All existing tests should be run with `make test` to ensure they still pass.
+
+Testing is still a work-in-progress and specific guidance does not exists for all features, nor are all features currently tested. When in doubt, try creating a test yourself and request feedback on the PR.
+
+#### Testing Foundry unit test generation
+When changes or additions are made to the `generate` command, including any changes to the template strings, corpus parsing and processing, supported Solidity types, etc., a unit test should be present.
+
+- When new type support is added:
+1. Create or modify a contract in `tests/test_data/src`
+2. Add functions that make use of the type, and a property that can be trivially caught by Echidna and Medusa.
+3. Add a corpus for this contract by either running Echidna and Medusa on it, or by manually adding transaction sequences to the corpus. Ensure only failing sequences are kept and that the corpus follows the naming convention used.
+4. (only required if a new contract is added) Add a fixture for this contract in `tests/conftest.py`
+5. (only required if a new contract is added) Add a unit tests for this contract in `tests/test_types_echidna.py` and `tests/test_types_medusa.py`

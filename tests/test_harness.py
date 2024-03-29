@@ -2,6 +2,7 @@
 from pathlib import Path
 import copy
 import subprocess
+from pytest import TempPathFactory
 from slither import Slither
 from slither.core.declarations.contract import Contract
 from slither.core.declarations.function_contract import FunctionContract
@@ -32,7 +33,9 @@ default_config = {
 }
 
 
-def test_modifier_filtering() -> None:
+def test_modifier_filtering(
+    setup_foundry_temp_dir: TempPathFactory,  # pylint: disable=unused-argument
+) -> None:
     """Test non-strict modifier filtering"""
     filters = {
         "strict": False,
@@ -51,7 +54,9 @@ def test_modifier_filtering() -> None:
     )
 
 
-def test_external_call_filtering() -> None:
+def test_external_call_filtering(
+    setup_foundry_temp_dir: TempPathFactory,  # pylint: disable=unused-argument
+) -> None:
     """Test non-strict external call filtering"""
     filters = {
         "strict": False,
@@ -70,7 +75,9 @@ def test_external_call_filtering() -> None:
     )
 
 
-def test_payable_filtering() -> None:
+def test_payable_filtering(
+    setup_foundry_temp_dir: TempPathFactory,  # pylint: disable=unused-argument
+) -> None:
     """Test non-strict payable call filtering"""
     filters = {
         "strict": False,
@@ -89,7 +96,9 @@ def test_payable_filtering() -> None:
     )
 
 
-def test_modifier_and_external_call_filtering() -> None:
+def test_modifier_and_external_call_filtering(
+    setup_foundry_temp_dir: TempPathFactory,  # pylint: disable=unused-argument
+) -> None:
     """Test non-strict modifier and external call filtering"""
     filters = {
         "strict": False,
@@ -108,7 +117,9 @@ def test_modifier_and_external_call_filtering() -> None:
     )
 
 
-def test_strict_modifier_and_external_call_filtering() -> None:
+def test_strict_modifier_and_external_call_filtering(
+    setup_foundry_temp_dir: TempPathFactory,  # pylint: disable=unused-argument
+) -> None:
     """Test strict modifier and external call filtering"""
     filters = {
         "strict": True,
@@ -127,7 +138,9 @@ def test_strict_modifier_and_external_call_filtering() -> None:
     )
 
 
-def test_multiple_external_calls_filtering() -> None:
+def test_multiple_external_calls_filtering(
+    setup_foundry_temp_dir: TempPathFactory,  # pylint: disable=unused-argument
+) -> None:
     """Test multiple external calls filtering"""
     filters = {
         "strict": True,
@@ -146,7 +159,9 @@ def test_multiple_external_calls_filtering() -> None:
     )
 
 
-def test_strict_multiple_external_calls_filtering() -> None:
+def test_strict_multiple_external_calls_filtering(
+    setup_foundry_temp_dir: TempPathFactory,  # pylint: disable=unused-argument
+) -> None:
     """Test strict multiple external calls filtering"""
     filters = {
         "strict": True,

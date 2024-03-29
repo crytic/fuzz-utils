@@ -2,62 +2,88 @@
 import re
 
 ascii_escape_map = {
-    "\\NUL": "\x00",  # Null character
-    "\\SOH": "\x01",
-    "\\STX": "\x02",
-    "\\ETX": "\x03",
-    "\\EOT": "\x04",
-    "\\ENQ": "\x05",
-    "\\ACK": "\x06",
-    "\\FF": "\x0c",
-    "\\CR": "\x0d",
-    "\\SO": "\x0e",
-    "\\SI": "\x0f",
-    "\\DLE": "\x10",
-    "\\DC1": "\x11",
-    "\\DC2": "\x12",
-    "\\DC3": "\x13",
-    "\\DC4": "\x14",
-    "\\NAK": "\x15",
-    "\\SYN": "\x16",
-    "\\ETB": "\x17",
-    "\\CAN": "\x18",
-    "\\EM": "\x19",
-    "\\SUB": "\x1a",
-    "\\ESC": "\x1b",
-    "\\FS": "\x1c",
-    "\\GS": "\x1d",
-    "\\RS": "\x1e",
-    "\\US": "\x1f",
-    "\\SP": "\x20",
-    "\\DEL": "\x7f",
-    "\\0": "\x00",
-    "\\a": "\x07",  # Alert
-    "\\b": "\x08",  # Backspace
-    "\\f": "\x0c",
-    "\\n": "\x0a",  # New line
-    "\\r": "\x0d",
-    "\\t": "\x09",  # Horizontal Tab
-    "\\v": "\x0b",  # Vertical Tab
+    "\\NUL": b"\x00",  # Null character
+    "\\SOH": b"\x01",
+    "\\STX": b"\x02",
+    "\\ETX": b"\x03",
+    "\\EOT": b"\x04",
+    "\\ENQ": b"\x05",
+    "\\ACK": b"\x06",
+    "\\FF": b"\x0c",
+    "\\CR": b"\x0d",
+    "\\SO": b"\x0e",
+    "\\SI": b"\x0f",
+    "\\DLE": b"\x10",
+    "\\DC1": b"\x11",
+    "\\DC2": b"\x12",
+    "\\DC3": b"\x13",
+    "\\DC4": b"\x14",
+    "\\NAK": b"\x15",
+    "\\SYN": b"\x16",
+    "\\ETB": b"\x17",
+    "\\CAN": b"\x18",
+    "\\EM": b"\x19",
+    "\\SUB": b"\x1a",
+    "\\ESC": b"\x1b",
+    "\\FS": b"\x1c",
+    "\\GS": b"\x1d",
+    "\\RS": b"\x1e",
+    "\\US": b"\x1f",
+    "\\SP": b"\x20",
+    "\\DEL": b"\x7f",
+    "\\0": b"\x00",
+    "\\a": b"\x07",  # Alert
+    "\\b": b"\x08",  # Backspace
+    "\\f": b"\x0c",
+    "\\n": b"\x0a",  # New line
+    "\\r": b"\x0d",
+    "\\t": b"\x09",  # Horizontal Tab
+    "\\v": b"\x0b",  # Vertical Tab
 }
 
 
-def parse_echidna_byte_string(s: str) -> str:
-    """Parses Haskell byte sequence into a Solidity hex literal"""
+def parse_echidna_byte_string(s: str, isBytes: bool) -> str:
+    """Parses Haskell byte sequence into a Solidity hex literal or unicode literal"""
     # Replace Haskell-specific escapes with Python bytes
-    for key, value in ascii_escape_map.items():
-        s = s.replace(key, value)
+    # Resultant bytes object
+    result_bytes = bytearray()
 
-    # Handle octal escapes (like \\135)
-    def octal_to_byte(match: re.Match) -> str:
-        octal_value = match.group(0)[1:]  # Remove the backslash
+    # Regular expression to match decimal values like \160
+    decimal_pattern = re.compile(r"\\(\d{1,3})")
 
-        return chr(int(octal_value, 8))
+    # Iterator over the string
+    i = 0
+    while i < len(s):
+        # Check for escape sequence
+        if s[i] == "\\":
+            matched = False
+            # Check for known escape sequences
+            for seq, byte in ascii_escape_map.items():
+                if s.startswith(seq, i):
+                    result_bytes.extend(byte)
+                    i += len(seq)
+                    matched = True
+                    break
+            if not matched:
+                # Check for decimal escape
+                dec_match = decimal_pattern.match(s, i)
+                if dec_match:
+                    # Convert the decimal escape to bytes
+                    decimal_value = int(dec_match.group(1))
+                    result_bytes.append(decimal_value)
+                    i += len(dec_match.group(0))
+                else:
+                    # Unknown escape, skip the backslash and process the next character normally
+                    i += 1
+        else:
+            # Normal character, encode and add
+            result_bytes.append(ord(s[i]))
+            i += 1
 
-    s = re.sub(r"\\[0-3]?[0-7][0-7]", octal_to_byte, s)
-
-    # Convert to bytes and then to hexadecimal
-    return s.encode().hex()
+    # Convert the resultant bytes to hexadecimal string
+    if not isBytes:
+        return byte_to_escape_sequence(bytes(result_bytes))
+    return result_bytes.hex()
 
 
 def byte_to_escape_sequence(byte_data: bytes) -> str:

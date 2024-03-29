@@ -99,7 +99,7 @@ contract BasicTypes {
 
     function check_specific_string(string memory provided) public {
         require(bytes(provided).length > 0);
-        if (keccak256(bytes(provided)) == keccak256(bytes(hex"00"))) {
+        if (keccak256(bytes(provided)) == keccak256(bytes("TEST_STRING"))) {
             assert(false);
         }
     }
@@ -118,6 +118,13 @@ contract BasicTypes {
 
     function check_bytes() public {
         if (providedBytes.length > 20) {
+            assert(false);
+        }
+    }
+
+    function check_specific_bytes(bytes memory provided) public {
+        require(bytes(provided).length > 0);
+        if (keccak256(bytes(provided)) == keccak256(bytes(hex"1e233952a8b4"))) {
             assert(false);
         }
     }

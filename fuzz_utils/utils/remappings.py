@@ -19,7 +19,7 @@ def find_remappings(include_attacks: bool) -> dict:
             remappings = file.read()
     else:
         output = subprocess.run(["forge", "remappings"], capture_output=True, text=True, check=True)
-        remappings = str(output)
+        remappings = str(output.stdout)
 
     oz_matches = re.findall(openzeppelin, remappings)
     sol_matches = re.findall(solmate, remappings)
