@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fuzz-utils"
-version = "0.0.1"
+version = "0.2.0"
 authors = [{ name = "Trail of Bits" }]
 description = "A tool for automatically generating unit tests from Echidna and Medusa reproducers."
 readme = "README.md"
