@@ -113,9 +113,19 @@ class HarnessGenerator:
                     config["actors"] = self.config["actors"]
                     config["actors"][0]["targets"] = config["targets"]
             case "simple":
-                pass
+                config["actors"] = []
             case "prank":
-                pass
+                if "actors" in config:
+                    if not isinstance(config["actors"], list[str]) or len(config["actors"]) > 0:  # type: ignore[misc]
+                        CryticPrint().print_warning(
+                            "Actors not defined. Using default 0xb4b3 and 0xb0b."
+                        )
+                        config["actors"] = ["0xb4b3", "0xb0b"]
+                else:
+                    CryticPrint().print_warning(
+                        "Actors not defined. Using default 0xb4b3 and 0xb0b."
+                    )
+                    config["actors"] = ["0xb4b3", "0xb0b"]
             case _:
                 handle_exit(f"Invalid template mode {config['mode']} was provided.")
 
@@ -145,28 +155,27 @@ class HarnessGenerator:
         # Generate the Attacks
         attacks: list[Actor] = self._generate_attacks()
         CryticPrint().print_success("    Attacks generated!")
+        actors: list = []
 
         # Generate actors and harnesses, depending on strategy
         match self.mode:
             case "actor":
                 # Generate the Actors
-                actors: list[Actor] = self._generate_actors()
+                actors = self._generate_actors()
                 CryticPrint().print_success("    Actors generated!")
-
-                # Generate the harness
-                self._generate_harness_with_actors(actors, attacks)
-            case "simple":
-                # Generate the harness
-                self._generate_harness_simple_or_prank([], attacks)
             case "prank":
-                # Generate the harness
-                self._generate_harness_simple_or_prank(self.config["actors"], attacks)
+                actors = self.config["actors"]
+            case _:
+                pass
+
+        # Generate the harness
+        self._generate_harness(actors, attacks)
 
         CryticPrint().print_success("    Harness generated!")
         CryticPrint().print_success(f"Files saved to {self.config['outputDir']}")
 
-    # pylint: disable=too-many-locals,too-many-branches
-    def _generate_harness_simple_or_prank(self, actors: list, attacks: list[Actor]) -> None:
+    # pylint: disable=too-many-locals,too-many-statements,too-many-branches
+    def _generate_harness(self, actors: list, attacks: list[Actor]) -> None:
         CryticPrint().print_information(f"Generating {self.config['name']} Harness")
 
         # Generate inheritance and variables
@@ -178,7 +187,11 @@ class HarnessGenerator:
             variables.append(f"{contract.name} {contract.name.lower()};")
 
         # Generate actor variables and imports
-        if self.mode == "prank":
+        if self.mode == "actor":
+            for actor in actors:
+                variables.append(f"Actor{actor.name}[] {actor.name}_actors;")
+                imports.append(f'import "{actor.path}";')
+        elif self.mode == "prank":
             variables.append("address[] pranked_actors;")
 
         # Generate attack variables and imports
@@ -198,12 +211,24 @@ class HarnessGenerator:
             inputs_str: str = ", ".join(inputs)
             constructor += f"        {contract.name.lower()} = new {contract.name}({inputs_str});\n"
 
-        if self.mode == "prank":
+        if self.mode == "actor":
             for actor in actors:
                 constructor += "        for(uint256 i; i < 3; i++) {\n"
+                constructor_arguments = ""
+                if actor.contract and hasattr(actor.contract.constructor, "parameters"):
+                    constructor_arguments = ", ".join(
+                        [
+                            f"address({x.name.strip('_')})"
+                            for x in actor.contract.constructor.parameters
+                        ]
+                    )
                 constructor += (
-                    f"            pranked_actors.push(address({actor}));\n" + "        }\n"
+                    f"            {actor.name}_actors.push(new Actor{actor.name}({constructor_arguments}));\n"
+                    + "        }\n"
                 )
+        elif self.mode == "prank":
+            for actor in actors:
+                constructor += f"        pranked_actors.push(address({actor}));\n"
 
         for attack in attacks:
             constructor_arguments = ""
@@ -221,113 +246,26 @@ class HarnessGenerator:
 
         # Generate Functions
         functions: list[str] = []
-        for contract in self.targets:
-            function_body = ""
-            appended_params = []
-            if self.mode == "prank":
-                function_body = "        address selectedActor = pranked_actors[clampBetween(actorIndex, 0, pranked_actors.length - 1)];\n"
-                function_body += "        hevm.prank(selectedActor);\n"
-                appended_params.append("uint256 actorIndex")
-
-            temp_list = self._generate_functions(
-                contract, None, appended_params, function_body, contract.name.lower()
-            )
-            functions.extend(temp_list)
-
-        for attack in attacks:
-            temp_list = self._generate_functions(
-                attack.contract, None, [], None, f"{attack.name.lower()}Attack"
-            )
-            functions.extend(temp_list)
-
-        # Generate harness class
-        harness = Harness(
-            name=self.config["name"],
-            constructor=constructor,
-            dependencies=dependencies,
-            content="",
-            path="",
-            targets=self.targets,
-            actors=actors,
-            imports=imports,
-            variables=variables,
-            functions=functions,
-        )
-
-        content, path = self._render_template(
-            templates["HARNESS"], "harnesses", self.config["name"], harness
-        )
-        harness.set_content(content)
-        harness.set_path(path)
-
-    # pylint: disable=too-many-locals
-    def _generate_harness_with_actors(self, actors: list[Actor], attacks: list[Actor]) -> None:
-        CryticPrint().print_information(f"Generating {self.config['name']} Harness")
-
-        # Generate inheritance and variables
-        imports: list[str] = []
-        variables: list[str] = []
-
-        for contract in self.targets:
-            imports.append(f'import "{contract.source_mapping.filename.relative}";')
-            variables.append(f"{contract.name} {contract.name.lower()};")
-
-        # Generate actor variables and imports
-        for actor in actors:
-            variables.append(f"Actor{actor.name}[] {actor.name}_actors;")
-            imports.append(f'import "{actor.path}";')
-
-        # Generate attack variables and imports
-        for attack in attacks:
-            variables.append(f"Attack{attack.name} {attack.name.lower()}Attack;")
-            imports.append(f'import "{attack.path}";')
-
-        # Generate constructor with contract, actor, and attack deployment
-        constructor = "constructor() {\n"
-        for contract in self.targets:
-            inputs: list[str] = []
-            if contract.constructor:
-                constructor_parameters = contract.constructor.parameters
-                for param in constructor_parameters:
-                    constructor += f"        {param.type} {param.name};\n"
-                    inputs.append(param.name)
-            inputs_str: str = ", ".join(inputs)
-            constructor += f"        {contract.name.lower()} = new {contract.name}({inputs_str});\n"
-
-        for actor in actors:
-            constructor += "        for(uint256 i; i < 3; i++) {\n"
-            constructor_arguments = ""
-            if actor.contract and hasattr(actor.contract.constructor, "parameters"):
-                constructor_arguments = ", ".join(
-                    [f"address({x.name.strip('_')})" for x in actor.contract.constructor.parameters]
+        if self.mode == "actor":
+            for actor in actors:
+                function_body = f"        {actor.contract.name} selectedActor = {actor.name}_actors[clampBetween(actorIndex, 0, {actor.name}_actors.length - 1)];\n"
+                temp_list = self._generate_functions(
+                    actor.contract, None, ["uint256 actorIndex"], function_body, "selectedActor"
                 )
-            constructor += (
-                f"            {actor.name}_actors.push(new Actor{actor.name}({constructor_arguments}));\n"
-                + "        }\n"
-            )
+                functions.extend(temp_list)
+        else:
+            for contract in self.targets:
+                function_body = ""
+                appended_params = []
+                if self.mode == "prank":
+                    function_body = "        address selectedActor = pranked_actors[clampBetween(actorIndex, 0, pranked_actors.length - 1)];\n"
+                    function_body += "        hevm.prank(selectedActor);\n"
+                    appended_params.append("uint256 actorIndex")
 
-        for attack in attacks:
-            constructor_arguments = ""
-            if attack.contract and hasattr(attack.contract.constructor, "parameters"):
-                constructor_arguments = ", ".join(
-                    [
-                        f"address({x.name.strip('_')})"
-                        for x in attack.contract.constructor.parameters
-                    ]
+                temp_list = self._generate_functions(
+                    contract, None, appended_params, function_body, contract.name.lower()
                 )
-            constructor += f"        {attack.name.lower()}Attack = new {attack.name}({constructor_arguments});\n"
-        constructor += "    }\n"
-        # Generate dependencies
-        dependencies: str = "PropertiesAsserts"
-
-        # Generate Functions
-        functions: list[str] = []
-        for actor in actors:
-            function_body = f"        {actor.contract.name} selectedActor = {actor.name}_actors[clampBetween(actorIndex, 0, {actor.name}_actors.length - 1)];\n"
-            temp_list = self._generate_functions(
-                actor.contract, None, ["uint256 actorIndex"], function_body, "selectedActor"
-            )
-            functions.extend(temp_list)
+                functions.extend(temp_list)
 
         for attack in attacks:
             temp_list = self._generate_functions(
