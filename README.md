@@ -72,12 +72,16 @@ The `template` command is used to generate a fuzzing harness. The harness can in
 
 **Example**
 
-In order to generate a fuzzing harness for the [BasicTypes.sol](tests/test_data/src/BasicTypes.sol) contract, we need to `cd` into the `tests/test_data/` directory which contains the Foundry project and run the command:
+In order to generate a fuzzing harness for the [TestERC20.sol](tests/test_data/src/TestERC20.sol) contract, we need to `cd` into the `tests/test_data/` directory which contains the Foundry project and run the command:
 ```bash
-fuzz-utils template ./src/BasicType.sol --name "DefaultHarness" --contracts BasicTypes
+fuzz-utils template ./src/TestERC20.sol --name "ERC20Harness" --contracts TestERC20
 ```
 
-Running this command should generate the directory structure in [tests/test_data/test/fuzzing](tests/test_data/test/fuzzing), which contains the fuzzing harness [DefaultHarness](tests/test_data/test/fuzzing/harnesses/DefaultHarness.sol) and the Actor contract [DefaultActor](tests/test_data/test/fuzzing/actors/ActorDefault.sol).
+Running this command should generate the directory structure in [tests/test_data/test/fuzzing](tests/test_data/test/fuzzing), which contains the fuzzing harness [ERC20Harness](tests/test_data/test/fuzzing/harnesses/ERC20Harness.sol) and the Actor contract [DefaultActor](tests/test_data/test/fuzzing/actors/ActorDefault.sol).
+
+We can see that the tool has generated the `DefaultActor` contract which contains all the functions of our ERC20 token, and that our fuzzing harness `ERC20Harness` is able to call each of these functions by randomly selecting one of the deployed actors, simulating different users. 
+
+This reduces the amount of time you need to set up fuzzing harness boilerplate and let's you focus on what really matters, defining invariants and testing the system.
 
 ## Utilities
 

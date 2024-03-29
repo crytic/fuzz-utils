@@ -14,87 +14,31 @@ pragma solidity ^0.8.0;
 ///    `directoryName/=directoryName/` to foundry.toml or remappings.txt
 
 import "properties/util/PropertiesHelper.sol";
-import "src/BasicTypes.sol";
+import "src/TestERC20.sol";
 contract ActorDefault is PropertiesAsserts {
-    BasicTypes basictypes;
-    constructor(address _basictypes){
-       basictypes = BasicTypes(_basictypes);
+    TestERC20 testerc20;
+    constructor(address _testerc20){
+       testerc20 = TestERC20(_testerc20);
     }
 
     // -------------------------------------
-    // BasicTypes functions
-    // src/BasicTypes.sol
+    // ERC20 functions
+    // lib/solmate/src/tokens/ERC20.sol
     // -------------------------------------
 
-    function setBool(bool set) public {
-        basictypes.setBool(set);
+    function approve(address payable spender, uint256 amount) public returns (bool) {
+        testerc20.approve(spender, amount);
     }
 
-    function check_bool() public {
-        basictypes.check_bool();
+    function transfer(address payable to, uint256 amount) public returns (bool) {
+        testerc20.transfer(to, amount);
     }
 
-    function setUint256(uint256 input) public {
-        basictypes.setUint256(input);
+    function transferFrom(address payable from, address payable to, uint256 amount) public returns (bool) {
+        testerc20.transferFrom(from, to, amount);
     }
 
-    function check_uint256() public {
-        basictypes.check_uint256();
-    }
-
-    function check_large_uint256() public {
-        basictypes.check_large_uint256();
-    }
-
-    function setInt256(int256 input) public {
-        basictypes.setInt256(input);
-    }
-
-    function check_int256() public {
-        basictypes.check_int256();
-    }
-
-    function check_large_positive_int256() public {
-        basictypes.check_large_positive_int256();
-    }
-
-    function check_large_negative_int256() public {
-        basictypes.check_large_negative_int256();
-    }
-
-    function setAddress(address payable input) public {
-        basictypes.setAddress(input);
-    }
-
-    function check_address() public {
-        basictypes.check_address();
-    }
-
-    function setString(string memory input) public {
-        basictypes.setString(input);
-    }
-
-    function check_string() public {
-        basictypes.check_string();
-    }
-
-    function check_specific_string(string memory provided) public {
-        basictypes.check_specific_string(provided);
-    }
-
-    function setBytes(bytes memory input) public {
-        basictypes.setBytes(input);
-    }
-
-    function check_bytes() public {
-        basictypes.check_bytes();
-    }
-
-    function setCombination(bool bool_input, uint256 unsigned_input, int256 signed_input, address payable address_input, string memory str_input, bytes memory bytes_input) public {
-        basictypes.setCombination(bool_input, unsigned_input, signed_input, address_input, str_input, bytes_input);
-    }
-
-    function check_combined_input() public {
-        basictypes.check_combined_input();
+    function permit(address payable owner, address payable spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s) public {
+        testerc20.permit(owner, spender, value, deadline, v, r, s);
     }
 }
