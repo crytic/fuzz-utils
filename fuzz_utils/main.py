@@ -1,138 +1,14 @@
 """ Generates a test file from Echidna reproducers """
-import os
 import sys
-import json
 import argparse
-from typing import Any
-import jinja2
-
 from pkg_resources import require
+from fuzz_utils.parsing.parser import define_subparsers, run_command
 
-from slither import Slither
-from slither.core.declarations.contract import Contract
-from fuzz_utils.utils.crytic_print import CryticPrint
-from fuzz_utils.templates.foundry_templates import templates
-from fuzz_utils.fuzzers.Medusa import Medusa
-from fuzz_utils.fuzzers.Echidna import Echidna
-from fuzz_utils.utils.error_handler import handle_exit
-
-
-class FoundryTest:  # pylint: disable=too-many-instance-attributes
-    """
-    Handles the generation of Foundry test files
-    """
-
-    def __init__(
-        self,
-        inheritance_path: str,
-        target_name: str,
-        corpus_path: str,
-        test_dir: str,
-        slither: Slither,
-        fuzzer: Echidna | Medusa,
-        all_sequences: bool,
-    ) -> None:
-        self.inheritance_path = inheritance_path
-        self.target_name = target_name
-        self.corpus_path = corpus_path
-        self.test_dir = test_dir
-        self.slither = slither
-        self.target = self.get_target_contract()
-        self.fuzzer = fuzzer
-        self.all_sequences = all_sequences
-
-    def get_target_contract(self) -> Contract:
-        """Gets the Slither Contract object for the specified contract file"""
-        contracts = self.slither.get_contract_from_name(self.target_name)
-        # Loop in case slither fetches multiple contracts for some reason (e.g., similar names?)
-        for contract in contracts:
-            if contract.name == self.target_name:
-                return contract
-
-        # TODO throw error if no contract found
-        sys.exit(-1)
-
-    def create_poc(self) -> str:
-        """Takes in a directory path to the echidna reproducers and generates a test file"""
-
-        file_list: list[dict[str, Any]] = []
-        tests_list = []
-        dir_list = []
-        if self.all_sequences:
-            dir_list = self.fuzzer.corpus_dirs
-        else:
-            dir_list = [self.fuzzer.reproducer_dir]
-
-        # 1. Iterate over each directory and reproducer file (open it)
-        for directory in dir_list:
-            for entry in os.listdir(directory):
-                full_path = os.path.join(directory, entry)
-
-                if os.path.isfile(full_path):
-                    try:
-                        with open(full_path, "r", encoding="utf-8") as file:
-                            file_list.append({"path": full_path, "content": json.load(file)})
-                    except Exception:  # pylint: disable=broad-except
-                        print(f"Fail on {full_path}")
-
-        # 2. Parse each reproducer file and add each test function to the functions list
-        for idx, file_obj in enumerate(file_list):
-            try:
-                tests_list.append(
-                    self.fuzzer.parse_reproducer(file_obj["path"], file_obj["content"], idx)
-                )
-            except Exception:  # pylint: disable=broad-except
-                print(f"Parsing fail on {file_obj['content']}: index: {idx}")
-
-        # 4. Generate the test file
-        template = jinja2.Template(templates["CONTRACT"])
-        write_path = f"{self.test_dir}{self.target_name}"
-        inheritance_path = f"{self.inheritance_path}{self.target_name}"
-
-        # 5. Save the test file
-        test_file_str = template.render(
-            file_path=f"{inheritance_path}.sol",
-            target_name=self.target_name,
-            amount=0,
-            tests=tests_list,
-            fuzzer=self.fuzzer.name,
-        )
-        with open(f"{write_path}_{self.fuzzer.name}_Test.t.sol", "w", encoding="utf-8") as outfile:
-            outfile.write(test_file_str)
-        CryticPrint().print_success(
-            f"Generated a test file in {write_path}_{self.fuzzer.name}_Test.t.sol"
-        )
-
-        return test_file_str
-
-
+# pylint: disable=too-many-locals,too-many-statements
 def main() -> None:  # type: ignore[func-returns-value]
     """The main entry point"""
     parser = argparse.ArgumentParser(
         prog="fuzz-utils", description="Generate test harnesses for Echidna failed properties."
-    )
-    parser.add_argument("file_path", help="Path to the Echidna test harness.")
-    parser.add_argument(
-        "-cd", "--corpus-dir", dest="corpus_dir", help="Path to the corpus directory", required=True
-    )
-    parser.add_argument("-c", "--contract", dest="target_contract", help="Define the contract name")
-    parser.add_argument(
-        "-td",
-        "--test-directory",
-        dest="test_directory",
-        help="Define the directory that contains the Foundry tests.",
-    )
-    parser.add_argument(
-        "-i",
-        "--inheritance-path",
-        dest="inheritance_path",
-        help="Define the relative path from the test directory to the directory src/contracts directory.",
-    )
-    parser.add_argument(
-        "-f",
-        "--fuzzer",
-        dest="selected_fuzzer",
-        help="Define the fuzzer used. Valid inputs: 'echidna', 'medusa'",
     )
     parser.add_argument(
         "--version",
@@ -140,60 +16,12 @@ def main() -> None:  # type: ignore[func-returns-value]
         version=require("fuzz-utils")[0].version,
         action="version",
     )
-    parser.add_argument(
-        "--named-inputs",
-        dest="named_inputs",
-        help="Include function input names when making calls.",
-        default=False,
-        action="store_true",
-    )
-    parser.add_argument(
-        "--all-sequences",
-        dest="all_sequences",
-        help="Include all corpus sequences when generating unit tests.",
-        default=False,
-        action="store_true",
-    )
-
+    subparsers = parser.add_subparsers(dest="command", help="sub-command help")
+    define_subparsers(subparsers)
     args = parser.parse_args()
-
-    missing_args = [arg for arg, value in vars(args).items() if value is None]
-    if missing_args:
+    command_success: bool = run_command(args)
+    if not command_success:
         parser.print_help()
-        handle_exit(f"\n* Missing required arguments: {', '.join(missing_args)}")
-
-    file_path = args.file_path
-    corpus_dir = args.corpus_dir
-    test_directory = args.test_directory
-    inheritance_path = args.inheritance_path
-    target_contract = args.target_contract
-    slither = Slither(file_path)
-    fuzzer: Echidna | Medusa
-
-    match args.selected_fuzzer.lower():
-        case "echidna":
-            fuzzer = Echidna(target_contract, corpus_dir, slither, args.named_inputs)
-        case "medusa":
-            fuzzer = Medusa(target_contract, corpus_dir, slither, args.named_inputs)
-        case _:
-            handle_exit(
-                f"\n* The requested fuzzer {args.selected_fuzzer} is not supported. Supported fuzzers: echidna, medusa."
-            )
-
-    CryticPrint().print_information(
-        f"Generating Foundry unit tests based on the {fuzzer.name} reproducers..."
-    )
-    foundry_test = FoundryTest(
-        inheritance_path,
-        target_contract,
-        corpus_dir,
-        test_directory,
-        slither,
-        fuzzer,
-        args.all_sequences,
-    )
-    foundry_test.create_poc()
-    CryticPrint().print_success("Done!")
 
 
 if __name__ == "__main__":

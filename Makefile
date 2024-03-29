@@ -68,7 +68,10 @@ reformat:
 test tests: $(VENV)/pyvenv.cfg
 	. $(VENV_BIN)/activate && \
 		solc-select use 0.8.19 --always-install && \
-		pytest $(T) $(TEST_ARGS)
+		cd tests/test_data && \
+		forge install && \
+		cd ../.. && \
+		pytest --ignore tests/test_data/lib $(T) $(TEST_ARGS)
 
 .PHONY: package
 package: $(VENV)/pyvenv.cfg
