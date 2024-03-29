@@ -29,6 +29,7 @@ __HARNESS_TEMPLATE: str = (
 /// --------------------------------------------------------------------
 
 import "{{remappings["properties"]}}util/PropertiesHelper.sol";
+import "{{remappings["properties"]}}util/Hevm.sol";
 {% for import in target.imports -%}
 {{import}}
 {% endfor %}

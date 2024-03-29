@@ -69,6 +69,13 @@ The `template` command is used to generate a fuzzing harness. The harness can in
 - `-c`/`--contracts` `target_contracts: list`: The name of the target contract.
 - `-o`/`--output-dir` `output_directory: str`: Output directory name. By default it is `fuzzing`
 - `--config`: Path to the `fuzz-utils` config JSON file
+- `--mode`: The strategy to use when generating the harnesses. Valid options: `simple`, `prank`, `actor`
+
+**Generation modes**
+The tool support three harness generation strategies:
+- `simple` - The fuzzing harness will be generated with all of the state-changing functions from the target contracts. All function calls are performed directly, with the harness contract as the `msg.sender`.
+- `prank` - Similar to `simple` mode, with the difference that function calls are made from different users by using `hevm.prank()`. The users can be defined in the configuration file as `"actors": ["0xb4b3", "0xb0b", ...]`
+- `actor` - `Actor` contracts will be generated and all harness function calls will be proxied through these contracts. The `Actor` contracts can be considered as users of the target contracts and the functions included in these actors can be filtered by modifier, external calls, or by `payable`. This allows for granular control over user capabilities.
 
 **Example**
 

@@ -12,6 +12,7 @@ default_config: dict = {
     },
     "template": {
         "name": "DefaultHarness",
+        "mode": "simple",
         "targets": [],
         "outputDir": "./test/fuzzing",
         "compilationPath": ".",

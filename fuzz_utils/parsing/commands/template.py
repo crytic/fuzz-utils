@@ -6,6 +6,7 @@ from slither import Slither
 from fuzz_utils.template.HarnessGenerator import HarnessGenerator
 from fuzz_utils.utils.crytic_print import CryticPrint
 from fuzz_utils.utils.remappings import find_remappings
+from fuzz_utils.utils.error_handler import handle_exit
 
 
 def template_flags(parser: ArgumentParser) -> None:
@@ -26,6 +27,11 @@ def template_flags(parser: ArgumentParser) -> None:
         help="Define the output directory where the result will be saved.",
     )
     parser.add_argument("--config", dest="config", help="Define the location of the config file.")
+    parser.add_argument(
+        "--mode",
+        dest="mode",
+        help="Define the harness generation strategy you want to use. Valid options are `simple`, `prank`, `actor`",
+    )
 
 
 def template_command(args: Namespace) -> None:
@@ -47,6 +53,8 @@ def template_command(args: Namespace) -> None:
         config["compilationPath"] = args.compilation_path
     if args.name:
         config["name"] = args.name
+    if args.mode:
+        config["mode"] = args.mode.lower()
     config["outputDir"] = output_dir
 
     CryticPrint().print_information("Running Slither...")
@@ -58,3 +66,21 @@ def template_command(args: Namespace) -> None:
 
     generator = HarnessGenerator(config, slither, remappings)
     generator.generate_templates()
+
+
+def check_configuration(config: dict) -> None:
+    """Checks the configuration"""
+    mandatory_configuration_fields = ["mode", "targets", "compilationPath"]
+    for field in mandatory_configuration_fields:
+        check_configuration_field_exists_and_non_empty(config, field)
+
+    if config["mode"].lower() not in ("simple", "prank", "actor"):
+        handle_exit(
+            f"The selected mode {config['mode']} is not a valid harness generation strategy."
+        )
+
+
+def check_configuration_field_exists_and_non_empty(config: dict, field: str) -> None:
+    """Checks that the configuration dictionary contains a non-empty field"""
+    if field not in config or len(config[field]) == 0:
+        handle_exit(f"The template configuration field {field} is not configured.")
