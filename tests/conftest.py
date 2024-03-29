@@ -118,11 +118,7 @@ def setup_foundry_temp_dir(tmp_path_factory: Any) -> None:
         ["forge", "install", "transmissions11/solmate", "--no-git"], check=True, cwd=temp_dir
     )
     # Create remappings file
-    remappings = temp_dir / "remappings.txt"
-    with open(remappings, "w", encoding="utf-8") as outfile:
-        outfile.write(
-            "forge-std/=lib/forge-std/src/\nproperties/=lib/properties/contracts/\nsolmate/=lib/solmate/src/\nsrc/=src/"
-        )
+    create_remappings_file(temp_dir)
 
     # Delete unnecessary files
     counter_path = temp_dir / "src" / "Counter.sol"
@@ -157,6 +153,15 @@ def setup_foundry_temp_dir(tmp_path_factory: Any) -> None:
     )
 
     os.chdir(temp_dir)
+
+
+def create_remappings_file(temp_dir: Any) -> None:
+    """Creates a remappings file"""
+    remappings = os.path.join(temp_dir, "remappings.txt")
+    with open(remappings, "w", encoding="utf-8") as outfile:
+        outfile.write(
+            "forge-std/=lib/forge-std/src/\nproperties/=lib/properties/contracts/\nsolmate/=lib/solmate/src/\nsrc/=src/"
+        )
 
 
 def copy_directory_contents(src_dir: str, dest_dir: str) -> None:
