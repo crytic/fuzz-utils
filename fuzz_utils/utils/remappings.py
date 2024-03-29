@@ -9,9 +9,9 @@ from fuzz_utils.utils.error_handler import handle_exit
 def find_remappings(include_attacks: bool) -> dict:
     """Finds the remappings used and returns a dict with the values"""
     CryticPrint().print_information("Checking dependencies...")
-    openzeppelin = r"(\S+)=lib\/openzeppelin-contracts\/(?!\S*lib\/)(\S+)"
-    solmate = r"(\S+)=lib\/solmate\/(?!\S*lib\/)(\S+)"
-    properties = r"(\S+)=lib\/properties\/(?!\S*lib\/)(\S+)"
+    openzeppelin = r"(\S+)=lib\/openzeppelin-contracts\/(?!\S*lib\/)(\S*)"
+    solmate = r"(\S+)=lib\/solmate\/(?!\S*lib\/)(\S*)"
+    properties = r"(\S+)=lib\/properties\/(?!\S*lib\/)(\S*)"
     remappings: str = ""
 
     if os.path.exists("remappings.txt"):
