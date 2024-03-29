@@ -13,6 +13,7 @@ from fuzz_utils.template.HarnessGenerator import HarnessGenerator
 TEST_DATA_DIR = Path(__file__).resolve().parent / "test_data"
 default_config = {
     "name": "DefaultHarness",
+    "mode": "actor",
     "compilationPath": ".",
     "targets": [],
     "outputDir": "./test/fuzzing",
