@@ -3,7 +3,6 @@
 import os
 import copy
 from dataclasses import dataclass
-from eth_utils import to_checksum_address
 
 from slither import Slither
 from slither.core.declarations.contract import Contract
@@ -106,7 +105,9 @@ class HarnessGenerator:
         match config["mode"]:
             case "actor":
                 if "actors" in config:
-                    config["actors"] = check_and_populate_actor_fields(config["actors"], config["targets"])
+                    config["actors"] = check_and_populate_actor_fields(
+                        config["actors"], config["targets"]
+                    )
                 else:
                     CryticPrint().print_warning("Using default values for the Actor.")
                     config["actors"] = self.config["actors"]
@@ -164,7 +165,7 @@ class HarnessGenerator:
         CryticPrint().print_success("    Harness generated!")
         CryticPrint().print_success(f"Files saved to {self.config['outputDir']}")
 
-    # pylint: disable=too-many-locals
+    # pylint: disable=too-many-locals,too-many-branches
     def _generate_harness_simple_or_prank(self, actors: list, attacks: list[Actor]) -> None:
         CryticPrint().print_information(f"Generating {self.config['name']} Harness")
 
@@ -175,7 +176,7 @@ class HarnessGenerator:
         for contract in self.targets:
             imports.append(f'import "{contract.source_mapping.filename.relative}";')
             variables.append(f"{contract.name} {contract.name.lower()};")
-        
+
         # Generate actor variables and imports
         if self.mode == "prank":
             variables.append("address[] pranked_actors;")
@@ -201,15 +202,17 @@ class HarnessGenerator:
             for actor in actors:
                 constructor += "        for(uint256 i; i < 3; i++) {\n"
                 constructor += (
-                    f"            pranked_actors.push(address({actor}));\n"
-                    + "        }\n"
+                    f"            pranked_actors.push(address({actor}));\n" + "        }\n"
                 )
 
         for attack in attacks:
             constructor_arguments = ""
             if attack.contract and hasattr(attack.contract.constructor, "parameters"):
                 constructor_arguments = ", ".join(
-                    [f"address({x.name.strip('_')})" for x in attack.contract.constructor.parameters]
+                    [
+                        f"address({x.name.strip('_')})"
+                        for x in attack.contract.constructor.parameters
+                    ]
                 )
             constructor += f"        {attack.name.lower()}Attack = new {attack.name}({constructor_arguments});\n"
         constructor += "    }\n"
@@ -307,7 +310,10 @@ class HarnessGenerator:
             constructor_arguments = ""
             if attack.contract and hasattr(attack.contract.constructor, "parameters"):
                 constructor_arguments = ", ".join(
-                    [f"address({x.name.strip('_')})" for x in attack.contract.constructor.parameters]
+                    [
+                        f"address({x.name.strip('_')})"
+                        for x in attack.contract.constructor.parameters
+                    ]
                 )
             constructor += f"        {attack.name.lower()}Attack = new {attack.name}({constructor_arguments});\n"
         constructor += "    }\n"
