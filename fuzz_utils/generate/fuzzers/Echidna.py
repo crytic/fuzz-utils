@@ -4,7 +4,6 @@ from typing import Any, NoReturn
 import jinja2
 
 from slither import Slither
-from slither.core.declarations.contract import Contract
 from slither.core.declarations.function_contract import FunctionContract
 from slither.core.solidity_types.elementary_type import ElementaryType
 from slither.core.solidity_types.user_defined_type import UserDefinedType
@@ -16,9 +15,10 @@ from fuzz_utils.utils.crytic_print import CryticPrint
 from fuzz_utils.templates.foundry_templates import templates
 from fuzz_utils.utils.encoding import parse_echidna_byte_string
 from fuzz_utils.utils.error_handler import handle_exit
+from fuzz_utils.utils.slither_utils import get_target_contract
 
 
-# pylint: disable=too-many-instance-attributes
+# pylint: disable=too-few-public-methods,too-many-instance-attributes
 class Echidna:
     """
     Handles the generation of Foundry test files from Echidna reproducers
@@ -30,21 +30,11 @@ class Echidna:
         self.name = "Echidna"
         self.target_name = target_name
         self.slither = slither
-        self.target = self.get_target_contract()
+        self.target = get_target_contract(slither, target_name)
         self.reproducer_dir = f"{corpus_path}/reproducers"
         self.corpus_dirs = [f"{corpus_path}/coverage", self.reproducer_dir]
         self.named_inputs = named_inputs
         self.declared_variables: set[tuple[str, str]] = set()
-
-    def get_target_contract(self) -> Contract:
-        """Finds and returns Slither Contract"""
-        contracts = self.slither.get_contract_from_name(self.target_name)
-        # Loop in case slither fetches multiple contracts for some reason (e.g., similar names?)
-        for contract in contracts:
-            if contract.name == self.target_name:
-                return contract
-
-        handle_exit(f"\n* Slither could not find the specified contract `{self.target_name}`.")
 
     def parse_reproducer(self, file_path: str, calls: Any, index: int) -> str:
         """

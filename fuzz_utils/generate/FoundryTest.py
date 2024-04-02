@@ -1,23 +1,26 @@
 """The FoundryTest class that handles generation of unit tests from call sequences"""
 import os
-import sys
 import json
+import copy
 from typing import Any
 import jinja2
 
 from slither import Slither
-from slither.core.declarations.contract import Contract
 from fuzz_utils.utils.crytic_print import CryticPrint
+from fuzz_utils.utils.slither_utils import get_target_contract
+from fuzz_utils.templates.default_config import default_config
 
 from fuzz_utils.generate.fuzzers.Medusa import Medusa
 from fuzz_utils.generate.fuzzers.Echidna import Echidna
 from fuzz_utils.templates.foundry_templates import templates
 
-
-class FoundryTest:  # pylint: disable=too-many-instance-attributes
+# pylint: disable=too-few-public-methods,too-many-instance-attributes
+class FoundryTest:
     """
     Handles the generation of Foundry test files
     """
+
+    config: dict = copy.deepcopy(default_config["generate"])
 
     def __init__(
         self,
@@ -25,25 +28,14 @@ class FoundryTest:  # pylint: disable=too-many-instance-attributes
         slither: Slither,
         fuzzer: Echidna | Medusa,
     ) -> None:
-        self.inheritance_path = config["inheritancePath"]
-        self.target_name = config["targetContract"]
-        self.corpus_path = config["corpusDir"]
-        self.test_dir = config["testsDir"]
-        self.all_sequences = config["allSequences"]
         self.slither = slither
-        self.target = self.get_target_contract()
+        for key, value in config.items():
+            if key in self.config:
+                self.config[key] = value
+
+        self.target = get_target_contract(self.slither, self.config["targetContract"])
+        self.target_file_name = self.target.source_mapping.filename.relative.split("/")[-1]
         self.fuzzer = fuzzer
-
-    def get_target_contract(self) -> Contract:
-        """Gets the Slither Contract object for the specified contract file"""
-        contracts = self.slither.get_contract_from_name(self.target_name)
-        # Loop in case slither fetches multiple contracts for some reason (e.g., similar names?)
-        for contract in contracts:
-            if contract.name == self.target_name:
-                return contract
-
-        # TODO throw error if no contract found
-        sys.exit(-1)
 
     def create_poc(self) -> str:
         """Takes in a directory path to the echidna reproducers and generates a test file"""
@@ -51,7 +43,7 @@ class FoundryTest:  # pylint: disable=too-many-instance-attributes
         file_list: list[dict[str, Any]] = []
         tests_list = []
         dir_list = []
-        if self.all_sequences:
+        if self.config["allSequences"]:
             dir_list = self.fuzzer.corpus_dirs
         else:
             dir_list = [self.fuzzer.reproducer_dir]
@@ -79,13 +71,12 @@ class FoundryTest:  # pylint: disable=too-many-instance-attributes
 
         # 4. Generate the test file
         template = jinja2.Template(templates["CONTRACT"])
-        write_path = f"{self.test_dir}{self.target_name}"
-        inheritance_path = f"{self.inheritance_path}{self.target_name}"
-
+        write_path = os.path.join(self.config["testsDir"], self.config["targetContract"])
+        inheritance_path = os.path.join(self.config["inheritancePath"])
         # 5. Save the test file
         test_file_str = template.render(
-            file_path=f"{inheritance_path}.sol",
-            target_name=self.target_name,
+            file_path=inheritance_path,
+            target_name=self.config["targetContract"],
             amount=0,
             tests=tests_list,
             fuzzer=self.fuzzer.name,
