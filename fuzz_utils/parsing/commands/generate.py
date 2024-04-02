@@ -102,26 +102,7 @@ def generate_command(args: Namespace) -> None:
     slither = Slither(args.compilation_path)
     fuzzer: Echidna | Medusa
 
-    # Derive target if it is not defined but the compilationPath only contains one contract
-    if "targetContract" not in config or len(config["targetContract"]) == 0:
-        if len(slither.contracts_derived) == 1:
-            config["targetContract"] = slither.contracts_derived[0].name
-            CryticPrint().print_information(
-                f"Target contract not specified. Using derived target: {config['targetContract']}."
-            )
-        else:
-            handle_exit(
-                "Target contract cannot be determined. Please specify the target with `-c targetName`"
-            )
-
-    # Derive inheritance path if it is not defined
-    if "inheritancePath" not in config or len(config["inheritancePath"]) == 0:
-        contract = get_target_contract(slither, config["targetContract"])
-        contract_path = Path(contract.source_mapping.filename.relative)
-        tests_path = Path(config["testsDir"])
-        config["inheritancePath"] = str(
-            Path(*([".." * len(tests_path.parts)])).joinpath(contract_path)
-        )
+    derive_config(slither, config)
 
     match config["fuzzer"]:
         case "echidna":
@@ -143,3 +124,27 @@ def generate_command(args: Namespace) -> None:
     foundry_test = FoundryTest(config, slither, fuzzer)
     foundry_test.create_poc()
     CryticPrint().print_success("Done!")
+
+
+def derive_config(slither: Slither, config: dict) -> None:
+    """Derive values for the target contract and inheritance path"""
+    # Derive target if it is not defined but the compilationPath only contains one contract
+    if "targetContract" not in config or len(config["targetContract"]) == 0:
+        if len(slither.contracts_derived) == 1:
+            config["targetContract"] = slither.contracts_derived[0].name
+            CryticPrint().print_information(
+                f"Target contract not specified. Using derived target: {config['targetContract']}."
+            )
+        else:
+            handle_exit(
+                "Target contract cannot be determined. Please specify the target with `-c targetName`"
+            )
+
+    # Derive inheritance path if it is not defined
+    if "inheritancePath" not in config or len(config["inheritancePath"]) == 0:
+        contract = get_target_contract(slither, config["targetContract"])
+        contract_path = Path(contract.source_mapping.filename.relative)
+        tests_path = Path(config["testsDir"])
+        config["inheritancePath"] = str(
+            Path(*([".." * len(tests_path.parts)])).joinpath(contract_path)
+        )

@@ -23,7 +23,7 @@ class TestGenerator:
         medusa = Medusa(target, f"medusa-corpora/{corpus_dir}", slither, False)
         config = {
             "targetContract": target,
-            "inheritancePath": "../src/",
+            "inheritancePath": f"../src/{target}.sol",
             "corpusDir": f"echidna-corpora/{corpus_dir}",
             "testsDir": "./test/",
             "allSequences": False,

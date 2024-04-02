@@ -15,6 +15,7 @@ from fuzz_utils.utils.file_manager import check_and_create_dirs, save_file
 from fuzz_utils.utils.error_handler import handle_exit
 from fuzz_utils.utils.slither_utils import get_target_contract
 from fuzz_utils.templates.harness_templates import templates
+from fuzz_utils.templates.default_config import default_config
 
 # pylint: disable=too-many-instance-attributes
 @dataclass
@@ -76,26 +77,7 @@ class HarnessGenerator:
     Handles the generation of Foundry test files from Echidna reproducers
     """
 
-    config: dict = {
-        "name": "DefaultHarness",
-        "compilationPath": ".",
-        "targets": [],
-        "outputDir": "./test/fuzzing",
-        "actors": [
-            {
-                "name": "Default",
-                "targets": [],
-                "number": 3,
-                "filters": {
-                    "strict": False,
-                    "onlyModifiers": [],
-                    "onlyPayable": False,
-                    "onlyExternalCalls": [],
-                },
-            }
-        ],
-        "attacks": [],
-    }
+    config: dict = copy.deepcopy(default_config["template"])
 
     def __init__(
         self,
