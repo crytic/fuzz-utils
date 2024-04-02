@@ -40,21 +40,21 @@ The available tool commands are:
 The `generate` command is used to generate Foundry unit tests from Echidna or Medusa corpus call sequences.
 
 **Command-line options:**
-- `compilation_path`: The path to the Solidity file or Foundry directory
-- `-cd`/`--corpus-dir` `path_to_corpus_dir`: The path to the corpus directory relative to the working directory.
-- `-c`/`--contract` `contract_name`: The name of the target contract.
-- `-td`/`--test-directory` `path_to_test_directory`: The path to the test directory relative to the working directory.
-- `-i`/`--inheritance-path` `relative_path_to_contract`: The relative path from the test directory to the contract (used for inheritance).
-- `-f`/`--fuzzer` `fuzzer_name`: The name of the fuzzer, currently supported: `echidna` and `medusa`
-- `--named-inputs`: Includes function input names when making calls
-- `--config`: Path to the fuzz-utils config JSON file
-- `--all-sequences`: Include all corpus sequences when generating unit tests.
+- `compilation_path`: The path to the Solidity file or Foundry directory. By default `.`
+- `-cd`/`--corpus-dir` `path_to_corpus_dir`: The path to the corpus directory relative to the working directory. By default `corpus`
+- `-c`/`--contract` `contract_name`: The name of the target contract. If the compilation path only contains one contract the target will be automatically derived.
+- `-td`/`--test-directory` `path_to_test_directory`: The path to the test directory relative to the working directory. By default `test`
+- `-i`/`--inheritance-path` `relative_path_to_contract`: The relative path from the test directory to the contract (used for overriding inheritance). If this configuration option is not provided the inheritance path will be automatically derived. 
+- `-f`/`--fuzzer` `fuzzer_name`: The name of the fuzzer, currently supported: `echidna` and `medusa`. By default `medusa`
+- `--named-inputs`: Includes function input names when making calls. By default`false`
+- `--config`: Path to the fuzz-utils config JSON file. Empty by default.
+- `--all-sequences`: Include all corpus sequences when generating unit tests. By default `false`
 
 **Example**
 
 In order to generate a test file for the [BasicTypes.sol](tests/test_data/src/BasicTypes.sol) contract, based on the Echidna corpus reproducers for this contract ([corpus-basic](tests/test_data/echidna-corpora/corpus-basic/)), we need to `cd` into the `tests/test_data` directory which contains the Foundry project and run the command:
 ```bash
-fuzz-utils generate ./src/BasicTypes.sol --corpus-dir echidna-corpora/corpus-basic --contract "BasicTypes" --test-directory "./test/" --inheritance-path "../src/" --fuzzer echidna
+fuzz-utils generate ./src/BasicTypes.sol --corpus-dir echidna-corpora/corpus-basic --contract "BasicTypes" --fuzzer echidna
 ```
 
 Running this command should generate a `BasicTypes_Echidna_Test.sol` file in the [test](/tests/test_data/test/) directory of the Foundry project.

@@ -69,8 +69,8 @@ class FoundryTest:
         # 4. Generate the test file
         template = jinja2.Template(templates["CONTRACT"])
         write_path = os.path.join(self.test_dir, self.target_name)
-        inheritance_path = os.path.join(self.inheritance_path, self.target_file_name)
-
+        inheritance_path = os.path.join(self.inheritance_path)
+        print("INHERITANCE PATH", inheritance_path)
         # 5. Save the test file
         test_file_str = template.render(
             file_path=inheritance_path,
