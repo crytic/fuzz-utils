@@ -3,9 +3,9 @@ default_config: dict = {
     "generate": {
         "targetContract": "",
         "compilationPath": ".",
-        "corpusDir": "",
-        "fuzzer": "",
-        "testsDir": "",
+        "corpusDir": "corpus",
+        "fuzzer": "medusa",
+        "testsDir": "test",
         "inheritancePath": "",
         "namedInputs": False,
         "allSequences": False,

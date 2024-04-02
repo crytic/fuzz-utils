@@ -65,9 +65,9 @@ The `template` command is used to generate a fuzzing harness. The harness can in
 
 **Command-line options:**
 - `compilation_path`: The path to the Solidity file or Foundry directory
-- `-n`/`--name` `name: str`: The name of the fuzzing harness.
-- `-c`/`--contracts` `target_contracts: list`: The name of the target contract.
-- `-o`/`--output-dir` `output_directory: str`: Output directory name. By default it is `fuzzing`
+- `-n`/`--name` `name: str`: The name of the fuzzing harness. By default `DefaultHarness`
+- `-c`/`--contracts` `target_contracts: list`: The name of the target contract. Empty by default.
+- `-o`/`--output-dir` `output_directory: str`: Output directory name. By default `fuzzing`
 - `--config`: Path to the `fuzz-utils` config JSON file
 - `--mode`: The strategy to use when generating the harnesses. Valid options: `simple`, `prank`, `actor`
 
