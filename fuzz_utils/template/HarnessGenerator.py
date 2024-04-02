@@ -13,6 +13,7 @@ import jinja2
 from fuzz_utils.utils.crytic_print import CryticPrint
 from fuzz_utils.utils.file_manager import check_and_create_dirs, save_file
 from fuzz_utils.utils.error_handler import handle_exit
+from fuzz_utils.utils.slither_utils import get_target_contract
 from fuzz_utils.templates.harness_templates import templates
 
 # pylint: disable=too-many-instance-attributes
@@ -69,6 +70,7 @@ class Harness:
         self.path = path
 
 
+# pylint: disable=too-few-public-methods
 class HarnessGenerator:
     """
     Handles the generation of Foundry test files from Echidna reproducers
@@ -140,7 +142,7 @@ class HarnessGenerator:
 
         self.slither = slither
         self.targets = [
-            self.get_target_contract(slither, contract) for contract in self.config["targets"]
+            get_target_contract(slither, contract) for contract in self.config["targets"]
         ]
         self.output_dir = self.config["outputDir"]
 
@@ -321,7 +323,7 @@ class HarnessGenerator:
                 attack.set_path(path)
 
                 attack_slither = Slither(f"{attack_output_path}/Attack{name}.sol")
-                attack.set_contract(self.get_target_contract(attack_slither, f"{name}Attack"))
+                attack.set_contract(get_target_contract(attack_slither, f"{name}Attack"))
 
                 attacks.append(attack)
             else:
@@ -392,8 +394,7 @@ class HarnessGenerator:
         for actor_config in self.config["actors"]:
             name = actor_config["name"]
             target_contracts: list[Contract] = [
-                self.get_target_contract(self.slither, contract)
-                for contract in actor_config["targets"]
+                get_target_contract(self.slither, contract) for contract in actor_config["targets"]
             ]
 
             CryticPrint().print_information(f"    Actor: {name}Actor...")
@@ -409,7 +410,7 @@ class HarnessGenerator:
             actor.set_path(path)
 
             actor_slither = Slither(f"{actor_output_path}/Actor{name}.sol")
-            actor.set_contract(self.get_target_contract(actor_slither, f"Actor{name}"))
+            actor.set_contract(get_target_contract(actor_slither, f"Actor{name}"))
 
             actor_contracts.append(actor)
 
@@ -518,17 +519,6 @@ class HarnessGenerator:
         save_file(output_path, f"/{file_name}", ".sol", content)
 
         return content, f"../{directory_name}/{file_name}.sol"
-
-    # pylint: disable=no-self-use
-    def get_target_contract(self, slither: Slither, target_name: str) -> Contract:
-        """Finds and returns Slither Contract"""
-        contracts = slither.get_contract_from_name(target_name)
-        # Loop in case slither fetches multiple contracts for some reason (e.g., similar names?)
-        for contract in contracts:
-            if contract.name == target_name:
-                return contract
-
-        handle_exit(f"\n* Slither could not find the specified contract `{target_name}`.")
 
 
 # Utility functions

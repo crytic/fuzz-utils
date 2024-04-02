@@ -7,6 +7,7 @@ from slither import Slither
 from slither.core.declarations.contract import Contract
 from slither.core.declarations.function_contract import FunctionContract
 from fuzz_utils.utils.remappings import find_remappings
+from fuzz_utils.utils.slither_utils import get_target_contract
 
 from fuzz_utils.template.HarnessGenerator import HarnessGenerator
 
@@ -208,7 +209,7 @@ def run_harness(
 
     # Ensure the harness only contains the functions we're expecting
     slither = Slither(f"./test/fuzzing/harnesses/{harness_name}.sol")
-    target: Contract = generator.get_target_contract(slither, harness_name)
+    target: Contract = get_target_contract(slither, harness_name)
     compare_with_declared_functions(target, set(expected_functions))
 
 

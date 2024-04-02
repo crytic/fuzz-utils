@@ -1,12 +1,17 @@
 """Defines the flags and logic associated with the `template` command"""
 import os
-import json
 from argparse import Namespace, ArgumentParser
 from slither import Slither
 from fuzz_utils.template.HarnessGenerator import HarnessGenerator
 from fuzz_utils.utils.crytic_print import CryticPrint
 from fuzz_utils.utils.remappings import find_remappings
 from fuzz_utils.utils.error_handler import handle_exit
+from fuzz_utils.parsing.parser_util import (
+    check_configuration_field_exists_and_non_empty,
+    open_config,
+)
+
+COMMAND: str = "template"
 
 
 def template_flags(parser: ArgumentParser) -> None:
@@ -42,10 +47,7 @@ def template_command(args: Namespace) -> None:
     else:
         output_dir = os.path.join("./test", "fuzzing")
     if args.config:
-        with open(args.config, "r", encoding="utf-8") as readFile:
-            complete_config = json.load(readFile)
-            if "template" in complete_config:
-                config = complete_config["template"]
+        config = open_config(args.config, COMMAND)
 
     if args.target_contracts:
         config["targets"] = args.target_contracts
@@ -72,15 +74,9 @@ def check_configuration(config: dict) -> None:
     """Checks the configuration"""
     mandatory_configuration_fields = ["mode", "targets", "compilationPath"]
     for field in mandatory_configuration_fields:
-        check_configuration_field_exists_and_non_empty(config, field)
+        check_configuration_field_exists_and_non_empty(config, COMMAND, field)
 
     if config["mode"].lower() not in ("simple", "prank", "actor"):
         handle_exit(
             f"The selected mode {config['mode']} is not a valid harness generation strategy."
         )
-
-
-def check_configuration_field_exists_and_non_empty(config: dict, field: str) -> None:
-    """Checks that the configuration dictionary contains a non-empty field"""
-    if field not in config or len(config[field]) == 0:
-        handle_exit(f"The template configuration field {field} is not configured.")

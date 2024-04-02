@@ -1,5 +1,5 @@
 """Defines the flags and logic associated with the `generate` command"""
-import json
+from pathlib import Path
 from argparse import Namespace, ArgumentParser
 from slither import Slither
 from fuzz_utils.utils.crytic_print import CryticPrint
@@ -7,6 +7,10 @@ from fuzz_utils.generate.FoundryTest import FoundryTest
 from fuzz_utils.generate.fuzzers.Medusa import Medusa
 from fuzz_utils.generate.fuzzers.Echidna import Echidna
 from fuzz_utils.utils.error_handler import handle_exit
+from fuzz_utils.parsing.parser_util import check_config_and_set_default_values, open_config
+from fuzz_utils.utils.slither_utils import get_target_contract
+
+COMMAND: str = "generate"
 
 
 def generate_flags(parser: ArgumentParser) -> None:
@@ -57,15 +61,13 @@ def generate_flags(parser: ArgumentParser) -> None:
     )
 
 
+# pylint: disable=too-many-branches
 def generate_command(args: Namespace) -> None:
     """The execution logic of the `generate` command"""
     config: dict = {}
     # If the config file is defined, read it
     if args.config:
-        with open(args.config, "r", encoding="utf-8") as readFile:
-            complete_config = json.load(readFile)
-            if "generate" in complete_config:
-                config = complete_config["generate"]
+        config = open_config(args.config, COMMAND)
     # Override the config with the CLI values
     if args.compilation_path:
         config["compilationPath"] = args.compilation_path
@@ -90,9 +92,36 @@ def generate_command(args: Namespace) -> None:
         if "allSequences" not in config:
             config["allSequences"] = False
 
+    check_config_and_set_default_values(
+        config,
+        ["compilationPath", "testsDir", "fuzzer", "corpusDir"],
+        [".", "test", "medusa", "corpus"],
+    )
+
     CryticPrint().print_information("Running Slither...")
     slither = Slither(args.compilation_path)
     fuzzer: Echidna | Medusa
+
+    # Derive target if it is not defined but the compilationPath only contains one contract
+    if "targetContract" not in config or len(config["targetContract"]) == 0:
+        if len(slither.contracts_derived) == 1:
+            config["targetContract"] = slither.contracts_derived[0].name
+            CryticPrint().print_information(
+                f"Target contract not specified. Using derived target: {config['targetContract']}."
+            )
+        else:
+            handle_exit(
+                "Target contract cannot be determined. Please specify the target with `-c targetName`"
+            )
+
+    # Derive inheritance path if it is not defined
+    if "inheritancePath" not in config or len(config["inheritancePath"]) == 0:
+        contract = get_target_contract(slither, config["targetContract"])
+        contract_path = Path(contract.source_mapping.filename.relative)
+        tests_path = Path(config["testsDir"])
+        config["inheritancePath"] = str(
+            Path(*([".." * len(tests_path.parts)])).joinpath(contract_path)
+        )
 
     match config["fuzzer"]:
         case "echidna":
