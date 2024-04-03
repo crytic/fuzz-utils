@@ -13,17 +13,23 @@ def find_remappings(include_attacks: bool) -> dict:
     solmate = r"(\S+)=lib\/solmate\/(?!\S*lib\/)(\S*)"
     properties = r"(\S+)=lib\/properties\/(?!\S*lib\/)(\S*)"
     remappings: str = ""
-
+  
     if os.path.exists("remappings.txt"):
         with open("remappings.txt", "r", encoding="utf-8") as file:
             remappings = file.read()
-    else:
-        output = subprocess.run(["forge", "remappings"], capture_output=True, text=True, check=True)
-        remappings = str(output.stdout)
+    
+    output = subprocess.run(["forge", "remappings"], capture_output=True, text=True, check=True)
+    forge_remappings = str(output.stdout)
 
     oz_matches = re.findall(openzeppelin, remappings)
+    if len(oz_matches) == 0:
+        oz_matches = re.findall(openzeppelin, forge_remappings)
     sol_matches = re.findall(solmate, remappings)
+    if len(sol_matches) == 0:
+       sol_matches =  re.findall(solmate, forge_remappings)
     prop_matches = re.findall(properties, remappings)
+    if len(prop_matches) == 0:
+        prop_matches = re.findall(properties, forge_remappings)
 
     if include_attacks and len(oz_matches) == 0 and len(sol_matches) == 0:
         handle_exit(
