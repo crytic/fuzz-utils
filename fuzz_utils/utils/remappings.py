@@ -2,34 +2,39 @@
 import os
 import subprocess
 import re
+from slither import Slither
 from fuzz_utils.utils.crytic_print import CryticPrint
 from fuzz_utils.utils.error_handler import handle_exit
 
-
-def find_remappings(include_attacks: bool) -> dict:
+# pylint: disable=too-many-locals
+def find_remappings(include_attacks: bool, slither: Slither) -> dict:
     """Finds the remappings used and returns a dict with the values"""
     CryticPrint().print_information("Checking dependencies...")
     openzeppelin = r"(\S+)=lib\/openzeppelin-contracts\/(?!\S*lib\/)(\S*)"
     solmate = r"(\S+)=lib\/solmate\/(?!\S*lib\/)(\S*)"
     properties = r"(\S+)=lib\/properties\/(?!\S*lib\/)(\S*)"
+
+    working_dir = slither.crytic_compile.working_dir
+    platform_config = slither.crytic_compile.platform.config(working_dir)
+
     remappings: str = ""
-  
-    if os.path.exists("remappings.txt"):
-        with open("remappings.txt", "r", encoding="utf-8") as file:
-            remappings = file.read()
-    
-    output = subprocess.run(["forge", "remappings"], capture_output=True, text=True, check=True)
-    forge_remappings = str(output.stdout)
+    if platform_config:
+        remappings = "\n".join(platform_config.remappings)
+    else:
+        output = subprocess.run(["forge", "remappings"], capture_output=True, text=True, check=True)
+        forge_remaps = str(output.stdout).split("\n")
+
+        if os.path.exists("remappings.txt"):
+            with open("remappings.txt", "r", encoding="utf-8") as file:
+                remappings_file = file.read().split("\n")
+                # Converting to set to remove duplicates, back to list for joining
+                forge_remaps = list(set(forge_remaps + remappings_file))
+
+        remappings = "\n".join(forge_remaps)
 
     oz_matches = re.findall(openzeppelin, remappings)
-    if len(oz_matches) == 0:
-        oz_matches = re.findall(openzeppelin, forge_remappings)
     sol_matches = re.findall(solmate, remappings)
-    if len(sol_matches) == 0:
-       sol_matches =  re.findall(solmate, forge_remappings)
     prop_matches = re.findall(properties, remappings)
-    if len(prop_matches) == 0:
-        prop_matches = re.findall(properties, forge_remappings)
 
     if include_attacks and len(oz_matches) == 0 and len(sol_matches) == 0:
         handle_exit(
