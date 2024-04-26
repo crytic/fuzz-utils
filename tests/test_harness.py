@@ -191,9 +191,9 @@ def run_harness(
     expected_functions: set[str],
 ) -> None:
     """Sets up the HarnessGenerator"""
-    remappings = find_remappings(False)
-    config = copy.deepcopy(default_config)
     slither = Slither(compilation_path)
+    remappings = find_remappings(False, slither)
+    config = copy.deepcopy(default_config)
 
     config["name"] = harness_name
     config["compilationPath"] = compilation_path

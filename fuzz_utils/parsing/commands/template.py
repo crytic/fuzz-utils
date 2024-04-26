@@ -64,7 +64,7 @@ def template_command(args: Namespace) -> None:
 
     # Check if dependencies are installed
     include_attacks = bool("attacks" in config and len(config["attacks"]) > 0)
-    remappings = find_remappings(include_attacks)
+    remappings = find_remappings(include_attacks, slither)
 
     generator = HarnessGenerator(config, slither, remappings)
     generator.generate_templates()
