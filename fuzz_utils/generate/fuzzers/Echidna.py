@@ -79,7 +79,7 @@ class Echidna:
         caller = call_dict["src"]
 
         if call_dict["call"]["tag"] == "NoCall":
-            template = jinja2.Template(templates["EMPTY"])
+            template = jinja2.Template(templates["EMPTY_CALL"])
             call_str = template.render(time_delay=time_delay, block_delay=block_delay)
             return (call_str, "")
 
