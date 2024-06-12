@@ -5,6 +5,7 @@ import json
 import shutil
 import datetime
 import yaml
+from collections import defaultdict 
 
 from slither import Slither
 from fuzz_utils.utils.slither_utils import get_target_contract
@@ -197,13 +198,13 @@ class CorpusModifier:
             block_delay = int(call_object["delay"][1], 16)
         elif self.fuzzer == "medusa":
             maxTimeDelay = (
-                self.fuzzer_config["fuzzing"]["blockTimestampDelayMax"]
-                if "blockTimestampDelayMax" in self.fuzzer_config["fuzzing"]
+                self.fuzzer_config["blockTimestampDelayMax"]
+                if "blockTimestampDelayMax" in self.fuzzer_config
                 else None
             )
             maxBlockDelay = (
-                self.fuzzer_config["fuzzing"]["blockNumberDelayMax"]
-                if "blockNumberDelayMax" in self.fuzzer_config["fuzzing"]
+                self.fuzzer_config["blockNumberDelayMax"]
+                if "blockNumberDelayMax" in self.fuzzer_config
                 else None
             )
             time_delay = call_object["blockTimestampDelay"]
@@ -255,7 +256,7 @@ class CorpusModifier:
                 else None
             )
         else:
-            raise ValueError("Function blacklisting is only available in Echidna.")
+            return False
 
         if blacklisted_functions:
             if (
@@ -268,10 +269,18 @@ class CorpusModifier:
         if "modifySenders" not in self.modifier_config:
             return call_object
 
-        print("modifySenders run")
-        caller = call_object["src"]
-        if caller in self.modifier_config["modifySenders"].keys():
-            call_object["src"] = self.modifier_config["modifySenders"][caller]
+        caller: str
+        if self.fuzzer == "echidna":
+            caller = call_object["src"]
+            if caller in self.modifier_config["modifySenders"].keys():
+                call_object["src"] = self.modifier_config["modifySenders"][caller]
+        elif self.fuzzer == "medusa":
+            caller = call_object["call"]["from"]
+            if caller in self.modifier_config["modifySenders"].keys():
+                call_object["call"]["from"] = self.modifier_config["modifySenders"][caller]
+        else:
+            raise ValueError(f"Invalid fuzzer: {self.fuzzer}")
+
         return call_object
 
     def _filter_corpus(self, mode: str, rules_list: list, modification_list: list) -> list:
@@ -299,28 +308,49 @@ class CorpusModifier:
                 call = modify_fn(call)
             return call
 
+        def replace_nonce(call: dict, nonces: dict) -> dict:
+            if self.fuzzer == "medusa":
+                caller = call["call"]["from"]
+                call["call"]["nonce"] = nonces[caller]
+                nonces[caller] += 1
+
+            return call
+
+        nonces: dict = defaultdict(lambda: 0)
+        if self.fuzzer == "medusa":
+            for call in call_sequence:
+                if call["call"]["from"] in nonces:
+                    continue
+                else:
+                    nonces[call["call"]["from"]] = call["call"]["nonce"]
+
         if mode not in self.valid_modes:
             raise ValueError("Invalid mode")
 
         resulting_sequence: list = []
 
         for call in call_sequence:
-            # TODO make this remove calls
             if should_skip(call):
                 if mode == "delete_sequence":
                     return None
             else:
+                # Modify call based on modifier rules, if applicable
                 call = replace_fields(call)
+                # Only used for Medusa#
+                call = replace_nonce(call, nonces)
+                # Append the call to the sequence
                 resulting_sequence.append(call)
 
         return resulting_sequence if resulting_sequence else None
 
     def _copy_fuzzer_corpus(self, corpus: dict, current_path: str) -> list:
         temp_corpus: list = []
-        for key in corpus.keys():
+
+        for key, value in corpus.items():
             subdir_path = os.path.join(current_path, key)
-            if isinstance(corpus[key], dict):
-                temp_corpus[key] = self._copy_fuzzer_corpus(corpus[key], subdir_path)
+            if isinstance(value, dict):
+                print(value)
+                temp_corpus.extend(self._copy_fuzzer_corpus(value, subdir_path))
             else:
                 temp_corpus.extend(self._fetch_directory_files(subdir_path))
 
