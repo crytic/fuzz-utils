@@ -40,4 +40,5 @@ def snapshot_command(args: Namespace) -> None:
     )
 
     corpus_modifier = CorpusModifier(config, None)
+    CryticPrint().print_information(f"Saving corpus {args.corpus_dir} to history...")
     corpus_modifier.save_corpus_to_history()

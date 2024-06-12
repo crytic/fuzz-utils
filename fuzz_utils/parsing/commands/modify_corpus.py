@@ -4,7 +4,7 @@ from slither import Slither
 from fuzz_utils.utils.crytic_print import CryticPrint
 from fuzz_utils.modify_corpus.CorpusModifier import CorpusModifier
 from fuzz_utils.utils.error_handler import handle_exit
-from fuzz_utils.parsing.parser_util import check_config_and_set_default_values, open_config
+from fuzz_utils.parsing.parser_util import check_config_and_set_default_values
 
 COMMAND: str = "modify-corpus"
 
@@ -81,14 +81,16 @@ def modify_command(args: Namespace) -> None:
         config["modifySenders"] = {}
         # Process list
         for item in args.modify_senders:
-            assert("=" in item)
+            assert "=" in item
             senders = item.split("=")
             config["modifySenders"][senders[0]] = senders[1]
     if args.filter_functions:
         config["filterFunctions"] = args.filter_functions
     if args.dry_run:
         config["dryRun"] = args.dry_run
-        CryticPrint().print_error("The --dry-run command isn't implemented yet, come back in a bit!")
+        CryticPrint().print_error(
+            "The --dry-run command isn't implemented yet, come back in a bit!"
+        )
 
     check_config_and_set_default_values(
         config,
@@ -103,8 +105,8 @@ def modify_command(args: Namespace) -> None:
 
     if config["fuzzer"] not in {"echidna", "medusa"}:
         handle_exit(
-                f"\n* The requested fuzzer {config['fuzzer']} is not supported. Supported fuzzers: echidna, medusa."
-            )
+            f"\n* The requested fuzzer {config['fuzzer']} is not supported. Supported fuzzers: echidna, medusa."
+        )
 
     corpus_modifier = CorpusModifier(config, slither)
     corpus_modifier.modify_corpus()

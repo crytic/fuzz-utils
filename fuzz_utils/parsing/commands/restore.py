@@ -10,7 +10,10 @@ COMMAND: str = "modify-corpus"
 def restore_flags(parser: ArgumentParser) -> None:
     """The unit test generation parser flags"""
     parser.add_argument(
-        "-ch", "--hash", dest="corpus_hash", help="Hash of the historic corpus that will be restored."
+        "-ch",
+        "--hash",
+        dest="corpus_hash",
+        help="Hash of the historic corpus that will be restored.",
     )
     parser.add_argument(
         "-lh",
@@ -33,6 +36,7 @@ def restore_command(args: Namespace) -> None:
         corpus_modifier.list_historic_corpora()
     else:
         if args.corpus_hash:
+            CryticPrint().print_information(f"Restoring corpus with hash: {args.corpus_hash}")
             corpus_modifier.restore_corpus_from_history(args.corpus_hash)
         else:
             handle_exit("No hash was provided!")
