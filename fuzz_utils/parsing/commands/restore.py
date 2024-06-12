@@ -25,8 +25,9 @@ def restore_flags(parser: ArgumentParser) -> None:
 # pylint: disable=too-many-branches
 def restore_command(args: Namespace) -> None:
     """The execution logic of the `restore` command"""
+    config: dict = {}
 
-    corpus_modifier = CorpusModifier(None, None, None, None)
+    corpus_modifier = CorpusModifier(config, None)
     # Override the config with the CLI values
     if args.list_history:
         corpus_modifier.list_historic_corpora()

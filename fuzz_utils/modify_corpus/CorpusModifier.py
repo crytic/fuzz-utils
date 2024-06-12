@@ -7,48 +7,57 @@ import shutil
 import copy
 import datetime
 from slither import Slither
+from fuzz_utils.utils.slither_utils import get_target_contract
 from fuzz_utils.utils.error_handler import handle_exit
 
 class CorpusModifier:
     """
     Handles modifying the corpus based on the fuzzer configuration.
     """
-    fuzzer_fields: dict
+    fuzzer_fields: dict = {"echidna": ["maxTimeDelay", "maxBlockDelay", "filterFunctions"], "medusa": ["blockTimestampDelayMax", "blockNumberDelayMax"]}
     corpora_format: dict = {"echidna": {"coverage": [], "reproducers": []}, "medusa": {"call_sequences": {"immutable": [], "mutable": []}, "test_results": []}}
-
+    valid_modes: list = ["delete_sequence", "delete_calls"]
+    fuzzer_config: dict | None = None
     def __init__(
         self,
-        config_path: str | None,
-        corpus_path: str | None,
-        slither: Slither | None,
-        fuzzer: str | None,
+        config: dict,
+        slither: Slither | None
     ) -> None:
-        self.fuzzer_fields = {}
+        if config:
+            self.modifier_config = config
         if slither:
             self.slither = slither
-        if corpus_path:
-            self.corpus_path = corpus_path
-        if fuzzer:
-            self.fuzzer = fuzzer
-            self.fuzzer_fields["echidna"] = ["maxTimeDelay", "maxBlockDelay", "filterFunctions"]
-        if config_path:
-            self.config_path = config_path
-            self.fuzzer_config = self._fetch_fuzzer_config(self.fuzzer_fields[fuzzer])
+        if "corpusDir" in config:
+            self.corpus_path = config["corpusDir"]
+        if "fuzzer" in config:
+            self.fuzzer = config["fuzzer"]
+        if "fuzzerConfigPath" in config:
+            self.config_path = config["fuzzerConfigPath"]
+            self.fuzzer_config = self._fetch_fuzzer_config(self.fuzzer_fields[self.fuzzer])
+        if "mode" in config:
+            self.mode = config["mode"]
+        if "targetContract" in config:
+            self.target = get_target_contract(self.slither, config["targetContract"])
         self.corpus_copy = {}
-    
+        self.rules_list = [self._is_incorrect_delay, self._is_blacklisted_function, self._is_nonexistent_function]
+        self.modifications_list = [self._modify_invalid_caller]
+
+
     def modify_corpus(self) -> None:
         """Modifies the current corpus and saves the new version"""
         # 1. Open the corpus and parse all the files
-        self.corpus_copy = self._copy_fuzzer_corpus(self.corpora_format[self.fuzzer.lower()], self.corpus_path)
+        self.corpus_copy = self._copy_fuzzer_corpus(self.corpora_format[self.fuzzer], self.corpus_path)
         # 2. a) Copy current corpus somewhere in case something goes wrong?
         self.save_corpus_to_history()
-        # 3. Define list of rules to apply
-        # TODO update this later to be dynamic
-        rules_list = [self._is_incorrect_delay]
         # 4. Apply the rules
-        self._filter_corpus("filters_calls", rules_list)
+        new_corpus = self._filter_corpus(self.mode, self.rules_list, self.modifications_list)
         # 5. Save the new corpus
-        self._override_corpus_directory(self.corpus_path, self.corpus_copy)
+        self._override_corpus_directory(self.corpus_path, new_corpus)
+
+    def dry_run(self) -> None:
+        """Prints the calls that would be modified, without modifying them"""
+        self.corpus_copy = self._copy_fuzzer_corpus(self.corpora_format[self.fuzzer.lower()], self.corpus_path)
+        new_corpus = self._filter_corpus(self.mode, self.rules_list, self.modifications_list)
 
     def save_corpus_to_history(self) -> None:
         """Saves the current corpus directory to the corpus history"""
@@ -70,7 +79,7 @@ class CorpusModifier:
 
         with open(history_path, "r", encoding="utf-8") as f:
             history = json.load(f)
-        
+
         if corpus_hash in history.keys():
             print(f"The corpus is already saved to history with the hash {corpus_hash}")
             return
@@ -82,7 +91,7 @@ class CorpusModifier:
         # TODO check if this can fail
         with open(history_path, "w", encoding="utf-8") as f:
             json.dump(history, f)
-    
+
     def restore_corpus_from_history(self, corpus_hash: str) -> None:
         """Overrides the current corpus directory with a historical version"""
         directory = self._create_or_fetch_hidden_directory()
@@ -91,7 +100,7 @@ class CorpusModifier:
         # TODO check if this can fail
         with open(history_path, "r", encoding="utf-8") as f:
             history = json.load(f)
-        
+
             if corpus_hash in history.keys():
                 fetched_corpus = history[corpus_hash]
                 self._override_corpus_directory(fetched_corpus["path"], fetched_corpus["content"])
@@ -143,54 +152,119 @@ class CorpusModifier:
         os.makedirs(directory_name, exist_ok=True)
         return directory_name
 
-
-
-    # TODO only supports Echidna for now
     def _is_incorrect_delay(self, call_object: dict) -> bool:
-        maxTimeDelay = self.fuzzer_config["maxTimeDelay"] if "maxTimeDelay" in self.fuzzer_config else None
-        maxBlockDelay = self.fuzzer_config["maxBlockDelay"] if "maxBlockDelay" in self.fuzzer_config else None
+        if not self.fuzzer_config:
+            return False
 
-        if maxTimeDelay:
+        maxTimeDelay: int | None
+        maxBlockDelay: int | None
+        time_delay: int
+        block_delay: int
+
+        if self.fuzzer == "echidna":
+            maxTimeDelay = self.fuzzer_config["maxTimeDelay"] if "maxTimeDelay" in self.fuzzer_config else None
+            maxBlockDelay = self.fuzzer_config["maxBlockDelay"] if "maxBlockDelay" in self.fuzzer_config else None
             time_delay = int(call_object["delay"][0], 16)
+            block_delay = int(call_object["delay"][1], 16)
+        elif self.fuzzer == "medusa":
+            maxTimeDelay = self.fuzzer_config["fuzzing"]["blockTimestampDelayMax"] if "blockTimestampDelayMax" in self.fuzzer_config["fuzzing"] else None
+            maxBlockDelay = self.fuzzer_config["fuzzing"]["blockNumberDelayMax"] if "blockNumberDelayMax" in self.fuzzer_config["fuzzing"] else None
+            time_delay = call_object["blockTimestampDelay"]
+            block_delay = call_object["blockNumberDelay"]
+        else:
+            raise ValueError(f"Invalid fuzzer: {self.fuzzer}")
+        
+        if maxTimeDelay:
             if time_delay > maxTimeDelay:
                 return True
         if maxBlockDelay:
-            block_delay = int(call_object["delay"][1], 16)
             if block_delay > maxBlockDelay:
                 return True
 
         return False
 
-    def _filter_corpus(self, mode: str, rules_list: list) -> None:
+    def _is_nonexistent_function(self, call_object: dict) -> bool:
+        if "filterFunctions" not in self.modifier_config:
+            return False
+
+        function_name: str
+        #contracts = self.slither.contracts_derived
+        #functions = [y.name for x in contracts for y in x.functions_entry_points]
+        # TODO enable multiple targets later
+        functions = [x.name for x in self.target.functions_entry_points]
+
+        if self.fuzzer == "echidna":
+            function_name = call_object["call"]["contents"][0]
+        elif self.fuzzer == "medusa":
+            function_name = call_object["call"]["dataAbiValues"]["methodSignature"].split("(")[0]
+        else:
+            raise ValueError(f"Invalid fuzzer: {self.fuzzer}")
+        print(f"fnName {function_name}, functions list {functions}")
+        if function_name not in functions:
+            return True
+        return False
+
+    def _is_blacklisted_function(self, call_object: dict) -> bool:
+        if not self.fuzzer_config:
+            return False
+
+        function_name: str
+        blacklisted_functions: list | None
+        if self.fuzzer == "echidna":
+            function_name = call_object["call"]["contents"][0]
+            blacklisted_functions: list | None = self.fuzzer_config["filterFunctions"] if "filterFunctions" in self.fuzzer_config else None
+        else:
+            raise ValueError("Function blacklisting is only available in Echidna.")
+
+        if blacklisted_functions:
+            if function_name in blacklisted_functions: # pylint: disable=unsupported-membership-test
+                return True
+        return False
+
+    def _modify_invalid_caller(self, call_object: dict) -> dict:
+        if "modifySenders" not in self.modifier_config:
+            return call_object
+
+        print("modifySenders run")
+        caller = call_object["src"]
+        if caller in self.modifier_config["modifySenders"].keys():
+            call_object["src"] = self.modifier_config["modifySenders"][caller]
+        return call_object
+
+    def _filter_corpus(self, mode: str, rules_list: list, modification_list: list) -> list:
+        new_corpus: list = []
         for idx, value in enumerate(self.corpus_copy):
-            sequence_list: list = []
             # A list of files with call sequences in them
-            for call_sequence in value["content"]:
-                resulting_sequence = self._filter_call_sequence(mode, rules_list, call_sequence)
+            resulting_sequence = self._filter_call_sequence(mode, rules_list, modification_list, value["content"])
 
-                if resulting_sequence:
-                    sequence_list.append(resulting_sequence)
+            if resulting_sequence:
+                new_corpus.append({"path": self.corpus_copy[idx]["path"], "content": resulting_sequence})
+        return new_corpus
 
-            # Override the old call sequences with the new ones
-            self.corpus_copy[idx] = {"path": self.corpus_copy[idx]["path"], "content": sequence_list}
-
-    def _filter_call_sequence(self, mode: str, rules_list: list, call_sequence: list) -> dict | None:
+    def _filter_call_sequence(self, mode: str, rules_list: list, modification_list: list, call_sequence: list) -> dict | None:
         def should_skip(call):
             return any(rule_fn(call) for rule_fn in rules_list)
 
-        if mode not in {"delete_sequence", "filter_calls"}:
+        def replace_fields(call) -> dict:
+            for modify_fn in modification_list:
+                call = modify_fn(call)
+            return call
+
+        if mode not in self.valid_modes:
             raise ValueError("Invalid mode")
 
-        resulting_sequence: dict = {"name": call_sequence["name"], "content": []}
+        resulting_sequence: list = []
 
-        for call in call_sequence["content"]:
+        for call in call_sequence:
+            # TODO make this remove calls
             if should_skip(call):
                 if mode == "delete_sequence":
                     return None
             else:
-                resulting_sequence["content"].append(call)
+                call = replace_fields(call)
+                resulting_sequence.append(call)
 
-        return resulting_sequence if resulting_sequence["content"] else None
+        return resulting_sequence if resulting_sequence else None
 
 
     def _copy_fuzzer_corpus(self, corpus: dict, current_path: str) -> list | None:
@@ -230,15 +304,14 @@ class CorpusModifier:
         if os.path.isfile(self.config_path):
             try:
                 with open(self.config_path, "r", encoding="utf-8") as file:
-                    if self.fuzzer.lower() == "echidna":
+                    if self.fuzzer == "echidna":
                         complete_config = yaml.safe_load(file)
                     else:
-                        complete_config = json.load(file)
+                        complete_config = json.load(file)["fuzzing"]
             except Exception: # pylint: disable=broad-except
                 handle_exit(f"Failed to find the fuzzer configuration file at {self.config_path}")
 
         for key, value in complete_config.items():
-            # TODO won't work for Medusa
             if key in fields:
                 filtered_config[key] = value
 

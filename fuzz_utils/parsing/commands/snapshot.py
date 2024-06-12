@@ -39,5 +39,5 @@ def snapshot_command(args: Namespace) -> None:
         ["echidna", "corpus"],
     )
 
-    corpus_modifier = CorpusModifier(None, config["corpusDir"], None, config["fuzzer"])
+    corpus_modifier = CorpusModifier(config, None)
     corpus_modifier.save_corpus_to_history()
