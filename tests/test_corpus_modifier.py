@@ -33,6 +33,9 @@ def compare_corpus_with_expected(expected_corpus: list, new_corpus: list) -> Non
         assert expected_corpus_sorted[idx]["content"] == item["content"]
 
 
+# delete_calls mode
+
+
 def test_echidna_delay_delete_calls(
     setup_foundry_temp_dir: TempPathFactory,
 ) -> None:
@@ -47,9 +50,9 @@ def test_echidna_delay_delete_calls(
 
     modifier = CorpusModifier(config, None)
     new_corpus, corpus_hash = modifier.modify_corpus()
-    # print("new corpus", new_corpus)
-    compare_corpus_with_expected(expected_results["echidna"]["time_and_block_call"], new_corpus)
+
     modifier.restore_corpus_from_history(corpus_hash)
+    compare_corpus_with_expected(expected_results["echidna"]["time_and_block_call"], new_corpus)
 
 
 def test_echidna_blacklist_delete_calls(
@@ -67,10 +70,10 @@ def test_echidna_blacklist_delete_calls(
     modifier = CorpusModifier(config, None)
     new_corpus, corpus_hash = modifier.modify_corpus()
 
+    modifier.restore_corpus_from_history(corpus_hash)
     compare_corpus_with_expected(
         expected_results["echidna"]["blacklisted_functions_call"], new_corpus
     )
-    modifier.restore_corpus_from_history(corpus_hash)
 
 
 def test_echidna_function_filter_delete_calls(
@@ -89,8 +92,71 @@ def test_echidna_function_filter_delete_calls(
 
     new_corpus, corpus_hash = modifier.modify_corpus()
     # print("new corpus", new_corpus)
-    compare_corpus_with_expected(expected_results["echidna"]["invalid_functions_call"], new_corpus)
     modifier.restore_corpus_from_history(corpus_hash)
+    compare_corpus_with_expected(expected_results["echidna"]["invalid_functions_call"], new_corpus)
+
+
+# delete_sequence mode
+
+
+def test_echidna_delay_delete_sequence(
+    setup_foundry_temp_dir: TempPathFactory,
+) -> None:
+    """Test that correct calls are deleted when filtering by time and block delay"""
+    config = copy.deepcopy(default_config)
+    config["mode"] = "delete_sequence"
+    config["corpusDir"] = "echidna-corpora/corpus-basic-modifier"
+    config["fuzzerConfigPath"] = "echidna.yaml"
+    config["fuzzer"] = "echidna"
+
+    create_file(setup_foundry_temp_dir, "echidna.yaml", "maxTimeDelay: 65535\nmaxBlockDelay: 46801")
+
+    modifier = CorpusModifier(config, None)
+    new_corpus, corpus_hash = modifier.modify_corpus()
+
+    modifier.restore_corpus_from_history(corpus_hash)
+    compare_corpus_with_expected(expected_results["echidna"]["time_and_block_seq"], new_corpus)
+
+
+def test_echidna_blacklist_delete_sequence(
+    setup_foundry_temp_dir: TempPathFactory,
+) -> None:
+    """Test that correct calls are deleted when filtering blacklisted functions"""
+    config = copy.deepcopy(default_config)
+    config["mode"] = "delete_sequence"
+    config["corpusDir"] = "echidna-corpora/corpus-basic-modifier"
+    config["fuzzerConfigPath"] = "echidna.yaml"
+    config["fuzzer"] = "echidna"
+
+    create_file(setup_foundry_temp_dir, "echidna.yaml", 'filterFunctions: ["check_uint256"]')
+
+    modifier = CorpusModifier(config, None)
+    new_corpus, corpus_hash = modifier.modify_corpus()
+
+    modifier.restore_corpus_from_history(corpus_hash)
+    compare_corpus_with_expected(
+        expected_results["echidna"]["blacklisted_functions_seq"], new_corpus
+    )
+
+
+def test_echidna_function_filter_delete_sequence(
+    setup_foundry_temp_dir: TempPathFactory,  # pylint: disable=unused-argument
+) -> None:
+    """Test that correct calls are deleted when filtering non-existent functions"""
+    config = copy.deepcopy(default_config)
+    config["corpusDir"] = "echidna-corpora/corpus-basic-modifier"
+    config["targetContract"] = "BasicTypesNoCheckUint256"
+    config["filterFunctions"] = True
+    config["mode"] = "delete_sequence"
+    config["fuzzer"] = "echidna"
+
+    slither = Slither(config["compilationPath"])
+    modifier = CorpusModifier(config, slither)
+
+    new_corpus, corpus_hash = modifier.modify_corpus()
+
+    modifier.restore_corpus_from_history(corpus_hash)
+    compare_corpus_with_expected(expected_results["echidna"]["invalid_functions_seq"], new_corpus)
 
 
 def test_echidna_modify_senders(
@@ -108,8 +174,8 @@ def test_echidna_modify_senders(
     modifier = CorpusModifier(config, None)
     new_corpus, corpus_hash = modifier.modify_corpus()
 
-    compare_corpus_with_expected(expected_results["echidna"]["modify_senders"], new_corpus)
     modifier.restore_corpus_from_history(corpus_hash)
+    compare_corpus_with_expected(expected_results["echidna"]["modify_senders"], new_corpus)
 
 
 def test_medusa_delay_delete_calls(
@@ -130,12 +196,9 @@ def test_medusa_delay_delete_calls(
 
     modifier = CorpusModifier(config, None)
     new_corpus, corpus_hash = modifier.modify_corpus()
-    print("new corpus", new_corpus)
-    compare_corpus_with_expected(expected_results["medusa"]["time_and_block_call"], new_corpus)
-    # set1 = set(new_corpus)
-    # set2 = set(expected_results["medusa"]["time_and_block_call"])
-    # print("Diff", set1 ^ set2)
+
     modifier.restore_corpus_from_history(corpus_hash)
+    compare_corpus_with_expected(expected_results["medusa"]["time_and_block_call"], new_corpus)
 
 
 def test_medusa_function_filter_delete_calls(
@@ -153,8 +216,50 @@ def test_medusa_function_filter_delete_calls(
     modifier = CorpusModifier(config, slither)
 
     new_corpus, corpus_hash = modifier.modify_corpus()
-    compare_corpus_with_expected(expected_results["medusa"]["invalid_functions_call"], new_corpus)
     modifier.restore_corpus_from_history(corpus_hash)
+    compare_corpus_with_expected(expected_results["medusa"]["invalid_functions_call"], new_corpus)
+
+
+def test_medusa_delay_delete_sequence(
+    setup_foundry_temp_dir: TempPathFactory,
+) -> None:
+    """Test that correct calls are deleted when filtering by time and block delay"""
+    config = copy.deepcopy(default_config)
+    config["mode"] = "delete_sequence"
+    config["corpusDir"] = "medusa-corpora/corpus-basic-modifier"
+    config["fuzzerConfigPath"] = "medusa.json"
+    config["fuzzer"] = "medusa"
+
+    create_file(
+        setup_foundry_temp_dir,
+        "medusa.json",
+        '{"fuzzing": {"blockNumberDelayMax": 100,\n"blockTimestampDelayMax": 100}}',
+    )
+
+    modifier = CorpusModifier(config, None)
+    new_corpus, corpus_hash = modifier.modify_corpus()
+
+    modifier.restore_corpus_from_history(corpus_hash)
+    compare_corpus_with_expected(expected_results["medusa"]["time_and_block_seq"], new_corpus)
+
+
+def test_medusa_function_filter_delete_sequence(
+    setup_foundry_temp_dir: TempPathFactory,  # pylint: disable=unused-argument
+) -> None:
+    """Test that correct calls are deleted when filtering non-existent functions"""
+    config = copy.deepcopy(default_config)
+    config["corpusDir"] = "medusa-corpora/corpus-basic-modifier"
+    config["targetContract"] = "BasicTypesNoCheckUint256"
+    config["filterFunctions"] = True
+    config["mode"] = "delete_sequence"
+    config["fuzzer"] = "medusa"
+
+    slither = Slither(config["compilationPath"])
+    modifier = CorpusModifier(config, slither)
+
+    new_corpus, corpus_hash = modifier.modify_corpus()
+    modifier.restore_corpus_from_history(corpus_hash)
+    compare_corpus_with_expected(expected_results["medusa"]["invalid_functions_seq"], new_corpus)
 
 
 def test_medusa_modify_senders(
@@ -171,6 +276,5 @@ def test_medusa_modify_senders(
 
     modifier = CorpusModifier(config, None)
     new_corpus, corpus_hash = modifier.modify_corpus()
-
-    compare_corpus_with_expected(expected_results["medusa"]["modify_senders"], new_corpus)
     modifier.restore_corpus_from_history(corpus_hash)
+    compare_corpus_with_expected(expected_results["medusa"]["modify_senders"], new_corpus)
