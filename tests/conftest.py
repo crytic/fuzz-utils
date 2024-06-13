@@ -105,7 +105,7 @@ def value_transfer() -> TestGenerator:
 
 
 @pytest.fixture(scope="session")  # type: ignore[misc]
-def setup_foundry_temp_dir(tmp_path_factory: Any) -> None:
+def setup_foundry_temp_dir(tmp_path_factory: Any) -> Any:
     """Sets up a temporary directory for the tests that contain all the necessary Foundry files"""
     # Create a temporary directory valid for the session
     temp_dir = tmp_path_factory.mktemp("foundry_session")
@@ -153,18 +153,22 @@ def setup_foundry_temp_dir(tmp_path_factory: Any) -> None:
     )
 
     os.chdir(temp_dir)
+    return temp_dir
+
+
+def create_file(temp_dir: Any, file_name: str, out_str: str) -> None:
+    """Creates a remappings file"""
+    file_path = os.path.join(temp_dir, file_name)
+    with open(file_path, "w", encoding="utf-8") as outfile:
+        outfile.write(out_str)
 
 
 def create_remappings_file(temp_dir: Any, out_str: str | None) -> None:
     """Creates a remappings file"""
-    remappings = os.path.join(temp_dir, "remappings.txt")
-    with open(remappings, "w", encoding="utf-8") as outfile:
-        if out_str:
-            outfile.write(out_str)
-        else:
-            outfile.write(
-                "forge-std/=lib/forge-std/src/\nproperties/=lib/properties/contracts/\nsolmate/=lib/solmate/src/\nsrc/=src/"
-            )
+    if not out_str:
+        out_str = "forge-std/=lib/forge-std/src/\nproperties/=lib/properties/contracts/\nsolmate/=lib/solmate/src/\nsrc/=src/"
+
+    create_file(temp_dir, "remappings.txt", out_str)
 
 
 def copy_directory_contents(src_dir: str, dest_dir: str) -> None:
