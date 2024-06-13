@@ -4,6 +4,9 @@ from argparse import Namespace, _SubParsersAction
 from fuzz_utils.parsing.commands.generate import generate_command, generate_flags
 from fuzz_utils.parsing.commands.template import template_command, template_flags
 from fuzz_utils.parsing.commands.init import init_command, init_flags
+from fuzz_utils.parsing.commands.restore import restore_command, restore_flags
+from fuzz_utils.parsing.commands.snapshot import snapshot_command, snapshot_flags
+from fuzz_utils.parsing.commands.modify_corpus import modify_command, modify_flags
 
 parsers: dict[str, dict[str, Any]] = {
     "init": {
@@ -22,6 +25,24 @@ parsers: dict[str, dict[str, Any]] = {
         "command": generate_command,
         "help": "Generate unit tests from fuzzer corpora sequences.",
         "flags": generate_flags,
+        "subparser": None,
+    },
+    "modify-corpus": {
+        "command": modify_command,
+        "help": "Modifies the provided corpus.",
+        "flags": modify_flags,
+        "subparser": None,
+    },
+    "snapshot": {
+        "command": snapshot_command,
+        "help": "Save the provided corpus directory.",
+        "flags": snapshot_flags,
+        "subparser": None,
+    },
+    "restore": {
+        "command": restore_command,
+        "help": "Restore a corpus directory from a historic hash.",
+        "flags": restore_flags,
         "subparser": None,
     },
 }
