@@ -27,7 +27,9 @@ def compare_corpus_with_expected(expected_corpus: list, new_corpus: list) -> Non
     """Compares two corpora, failing if they're not the same"""
     assert len(expected_corpus) == len(new_corpus)
     expected_corpus_sorted = sorted(expected_corpus, key=lambda d: d["name"])
-    new_corpus_sorted = sorted(new_corpus, key=lambda d: os.path.normpath(d["path"]).split(os.path.sep)[-1])
+    new_corpus_sorted = sorted(
+        new_corpus, key=lambda d: os.path.normpath(d["path"]).split(os.path.sep)[-1]
+    )
     for idx, item in enumerate(new_corpus_sorted):
         name = os.path.normpath(item["path"]).split(os.path.sep)[-1]
         assert expected_corpus_sorted[idx]["name"] == name
