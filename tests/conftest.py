@@ -117,6 +117,13 @@ def setup_foundry_temp_dir(tmp_path_factory: Any) -> None:
     subprocess.run(
         ["forge", "install", "transmissions11/solmate", "--no-git"], check=True, cwd=temp_dir
     )
+
+    # Create foundry config
+    foundry_config = os.path.join(temp_dir, "foundry.toml")
+    out_str: str = '[profile.default]\nsolc-version = "0.8.19"\nevm_version = "shanghai"'
+    with open(foundry_config, "w", encoding="utf-8") as outfile:
+        outfile.write(out_str)
+
     # Create remappings file
     create_remappings_file(temp_dir, None)
 
