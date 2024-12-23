@@ -120,7 +120,7 @@ def setup_foundry_temp_dir(tmp_path_factory: Any) -> None:
 
     # Create foundry config
     foundry_config = os.path.join(temp_dir, "foundry.toml")
-    out_str: str = "[profile.default]\nsolc-version = \"0.8.19\"\nevm_version = \"shanghai\""
+    out_str: str = '[profile.default]\nsolc-version = "0.8.19"\nevm_version = "shanghai"'
     with open(foundry_config, "w", encoding="utf-8") as outfile:
         outfile.write(out_str)
 
